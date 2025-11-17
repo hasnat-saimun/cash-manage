@@ -1,0 +1,13 @@
+HTTrack3.49-2+htsswf+htsjava launched on Mon, 17 Nov 2025 01:05:22 at https://mannatthemes.com/approx/default/index.html +*.png +*.gif +*.jpg +*.jpeg +*.css +*.js -ad.doubleclick.net/* -mime:application/foobar
+(winhttrack -qwC2%Ps2u1%s%uN0%I0p3DaK0H0%kf2A25000%f#f -F "Mozilla/4.5 (compatible; HTTrack 3.0x; Windows 98)" -%F "<!-- Mirrored from %s%s by HTTrack Website Copier/3.x [XR&CO'2014], %s -->" -%l "en, *" https://mannatthemes.com/approx/default/index.html -O1 "C:\My Web Sites\cash-mamage" +*.png +*.gif +*.jpg +*.jpeg +*.css +*.js -ad.doubleclick.net/* -mime:application/foobar )
+
+Information, Warnings and Errors reported for this mirror:
+note:	the hts-log.txt file, and hts-cache folder, may contain sensitive information,
+	such as username/password authentication for websites mirrored in this project
+	do not share these files/folders if you want these information to remain private
+
+01:08:16	Error: 	"Not Found" (404) at link https://mannatthemes.com/approx/default/cropped.jpg (from https://mannatthemes.com/approx/default/forms-img-crop.html)
+01:08:18	Error: 	"Not Found" (404) at link https://mannatthemes.com/approx/default/assets/JS/pages/tree.init.js (from https://mannatthemes.com/approx/default/pages-treeview.html)
+
+HTTrack Website Copier/3.49-2 mirror complete in 2 minutes 56 seconds : 262 links scanned, 259 files written (23260133 bytes overall) [17934254 bytes received at 101899 bytes/sec], 6081291 bytes transferred using HTTP compression in 84 files, ratio 11%, 18.7 requests per connection
+(2 errors, 0 warnings, 0 messages)
