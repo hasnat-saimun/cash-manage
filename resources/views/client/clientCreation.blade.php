@@ -75,7 +75,7 @@ Client
                                 <td>{{$client->client_phone}}</td>
                                 <td><span class="badge rounded text-success bg-success-subtle">Active</span></td>
                                 <td class="text-end">
-                                    <a href="{{ route('clientEdit',['id'=>$client->id]) }}" data-bs-toggle="modal" data-bs-target="#editClient"><i class="las la-pen text-secondary fs-18"></i></a>
+                                    <a href="{{ route('clientEdit',['id'=>$client->id]) }}"><i class="las la-pen text-secondary fs-18"></i></a>
                                     <a href="#"><i class="las la-trash-alt text-secondary fs-18"></i></a>
                                 </td>
                             </tr>
@@ -279,7 +279,7 @@ if(!empty($itemId)):
                     <!--end row-->
                 </div>
                 <div class="modal-footer">
-                    <button type="submit" class="btn btn-primary w-100">Add Client</button>
+                    <button type="submit" class="btn btn-primary w-100">Update Client</button>
                 </div>
             </form>
         </div>
