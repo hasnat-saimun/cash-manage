@@ -2,28 +2,60 @@
 
 namespace App\Http\Controllers;
 
+
 use Illuminate\Http\Request;
+use App\Models\clientCreation;
+
 
 class clintController extends Controller
 {
     public function clientCreation(){
-        return view('client.clientCreation');
-    }
-
-    public function saveClient(Request $request){
-        // Validate the request data
-        $validatedData = $request->validate([
-            'client_name' => 'required|string|max:255',
-            'client_email' => 'required|email|unique:client_creations,client_email',
-            'client_phone' => 'required|string|max:15',
-            'client_acNum' => 'required|string|max:50',
-            'client_regDate' => 'required|date',
+        $allClient  = clientCreation::all();
+        return view('client.clientCreation',[
+            'allClient' => $allClient,
         ]);
-
-        // Create a new client record
-        \App\Models\ClientCreation::create($validatedData);
-
-        // Redirect back with a success message
-        return redirect()->route('clientCreation')->with('success', 'Client created successfully!');
     }
+
+     public function saveClient(Request $requ){
+        if(empty($requ->itemId)):
+            $data   = new clientCreation();
+        else:
+            $data   = clientCreation::find($requ->itemId);
+        endif;
+
+        $data->client_name       = $requ->fullName;
+        $data->client_email     = $requ->email;
+        $data->client_phone       = $requ->mobileNo;
+        $data->client_acNum     = $requ->acNumber;
+        $data->client_regDate     = $requ->registerDate;
+        if($data->save()):
+            return back()->with('success','Success! Account creation successfully');
+        else:
+            return back()->with('error','Opps! Account creation failed. Please try later');
+        endif;
+        
+    }
+
+    public function clientEdit($id){
+        return view('client.clientCreation',[
+            'itemId' => $id,
+        ]);
+    }
+
+    public function updateClient(Request $requ){
+        $data   = clientCreation::find($requ->itemId);
+
+        $data->client_name       = $requ->fullName;
+        $data->client_email     = $requ->email;
+        $data->client_phone       = $requ->mobileNo;
+        $data->client_acNum     = $requ->acNumber;
+        $data->client_regDate     = $requ->registerDate;
+        if($data->save()):
+            return back()->with('success','Success! Account updated successfully');
+        else:
+            return back()->with('error','Opps! Account update failed. Please try later');
+        endif;
+        
+    }
+
 }
