@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\clintController;
+use App\Http\Controllers\transactionController;
 
 Route::get('/', function () {
     return view('dashBoard');
@@ -38,3 +39,9 @@ Route::get('/client-edit/{id}',
  [    clintController::class, 
   'deleteClient'])
   ->name('deleteClient');
+
+// Transaction Creation Route
+Route::get('/transaction-creation',
+ [   transactionController::class,
+  'transactionCreation'])
+  ->name('transactionCreation');
