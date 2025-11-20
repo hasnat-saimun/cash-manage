@@ -51,9 +51,19 @@ class clintController extends Controller
         $data->client_acNum     = $requ->acNumber;
         $data->client_regDate     = $requ->registerDate;
         if($data->save()):
-            return back()->with('success','Success! Account updated successfully');
+            return redirect(route('clientCreation'))->with('success','Success! Account update successfully');
         else:
             return back()->with('error','Opps! Account update failed. Please try later');
+        endif;
+        
+    }
+
+    public function deleteClient($id){
+        $data   = clientCreation::find($id);
+        if($data->delete()):
+            return back()->with('success','Success! Client deleted successfully');
+        else:
+            return back()->with('error','Opps! Client deletion failed. Please try later');
         endif;
         
     }

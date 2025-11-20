@@ -1123,7 +1123,7 @@
                         </div>
                         <!--end col-->
                     </div>
-                    <!--end row--><div class="row justify-content-center">
+                   <div class="row justify-content-center">
                         @yield('bodyContent')
                    </div>
                     <!--end row-->

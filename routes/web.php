@@ -32,3 +32,9 @@ Route::get('/client-edit/{id}',
  [    clintController::class,
   'updateClient'])
   ->name('updateClient');
+
+  // route for delete client
+  Route::get('/delete-client/{id}',
+ [    clintController::class, 
+  'deleteClient'])
+  ->name('deleteClient');

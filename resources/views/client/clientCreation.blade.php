@@ -6,6 +6,44 @@ Clint
 Client
 @endsection
 @section('bodyContent')
+
+
+@php
+if(!empty($itemId)):
+        $items       = \App\Models\clientCreation::find($itemId);
+        if(!empty($items)): 
+            $fullName              = $items->client_name;
+            $email              = $items->client_email   ;
+            $mobileNo              = $items->client_phone;
+            $acNumber              = $items->client_acNum;
+            $registerDate              = $items->client_regDate;
+        endif;
+    else:
+        $itemId                 = null;
+        $fullName               = "";
+        $email                  = "";
+        $mobileNo               = "";
+        $acNumber               = "";
+        $registerDate           = "";
+    endif;
+@endphp
+
+<div class="row">
+    <div class="col-12">
+        @if(session()->has('success'))
+            <div class="alert alert-success w-100 rounded-0">
+                {{ session()->get('success') }}
+            </div>
+        @endif
+        @if(session()->has('error'))
+            <div class="alert alert-danger w-100 rounded-0">
+                {{ session()->get('error') }}
+            </div>
+        @endif
+    </div>
+</div>
+
+            @if(empty($itemId))
 <div class="row">
     <div class="col-12">
         <div class="card">
@@ -25,20 +63,6 @@ Client
                 <!--end row-->
             </div>
             <!--end card-header-->
-            <div class="row">
-                <div class="col-12">
-                    @if(session()->has('success'))
-                        <div class="alert alert-success w-100 rounded-0">
-                            {{ session()->get('success') }}
-                        </div>
-                    @endif
-                    @if(session()->has('error'))
-                        <div class="alert alert-danger w-100 rounded-0">
-                            {{ session()->get('error') }}
-                        </div>
-                    @endif
-                </div>
-            </div>
             <div class="card-body pt-0">
                 <div class="table-responsive">
                     <table class="table mb-0" id="datatable_1">
@@ -76,7 +100,7 @@ Client
                                 <td><span class="badge rounded text-success bg-success-subtle">Active</span></td>
                                 <td class="text-end">
                                     <a href="{{ route('clientEdit',['id'=>$client->id]) }}"><i class="las la-pen text-secondary fs-18"></i></a>
-                                    <a href="#"><i class="las la-trash-alt text-secondary fs-18"></i></a>
+                                    <a href="{{route('deleteClient',['id'=>$client->id])}}"><i class="las la-trash-alt text-secondary fs-18"></i></a>
                                 </td>
                             </tr>
                         @php
@@ -110,7 +134,97 @@ Client
     </div>
     <!-- end col -->
 </div>
+@else
 <!-- end row -->
+ 
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+             <div class="card-header">
+                <div class="row align-items-center">
+                    <div class="col">
+                        <h4 class="card-title">Update Client Detail</h4>
+                    </div>
+                    <!--end col-->
+                    <div class="col-auto">
+                        <a href="{{ route('clientCreation') }}" class="btn btn-secondary ">Back</a>
+                    </div>
+                    <!--end col-->
+                </div>
+                <!--end row-->
+            </div>
+            <div class="card-body">
+                <form action="{{ route('updateClient') }}" method="POST" >
+                @csrf
+                    <input type="hidden" name="itemId" value="{{ $itemId }}">
+                    <div class="mb-2">
+                        <label for="fullName">Full Name</label>
+                        <div class="input-group">
+                            <span class="input-group-text" id="fullName"><i class="far fa-user"></i></span>
+                            <input type="text" class="form-control" placeholder="Name" aria-label="FullName" name="fullName" value="{{ $fullName }}" required />
+                        </div>
+                    </div>
+                    <div class="mb-2">
+                        <label for="account">Account Number</label>
+                        <div class="input-group">
+                            <span class="input-group-text" id="account">A/c</span>
+                            <input type="number" class="form-control" placeholder="Account number" aria-label="email"  name="acNumber" value="{{ $acNumber }}" required/>
+                        </div>
+                    </div>
+                    <div class="mb-2">
+                        <label for="email">Email</label>
+                        <div class="input-group">
+                            <span class="input-group-text" id="email"><i class="far fa-envelope"></i></span>
+                            <input type="email" class="form-control" placeholder="Email address" aria-label="email" name="email" value="{{ $email }}" requiredd/>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-2">
+                                <label for="ragisterDate">Register Date</label>
+                                <div class="input-group">
+                                    <span class="input-group-text" id="ragisterDate"><i class="far fa-calendar"></i></span>
+                                    <input
+                                        type="date"
+                                        class="form-control"
+                                        placeholder="00/2024"
+                                        aria-label="ragisterDate"
+                                        name="registerDate"
+                                        value="{{ $registerDate }}" required
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                        <!--end col-->
+                        <div class="col-md-6">
+                            <div class="mb-2">
+                                <label for="mobilleNo">Mobille No</label>
+                                <div class="input-group">
+                                    <span class="input-group-text" id="mobilleNo"><i class="fas fa-phone"></i></span>
+                                    <input
+                                        type="text"
+                                        class="form-control"
+                                        placeholder="+1 234 567 890"
+                                        aria-label="mobilleNo"
+                                        name="mobileNo"
+                                        value="{{ $mobileNo }}" required
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                        <!--end col-->
+                    </div>
+                    <!--end row-->
+                </div>
+                <div class="text-center mb-3">
+                    <button type="reset" class="btn btn-primary ">Update Client</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+@endif
+
 
 <!-- end page-wrapper -->
 <div class="modal fade" id="addClient" tabindex="-1" aria-labelledby="addClientLabel" aria-hidden="true">
@@ -182,107 +296,12 @@ Client
                 </div>
                 <div class="modal-footer">
                     <button type="submit" class="btn btn-primary w-100">Add Client</button>
+                    
+                    <button type="reset" class="btn btn-light w-100">reset</button>
                 </div>
             </form>
         </div>
     </div>
 </div>
 
-
-@php
-if(!empty($itemId)):
-        $items       = \App\Models\clientCreation::find($itemId);
-        if(!empty($items)): 
-            $fullName              = $items->client_name;
-            $email              = $items->client_email   ;
-            $mobileNo              = $items->client_phone;
-            $acNumber              = $items->client_acNum;
-            $registerDate              = $items->client_regDate;
-        endif;
-    else:
-        $itemId                 = null;
-        $fullName               = "";
-        $email                  = "";
-        $mobileNo               = "";
-        $acNumber               = "";
-        $registerDate           = "";
-    endif;
-@endphp
-<div class="modal fade" id="editClient" tabindex="-1" aria-labelledby="editClientLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="editClientLabel">Update Client Detail</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <form action="{{ route('updateClient') }}" method="POST" >
-                @csrf
-                    <input type="hidden" name="itemId" value="{{ $itemId }}">
-                    <div class="mb-2">
-                        <label for="fullName">Full Name</label>
-                        <div class="input-group">
-                            <span class="input-group-text" id="fullName"><i class="far fa-user"></i></span>
-                            <input type="text" class="form-control" placeholder="Name" aria-label="FullName" name="fullName" value="{{ $fullName }}" required />
-                        </div>
-                    </div>
-                    <div class="mb-2">
-                        <label for="account">Account Number</label>
-                        <div class="input-group">
-                            <span class="input-group-text" id="account">A/c</span>
-                            <input type="number" class="form-control" placeholder="Account number" aria-label="email"  name="acNumber" value="{{ $acNumber }}" required/>
-                        </div>
-                    </div>
-                    <div class="mb-2">
-                        <label for="email">Email</label>
-                        <div class="input-group">
-                            <span class="input-group-text" id="email"><i class="far fa-envelope"></i></span>
-                            <input type="email" class="form-control" placeholder="Email address" aria-label="email" name="email" value="{{ $email }}" requiredd/>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="mb-2">
-                                <label for="ragisterDate">Register Date</label>
-                                <div class="input-group">
-                                    <span class="input-group-text" id="ragisterDate"><i class="far fa-calendar"></i></span>
-                                    <input
-                                        type="date"
-                                        class="form-control"
-                                        placeholder="00/2024"
-                                        aria-label="ragisterDate"
-                                        name="registerDate"
-                                        value="{{ $registerDate }}" required
-                                    />
-                                </div>
-                            </div>
-                        </div>
-                        <!--end col-->
-                        <div class="col-md-6">
-                            <div class="mb-2">
-                                <label for="mobilleNo">Mobille No</label>
-                                <div class="input-group">
-                                    <span class="input-group-text" id="mobilleNo"><i class="fas fa-phone"></i></span>
-                                    <input
-                                        type="text"
-                                        class="form-control"
-                                        placeholder="+1 234 567 890"
-                                        aria-label="mobilleNo"
-                                        name="mobileNo"
-                                        value="{{ $mobileNo }}" required
-                                    />
-                                </div>
-                            </div>
-                        </div>
-                        <!--end col-->
-                    </div>
-                    <!--end row-->
-                </div>
-                <div class="modal-footer">
-                    <button type="submit" class="btn btn-primary w-100">Update Client</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
 @endsection
