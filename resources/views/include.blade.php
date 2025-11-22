@@ -518,7 +518,7 @@
                                 <div class="collapse" id="sidebarTransactions">
                                     <ul class="nav flex-column">
                                         <li class="nav-item">
-                                            <a class="nav-link" href="transactions.html">Overview</a>
+                                            <a class="nav-link" href="{{route('transactionList')}}">Overview</a>
                                         </li>
                                         <!--end nav-item-->
                                         <li class="nav-item">

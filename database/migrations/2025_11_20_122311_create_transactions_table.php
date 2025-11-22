@@ -17,6 +17,7 @@ return new class extends Migration
             $table->string('type')->nullable();
             $table->decimal('amount', 15, 2)->nullable();
             $table->string('date')->nullable();
+            $table->string('description')->nullable();
             $table->timestamps();
         });
     }

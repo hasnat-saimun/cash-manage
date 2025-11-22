@@ -6,18 +6,12 @@ New Transaction
 New Transaction
 @endsection
 @section('bodyContent')
-
 <div class="row">
     <div class="col-12">
         @if(session()->has('success'))
-            <div class="alert alert-success w-100 rounded-0">
-                {{ session()->get('success') }}
-            </div>
-        @endif
-        @if(session()->has('error'))
-            <div class="alert alert-danger w-100 rounded-0">
-                {{ session()->get('error') }}
-            </div>
+        <div class="alert alert-success w-100 rounded-0">{{ session()->get('success') }}</div>
+        @endif @if(session()->has('error'))
+        <div class="alert alert-danger w-100 rounded-0">{{ session()->get('error') }}</div>
         @endif
     </div>
 </div>
@@ -177,66 +171,71 @@ New Transaction
                     @csrf
                     <div class="row">
                         @if(!$clients->isEmpty())
-                            <div class="mb-3">
-                                <label class="form-label" for="accNum">Account Number</label>   
-                                <select class="form-select" id="accNum" name="" required>
-                                    <option value="">-- Select --</option>
-                                    @foreach($clients as $client)
-                                    <option value="{{ $client->id }}">{{ $client->client_acNum }} - {{ $client->client_name }}</option>
-                                    @endforeach
-                                </select>
-                            </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="accNum">Account Number</label>
+                            <select class="form-select" id="accNum" name="accNumId" required>
+                                <option value="">-- Select --</option>
+                                @foreach($clients as $client)
+                                <option value="{{ $client->id }}">
+                                    {{ $client->client_acNum }} - {{ $client->client_name }}
+                                </option>
+                                @endforeach
+                            </select>
+                        </div>
                         @else
                         <div class="mb-3">
                             <label class="form-label" for="Card">Account Number</label>
-                            <select class="form-select" id="Card">
-                                <option>-- Select --</option>
-                                <option  >Credit</option>
-                                <option>Debit</option>
+                            <select class="form-select" id="Card"  name="type" required>
+                                <option value="">-- No Account Found --</option>
                             </select>
                         </div>
                         @endif
-                
                     </div>
                     <!--end row-->
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label" for="Card">Type</label>
-                                <select class="form-select" id="Card">
+                                <select class="form-select" id="Card" name="type" required>
                                     <option>-- Select --</option>
-                                    <option>Credit</option>
-                                    <option>Debit</option>
+                                    <option value="Debit">Debit</option>
+                                    <option value="Credit">Credit</option>
                                 </select>
                             </div>
                         </div>
                         <!--end col-->
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label class="form-label" for="aApprox">Amount</label>
-                                <input type="number" class="form-control" id="aApprox" required="" placeholder="00.00" />
+                                <label class="form-label" for="amount" id="amount" required>Amount</label>
+                                <input
+                                    type="number"
+                                    class="form-control"
+                                    id="aApprox"
+                                    required=""
+                                    placeholder="00.00"
+                                    name="amount"
+                                />
                             </div>
                         </div>
                         <!--end col-->
-                        
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label class="form-label" for="aApprox">Date</label>
-                                <input type="date" class="form-control" id="aApprox" required="" placeholder="00.00" />
+                                <label class="form-label" for="date">Date</label>
+                                <input type="date" class="form-control" id="date" required="" placeholder="00.00" name="date" />
                             </div>
                         </div>
                     </div>
-                    
+
                     <div class="row">
                         <div class="col-md-12">
-                            
                             <div class="mb-3">
-                                <label class="form-label" for="description">Description</label>
+                                <label class="form-label" id="description" for="description">Description</label>
                                 <textarea
                                     class="form-control"
                                     rows="2"
                                     id="description"
                                     placeholder="Enter Description"
+                                    name="description"
                                 ></textarea>
                             </div>
                         </div>

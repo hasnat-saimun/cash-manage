@@ -39,6 +39,7 @@ Route::get('/client-edit/{id}',
  [    clintController::class, 
   'deleteClient'])
   ->name('deleteClient');
+  // Transaction Creation Route
 Route::get('/transaction-creation',
  [   transactionController::class,
   'transactionCreation'])
@@ -49,3 +50,9 @@ Route::post('/save-transaction',
  [   transactionController::class,
   'saveTransaction'])
   ->name('saveTransaction');
+
+// Transaction List Route
+Route::get('/transaction-list',
+ [   transactionController::class,
+  'transactionList'])
+  ->name('transactionList');  
