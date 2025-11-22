@@ -20,8 +20,18 @@ New Transaction
                                 data-placeholder="Select an option"
                                 data-dynamic-select
                             >
-                                <option value="1" data-img="{{asset('/public/projectFile/home')}}/assets/images/logos/m-card.png">xx25</option>
-                                <option value="2" data-img="{{asset('/public/projectFile/home')}}/assets/images/logos/ame-bank.png">xx56</option>
+                                <option
+                                    value="1"
+                                    data-img="{{asset('/public/projectFile/home')}}/assets/images/logos/m-card.png"
+                                >
+                                    xx25
+                                </option>
+                                <option
+                                    value="2"
+                                    data-img="{{asset('/public/projectFile/home')}}/assets/images/logos/ame-bank.png"
+                                >
+                                    xx56
+                                </option>
                             </select>
                         </form>
                     </div>
@@ -210,6 +220,7 @@ New Transaction
     </div>
     <!--end col-->
 </div>
+
 <!--end row-->
 
 @endsection
