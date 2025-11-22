@@ -45,3 +45,9 @@ Route::get('/transaction-creation',
  [   transactionController::class,
   'transactionCreation'])
   ->name('transactionCreation');
+
+  // Transaction Save Route
+Route::post('/save-transaction',
+ [   transactionController::class,
+  'saveTransaction'])
+  ->name('saveTransaction');

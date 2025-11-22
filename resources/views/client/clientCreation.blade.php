@@ -217,7 +217,7 @@ if(!empty($itemId)):
                     <!--end row-->
                 </div>
                 <div class="text-center mb-3">
-                    <button type="reset" class="btn btn-primary ">Update Client</button>
+                    <button type="submit" class="btn btn-primary ">Update Client</button>
                 </div>
             </form>
         </div>
