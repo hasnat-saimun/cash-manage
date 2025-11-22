@@ -8,8 +8,6 @@ use App\Models\Transaction;
 
 class transactionController extends Controller
 {
-    
-    // transaction creation view load
     public function transactionCreation()
     {
         $clients = clientCreation::all();
