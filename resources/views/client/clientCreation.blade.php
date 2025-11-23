@@ -16,6 +16,7 @@ if(!empty($itemId)):
             $email              = $items->client_email   ;
             $mobileNo              = $items->client_phone;
             $acNumber              = $items->client_acNum;
+            $clientOpBalance         = $items->client_opBalance;
             $registerDate              = $items->client_regDate;
         endif;
     else:
@@ -24,6 +25,7 @@ if(!empty($itemId)):
         $email                  = "";
         $mobileNo               = "";
         $acNumber               = "";
+        $clientOpBalance        = "";
         $registerDate           = "";
     endif;
 @endphp
@@ -43,7 +45,7 @@ if(!empty($itemId)):
     </div>
 </div>
 
-            @if(empty($itemId))
+@if(empty($itemId))
 <div class="row">
     <div class="col-12">
         <div class="card">
@@ -71,6 +73,7 @@ if(!empty($itemId)):
                                 <th>SL</th>
                                 <th>Name</th>
                                 <th>Account Number</th>
+                                <th>Balance</th>
                                 <th>Registered</th>
                                 <th>Email</th>
                                 <th>Phone Number</th>
@@ -94,6 +97,7 @@ if(!empty($itemId)):
                                     <!--end media body-->
                                 </td>
                                 <td>{{$client->client_acNum}}</td>
+                                <td>{{$client->client_opBalance}}</td>
                                 <td>{{$client->client_regDate}}</td>
                                 <td>{{$client->client_email}}</td>
                                 <td>{{$client->client_phone}}</td>
@@ -116,9 +120,10 @@ if(!empty($itemId)):
                                     </div>
                                     <!--end media body-->
                                 </td>
-                                <td><a href="#" class="text-body text-decoration-underline">dummy@gmail.com</a></td>
                                 <td>+1 234 567 890</td>
+                                <td>9000</td>
                                 <td>22 August 2024</td>
+                                <td><a href="#" class="text-body text-decoration-underline">dummy@gmail.com</a></td>
                                 <td><span class="badge rounded text-success bg-success-subtle">Active</span></td>
                                 <td class="text-end">
                                     <a href="#"><i class="las la-pen text-secondary fs-18"></i></a>
@@ -157,11 +162,20 @@ if(!empty($itemId)):
                 <form action="{{ route('updateClient') }}" method="POST" >
                 @csrf
                     <input type="hidden" name="itemId" value="{{ $itemId }}">
-                    <div class="mb-2">
-                        <label for="fullName">Full Name</label>
-                        <div class="input-group">
-                            <span class="input-group-text" id="fullName"><i class="far fa-user"></i></span>
-                            <input type="text" class="form-control" placeholder="Name" aria-label="FullName" name="fullName" value="{{ $fullName }}" required />
+                    <div class="row">
+                        <div class="col-6 mb-2">
+                            <label for="fullName">Full Name</label>
+                            <div class="input-group">
+                                <span class="input-group-text" id="fullName"><i class="far fa-user"></i></span>
+                                <input type="text" class="form-control" placeholder="Name" aria-label="FullName" name="fullName" value="{{ $fullName }}" required />
+                            </div>
+                        </div>
+                        <div class="col-6 mb-2">
+                            <label for="clientOpBalance">Opning Balance</label>
+                            <div class="input-group">
+                                <span class="input-group-text" id="clientOpBalance">$</span>
+                                <input type="number" class="form-control" placeholder="Opning Balance" aria-label="clientOpBalance" name="clientOpBalance" value="{{ $clientOpBalance }}"  required />
+                            </div>
                         </div>
                     </div>
                     <div class="mb-2">
@@ -175,7 +189,7 @@ if(!empty($itemId)):
                         <label for="email">Email</label>
                         <div class="input-group">
                             <span class="input-group-text" id="email"><i class="far fa-envelope"></i></span>
-                            <input type="email" class="form-control" placeholder="Email address" aria-label="email" name="email" value="{{ $email }}" requiredd/>
+                            <input type="email" class="form-control" placeholder="Email address" aria-label="email" name="email" value="{{ $email }}" />
                         </div>
                     </div>
                     <div class="row">
@@ -237,11 +251,20 @@ if(!empty($itemId)):
             <div class="modal-body">
                 <form action="{{ route('saveClient') }}" method="POST" >
                 @csrf
-                    <div class="mb-2">
-                        <label for="fullName">Full Name</label>
-                        <div class="input-group">
-                            <span class="input-group-text" id="fullName"><i class="far fa-user"></i></span>
-                            <input type="text" class="form-control" placeholder="Name" aria-label="FullName" name="fullName"  required />
+                    <div class="row">
+                        <div class="col-6 mb-2">
+                            <label for="fullName">Full Name</label>
+                            <div class="input-group">
+                                <span class="input-group-text" id="fullName"><i class="far fa-user"></i></span>
+                                <input type="text" class="form-control" placeholder="Name" aria-label="FullName" name="fullName"  required />
+                            </div>
+                        </div>
+                        <div class="col-6 mb-2">
+                            <label for="clientOpBalance">Opning Balance</label>
+                            <div class="input-group">
+                                <span class="input-group-text" id="clientOpBalance">$</span>
+                                <input type="number" class="form-control" placeholder="Opning Balance" aria-label="clientOpBalance" name="clientOpBalance"  required />
+                            </div>
                         </div>
                     </div>
                     <div class="mb-2">
@@ -255,7 +278,7 @@ if(!empty($itemId)):
                         <label for="email">Email</label>
                         <div class="input-group">
                             <span class="input-group-text" id="email"><i class="far fa-envelope"></i></span>
-                            <input type="email" class="form-control" placeholder="Email address" aria-label="email" name="email"  requiredd/>
+                            <input type="email" class="form-control" placeholder="Email address" aria-label="email" name="email"  />
                         </div>
                     </div>
                     <div class="row">

@@ -3,8 +3,8 @@
 Transaction List
 @endsection
 @section('bodyTitle')
-Transaction List
-@endsection
+<a href="{{route('transactionCreation')}}"> Transaction Creation</a>
+@endsection 
 @section('bodyContent')
 <div class="row">
     <div class="col-md-12 col-lg-4">
@@ -227,7 +227,7 @@ Transaction List
                                 <td>{{ $transaction->description }}</td>
                                 <td>
                                     <a href="#"><i class="las la-print text-secondary fs-18"></i></a>
-                                    <a href="#"><i class="las la-download text-secondary fs-18"></i></a>
+                                    <a href="{{ route('transactionEdit',['id'=>$transaction->id]) }}"><i class="las la-download text-secondary fs-18"></i></a>
                                     <a href="#"><i class="las la-trash-alt text-secondary fs-18"></i></a>
                                 </td>
                             </tr>
@@ -257,7 +257,7 @@ Transaction List
                 <!--end /div-->
                 <div class="d-lg-flex justify-content-lg-between mt-2">
                     <div class="mb-2 mb-lg-0">
-                        <button type="submit" class="btn btn-primary px-4">Add Transaction</button>
+                        <a href="{{route('transactionCreation')}}" type="button" class="btn btn-primary px-4">Add Transaction</a>
                     </div>
                     <div>
                         <ul class="pagination">

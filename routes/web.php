@@ -56,3 +56,9 @@ Route::get('/transaction-list',
  [   transactionController::class,
   'transactionList'])
   ->name('transactionList');  
+
+  // Transaction Edit Route
+Route::get('/transaction-edit/{id}',
+ [   transactionController::class,
+  'transactionEdit'])
+  ->name('transactionEdit');

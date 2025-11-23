@@ -3,7 +3,7 @@
 New Transaction
 @endsection
 @section('bodyTitle')
-New Transaction
+   <a href="{{route('transactionList')}}"> Transaction List</a>
 @endsection
 @section('bodyContent')
 <div class="row">
@@ -163,18 +163,56 @@ New Transaction
         <!--end card-->
     </div>
     <!--end col-->
-
+    @php
+        if(!empty($itemId)):
+            $items = App\Models\transaction::find($itemId);
+            if(!empty($items)):
+                
+                $accNum         = $items->account_number;
+                $type           = $items->type;
+                $amount         = $items->amount;
+                $date           = $items->date;
+                $description    = $items->description;
+        endif;
+    else:
+                $itemId         = null;
+                $accNum         = '';
+                $type           = '';
+                $amount         = '';
+                $date           = '';
+                $description    = '';
+        endif;
+    @endphp
     <div class="col-md-12 col-lg-8">
         <div class="card">
             <div class="card-body">
                 <form class="" method="POST" action="{{ route('saveTransaction') }}">
                     @csrf
+                    <input type="hidden" name="itemId" value="{{ $itemId }}">
+                        @php
+                            $clients = App\Models\clientCreation::all();
+                        @endphp
+                        @if(!empty($accNum))
+                            @php
+                                $clientName= App\Models\clientCreation::find($accNum)->client_name;
+                                $clientAcc = App\Models\clientCreation::find($accNum)->client_acNum;
+                            @endphp
+                        @else
+                            @php
+                                $clientName = null;
+                                $clientAcc = null;
+                            @endphp
+                        @endif
                     <div class="row">
                         @if(!$clients->isEmpty())
                         <div class="mb-3">
-                            <label class="form-label" for="accNum">Account Number</label>
-                            <select class="form-select" id="accNum" name="accNumId" required>
+                            <label class="form-label" for="accNumId">Account Number</label>
+                            <select class="form-select" id="accNumId" name="accNumId" required>
+                                @if(!empty($accNum))
+                                <option value="{{ $accNum }}">{{ $clientAcc }} -{{ $clientName }}</option>
+                                @else
                                 <option value="">-- Select --</option>
+                                @endif
                                 @foreach($clients as $client)
                                 <option value="{{ $client->id }}">
                                     {{ $client->client_acNum }} - {{ $client->client_name }}
@@ -184,8 +222,8 @@ New Transaction
                         </div>
                         @else
                         <div class="mb-3">
-                            <label class="form-label" for="Card">Account Number</label>
-                            <select class="form-select" id="Card"  name="type" required>
+                            <label class="form-label" for="type">Account Number</label>
+                            <select class="form-select" id="type"  name="type" required>
                                 <option value="">-- No Account Found --</option>
                             </select>
                         </div>
@@ -195,9 +233,13 @@ New Transaction
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label class="form-label" for="Card">Type</label>
-                                <select class="form-select" id="Card" name="type" required>
+                                <label class="form-label" for="type">Type</label>
+                                <select class="form-select" id="type" name="type" required>
+                                    @if(!empty($type))
+                                    <option value="{{ $type }}">{{ $type }}</option>
+                                    @else
                                     <option>-- Select --</option>
+                                    @endif
                                     <option value="Debit">Debit</option>
                                     <option value="Credit">Credit</option>
                                 </select>
@@ -214,6 +256,7 @@ New Transaction
                                     required=""
                                     placeholder="00.00"
                                     name="amount"
+                                     value="{{ $amount }}"
                                 />
                             </div>
                         </div>
@@ -221,7 +264,7 @@ New Transaction
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label" for="date">Date</label>
-                                <input type="date" class="form-control" id="date" required="" placeholder="00.00" name="date" />
+                                <input type="date" class="form-control" id="date" required="" placeholder="00.00" name="date"  value="{{ $date }}" />
                             </div>
                         </div>
                     </div>
@@ -236,7 +279,7 @@ New Transaction
                                     id="description"
                                     placeholder="Enter Description"
                                     name="description"
-                                ></textarea>
+                                >{{ $description }}</textarea>
                             </div>
                         </div>
                         <!--end col-->
@@ -245,7 +288,7 @@ New Transaction
                     <!--end row-->
                     <div class="row">
                         <div class="col-sm-12 text-start">
-                            <button type="submit" class="btn btn-primary px-4">Entry Now</button>
+                            <button type="submit" class="btn btn-primary px-4">@if(!empty($itemId))Update Data @else Save Data @endif</button>
                             <button type="submit" class="btn btn-danger px-4">Cancle</button>
                         </div>
                     </div>

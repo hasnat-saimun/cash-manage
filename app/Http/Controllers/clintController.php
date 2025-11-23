@@ -27,6 +27,7 @@ class clintController extends Controller
         $data->client_email     = $requ->email;
         $data->client_phone       = $requ->mobileNo;
         $data->client_acNum     = $requ->acNumber;
+        $data->client_opBalance = $requ->clientOpBalance;
         $data->client_regDate     = $requ->registerDate;
         if($data->save()):
             return back()->with('success','Success! Account creation successfully');
@@ -49,6 +50,7 @@ class clintController extends Controller
         $data->client_email     = $requ->email;
         $data->client_phone       = $requ->mobileNo;
         $data->client_acNum     = $requ->acNumber;
+        $data->client_opBalance = $requ->clientOpBalance;
         $data->client_regDate     = $requ->registerDate;
         if($data->save()):
             return redirect(route('clientCreation'))->with('success','Success! Account update successfully');

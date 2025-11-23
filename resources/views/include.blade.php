@@ -1226,7 +1226,7 @@
         <script src="{{asset('/public/projectFile/home')}}/assets/libs/simplebar/simplebar.min.js"></script>
 
         <script src="{{asset('/public/projectFile/home')}}/assets/libs/apexcharts/apexcharts.min.js"></script>
-        <script src="../../../apexcharts.com/samples/assets/stock-prices.js"></script>
+        <script src="{{asset('/public/projectFile')}}/apexcharts.com/samples/assets/stock-prices.js"></script>
         <script src="{{asset('/public/projectFile/home')}}/assets/js/pages/index.init.js"></script>
         <script src="{{asset('/public/projectFile/home')}}/assets/js/DynamicSelect.js"></script>
         <script src="{{asset('/public/projectFile/home')}}/assets/js/app.js"></script>
