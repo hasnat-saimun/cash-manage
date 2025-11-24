@@ -26,7 +26,6 @@ class clintController extends Controller
         $data->client_name       = $requ->fullName;
         $data->client_email     = $requ->email;
         $data->client_phone       = $requ->mobileNo;
-        $data->client_acNum     = $requ->acNumber;
         $data->client_opBalance = $requ->clientOpBalance;
         $data->client_regDate     = $requ->registerDate;
         if($data->save()):
@@ -49,7 +48,6 @@ class clintController extends Controller
         $data->client_name       = $requ->fullName;
         $data->client_email     = $requ->email;
         $data->client_phone       = $requ->mobileNo;
-        $data->client_acNum     = $requ->acNumber;
         $data->client_opBalance = $requ->clientOpBalance;
         $data->client_regDate     = $requ->registerDate;
         if($data->save()):

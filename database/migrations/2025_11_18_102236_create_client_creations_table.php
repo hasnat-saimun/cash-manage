@@ -16,7 +16,7 @@ return new class extends Migration
             $table->string('client_name')->nullable();
             $table->string('client_email')->nullable();
             $table->string('client_phone')->nullable();
-            $table->string('client_acNum')->nullable();
+            $table->string('client_source')->nullable();
             $table->string('client_opBalance')->nullable();
             $table->string('client_regDate')->nullable();   
             $table->timestamps();

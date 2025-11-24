@@ -3,10 +3,41 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\clintController;
 use App\Http\Controllers\transactionController;
+use App\Http\Controllers\frontController;
 
 Route::get('/', function () {
     return view('dashBoard');
 });
+
+//sourerce route
+Route::get('/source', [
+  frontController::class,
+   'sourceView'])
+   ->name('sourceView');
+
+//source route save
+Route::post('/save-source', [
+  frontController::class,
+   'saveSource'])
+   ->name('saveSource');
+
+//source edit route
+Route::get('/source-edit/{id}', [
+  frontController::class,
+   'sourceEdit'])
+   ->name('sourceEdit');
+
+//source update route
+Route::post('/update-source', [
+  frontController::class,
+   'updateSource'])
+   ->name('updateSource');
+
+//source delete route
+Route::get('/delete-source/{id}', [
+  frontController::class,
+   'deleteSource'])
+   ->name('deleteSource');
 
 // Client Creation Route
 Route::get('/client-creation',

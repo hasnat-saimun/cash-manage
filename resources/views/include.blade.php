@@ -540,9 +540,9 @@
                             </li>
                             <!--end nav-item-->
                             <li class="nav-item">
-                                <a class="nav-link" href="taxes.html">
+                                <a class="nav-link" href="{{route('sourceView')}}">
                                     <i class="iconoir-plug-type-l menu-icon"></i>
-                                    <span>Texes</span>
+                                    <span>Source</span>
                                 </a>
                             </li>
                             <!--end nav-item-->

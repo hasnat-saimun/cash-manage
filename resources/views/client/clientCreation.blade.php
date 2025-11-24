@@ -15,7 +15,7 @@ if(!empty($itemId)):
             $fullName              = $items->client_name;
             $email              = $items->client_email   ;
             $mobileNo              = $items->client_phone;
-            $acNumber              = $items->client_acNum;
+            $clientSource              = $items->client_source;
             $clientOpBalance         = $items->client_opBalance;
             $registerDate              = $items->client_regDate;
         endif;
@@ -24,7 +24,7 @@ if(!empty($itemId)):
         $fullName               = "";
         $email                  = "";
         $mobileNo               = "";
-        $acNumber               = "";
+        $clientSource               = "";
         $clientOpBalance        = "";
         $registerDate           = "";
     endif;
@@ -72,7 +72,7 @@ if(!empty($itemId)):
                             <tr>
                                 <th>SL</th>
                                 <th>Name</th>
-                                <th>Account Number</th>
+                                <th>Source</th>
                                 <th>Balance</th>
                                 <th>Registered</th>
                                 <th>Email</th>
@@ -96,7 +96,7 @@ if(!empty($itemId)):
                                     </div>
                                     <!--end media body-->
                                 </td>
-                                <td>{{$client->client_acNum}}</td>
+                                <td>{{$client->client_source}}</td>
                                 <td>{{$client->client_opBalance}}</td>
                                 <td>{{$client->client_regDate}}</td>
                                 <td>{{$client->client_email}}</td>
@@ -177,9 +177,9 @@ if(!empty($itemId)):
                                 <input type="number" class="form-control" placeholder="Opning Balance" aria-label="clientOpBalance" name="clientOpBalance" value="{{ $clientOpBalance }}"  required />
                             </div>
                         </div>
-                    </div>
+                    </div> 
                     <div class="mb-2">
-                        <label for="account">Account Number</label>
+                        <label for="account">Source Type</label>
                         <div class="input-group">
                             <span class="input-group-text" id="account">A/c</span>
                             <input type="number" class="form-control" placeholder="Account number" aria-label="email"  name="acNumber" value="{{ $acNumber }}" required/>
