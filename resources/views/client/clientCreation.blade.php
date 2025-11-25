@@ -72,7 +72,6 @@ if(!empty($itemId)):
                             <tr>
                                 <th>SL</th>
                                 <th>Name</th>
-                                <th>Source</th>
                                 <th>Balance</th>
                                 <th>Registered</th>
                                 <th>Email</th>
@@ -96,7 +95,6 @@ if(!empty($itemId)):
                                     </div>
                                     <!--end media body-->
                                 </td>
-                                <td>{{$client->client_source}}</td>
                                 <td>{{$client->client_opBalance}}</td>
                                 <td>{{$client->client_regDate}}</td>
                                 <td>{{$client->client_email}}</td>
@@ -179,13 +177,6 @@ if(!empty($itemId)):
                         </div>
                     </div> 
                     <div class="mb-2">
-                        <label for="account">Source Type</label>
-                        <div class="input-group">
-                            <span class="input-group-text" id="account">A/c</span>
-                            <input type="number" class="form-control" placeholder="Account number" aria-label="email"  name="acNumber" value="{{ $acNumber }}" required/>
-                        </div>
-                    </div>
-                    <div class="mb-2">
                         <label for="email">Email</label>
                         <div class="input-group">
                             <span class="input-group-text" id="email"><i class="far fa-envelope"></i></span>
@@ -265,13 +256,6 @@ if(!empty($itemId)):
                                 <span class="input-group-text" id="clientOpBalance">$</span>
                                 <input type="number" class="form-control" placeholder="Opning Balance" aria-label="clientOpBalance" name="clientOpBalance"  required />
                             </div>
-                        </div>
-                    </div>
-                    <div class="mb-2">
-                        <label for="account">Account Number</label>
-                        <div class="input-group">
-                            <span class="input-group-text" id="account">A/c</span>
-                            <input type="number" class="form-control" placeholder="Account number" aria-label="email"  name="acNumber" required/>
                         </div>
                     </div>
                     <div class="mb-2">

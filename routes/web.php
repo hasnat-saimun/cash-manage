@@ -4,10 +4,18 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\clintController;
 use App\Http\Controllers\transactionController;
 use App\Http\Controllers\frontController;
+use App\Http\Controllers\bankManageController;
+
 
 Route::get('/', function () {
-    return view('dashBoard');
+    return view('dashboard');
 });
+
+//dashboard route
+Route::get('/dashboard', [
+  frontController::class,
+   'dashboardView'])
+   ->name('dashboardView');
 
 //sourerce route
 Route::get('/source', [
@@ -93,3 +101,48 @@ Route::get('/transaction-edit/{id}',
  [   transactionController::class,
   'transactionEdit'])
   ->name('transactionEdit');
+  
+
+  //bank manage route
+Route::get('/bank-manage', [
+    bankManageController::class,
+     'bankManageView'])
+     ->name('bankManageView'); 
+
+  //bank manage save route
+Route::post('/save-bank-manage', [
+    bankManageController::class,
+     'saveBankManage'])
+     ->name('saveBankManage');
+
+  //bank manage edit route
+Route::get('/bank-manage-edit/{id}', [
+    bankManageController::class,
+     'bankManageEdit'])
+     ->name('bankManageEdit');
+     
+     //bank manage update route
+Route::post('/update-bank-manage', [
+    bankManageController::class,
+     'updateBankManage'])
+     ->name('updateBankManage');
+
+      //bank manage delete route
+Route::get('/delete-bank-manage/{id}', [
+    bankManageController::class,
+     'deleteBankManage'])
+     ->name('deleteBankManage');  
+
+     //bank account creation route
+Route::get('/bank-account-creation', [
+    bankManageController::class,
+     'bankAccountCreationView'])
+     ->name('bankAccountCreationView'); 
+
+     //bank account save route
+Route::post('/save-bank-account', [
+    bankManageController::class,
+     'saveBankAccount'])
+     ->name('saveBankAccount');
+
+

@@ -167,8 +167,8 @@ New Transaction
         if(!empty($itemId)):
             $items = App\Models\transaction::find($itemId);
             if(!empty($items)):
-                
-                $accNum         = $items->account_number;
+                $clientName         = $items->transaction_client_name;
+                $transactionSource         = $items->transaction_source;
                 $type           = $items->type;
                 $amount         = $items->amount;
                 $date           = $items->date;
@@ -176,7 +176,8 @@ New Transaction
         endif;
     else:
                 $itemId         = null;
-                $accNum         = '';
+                $clientName         = '';
+                $transactionSource         = '';
                 $type           = '';
                 $amount         = '';
                 $date           = '';
@@ -189,51 +190,73 @@ New Transaction
                 <form class="" method="POST" action="{{ route('saveTransaction') }}">
                     @csrf
                     <input type="hidden" name="itemId" value="{{ $itemId }}">
+                    <div class="row">
                         @php
                             $clients = App\Models\clientCreation::all();
                         @endphp
-                        @if(!empty($accNum))
+                        @if(!empty($clientName))
                             @php
-                                $clientName= App\Models\clientCreation::find($accNum)->client_name;
-                                $clientAcc = App\Models\clientCreation::find($accNum)->client_acNum;
+                                $transactionClient= App\Models\clientCreation::find($clientName)->client_name;
                             @endphp
                         @else
                             @php
-                                $clientName = null;
-                                $clientAcc = null;
+                                $transactionClient = null;
                             @endphp
                         @endif
-                    <div class="row">
-                        @if(!$clients->isEmpty())
-                        <div class="mb-3">
-                            <label class="form-label" for="accNumId">Account Number</label>
-                            <select class="form-select" id="accNumId" name="accNumId" required>
-                                @if(!empty($accNum))
-                                <option value="{{ $accNum }}">{{ $clientAcc }} -{{ $clientName }}</option>
+                    <div class="col-6 mb-2">
+                        <label for="clientId">Client Name</label>
+                            <select class="form-select" id="clientId" name="clientId" required>
+                                @if(!empty($clientName))
+                                <option value="{{ $clientName }}">{{$transactionClient}}</option>
                                 @else
                                 <option value="">-- Select --</option>
                                 @endif
+                                @if(!empty($clients) && $clients->count()>0)
                                 @foreach($clients as $client)
-                                <option value="{{ $client->id }}">
-                                    {{ $client->client_acNum }} - {{ $client->client_name }}
+                                <option value="{{ $client->id }}">{{ $client->client_name }}
                                 </option>
                                 @endforeach
+                                @else
+                                <option value="">No Client Found</option>
+                                @endif
                             </select>
-                        </div>
+                    </div>
+                        @php
+                            $sources = App\Models\source::all();
+                        @endphp
+                        @if(!empty($transactionSource))
+                            @php
+                                $sourceName= App\Models\source::find($transactionSource)->source_name;
+                            @endphp
                         @else
-                        <div class="mb-3">
-                            <label class="form-label" for="type">Account Number</label>
-                            <select class="form-select" id="type"  name="type" required>
-                                <option value="">-- No Account Found --</option>
-                            </select>
-                        </div>
+                            @php
+                                $sourceName = null;
+                            @endphp
                         @endif
+                    <div class="col-6 mb-2">
+                        <label for="sourceId">Source Type</label>
+                            <select class="form-select" id="sourceId" name="sourceId" required>
+                                @if(!empty($transactionSource))
+                                <option value="{{ $transactionSource }}">{{$sourceName}}</option>
+                                @else
+                                <option value="">-- Select --</option>
+                                @endif
+                                @if(!empty($sources) && $sources->count()>0)
+                                @foreach($sources as $source)
+                                <option value="{{ $source->id }}">{{ $source->source_name }}
+                                </option>
+                                @endforeach
+                                @else
+                                <option value="">No Source Found</option>
+                                @endif
+                            </select>
+                    </div>
                     </div>
                     <!--end row-->
                     <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label class="form-label" for="type">Type</label>
+                                <label class="form-label" for="type">Transaction Type</label>
                                 <select class="form-select" id="type" name="type" required>
                                     @if(!empty($type))
                                     <option value="{{ $type }}">{{ $type }}</option>

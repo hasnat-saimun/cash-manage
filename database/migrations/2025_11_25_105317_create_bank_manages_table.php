@@ -11,13 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('client_creations', function (Blueprint $table) {
+        Schema::create('bank_manages', function (Blueprint $table) {
             $table->id();
-            $table->string('client_name')->nullable();
-            $table->string('client_email')->nullable();
-            $table->string('client_phone')->nullable();
-            $table->string('client_opBalance')->nullable();
-            $table->string('client_regDate')->nullable();   
+            $table->string('bank_name');
+            $table->string('branch_name');
+            $table->string('routing_number');
             $table->timestamps();
         });
     }
@@ -27,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('client_creations');
+        Schema::dropIfExists('bank_manages');
     }
 };

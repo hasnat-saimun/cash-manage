@@ -60,5 +60,10 @@ class frontController extends Controller
             return back()->with('error', 'Opps! Source deletion failed. Please try later');
         endif;
     }
+    //dashboard view loading
+    public function dashboardView()
+    {
+        return view('dashboard');   
+    }
     
 }

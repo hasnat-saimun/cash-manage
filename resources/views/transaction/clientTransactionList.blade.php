@@ -190,7 +190,6 @@ Transaction List
                         <thead class="table-light">
                             <tr>
                                 <th class="border-top-0">Clinet</th>
-                                <th class="border-top-0">Account</th>
                                 <th class="border-top-0">Transaction Type</th>
                                 <th class="border-top-0">Amount</th>
                                 <th class="border-top-0">Date</th>
@@ -203,8 +202,7 @@ Transaction List
                             @if(!$transactions->isEmpty())
                             @foreach ($transactions as $transaction)
                             <tr>
-                                <td>{{ $transaction->client_name }}</td>
-                                <td>{{ $transaction->client_acNum }}</td>                  
+                                <td>{{ $transaction->client_name }}</td>               
                                 @if($transaction->type == 'Debit')
                                 <td>
                                     <span class="badge bg-danger-subtle text-success fs-11 fw-medium px-2"

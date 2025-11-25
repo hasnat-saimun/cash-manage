@@ -10,7 +10,7 @@ class transactionController extends Controller
 {
     public function transactionCreation()
     {
-        return view('transaction.transactionCreation');
+        return view('transaction.clientTransactionCreation');
     }
 
     public function saveTransaction(Request $request)
@@ -21,8 +21,9 @@ class transactionController extends Controller
         else:
             $transaction   = transaction::find($request->itemId);
         endif;
-        $transaction->account_number = $request->accNumId;
+        $transaction->transaction_client_name = $request->clientId;
         $transaction->type = $request->type;
+        $transaction->transaction_source = $request->sourceId;
         $transaction->amount = $request->amount;
         $transaction->date = $request->date;
         $transaction->description = $request->description;
@@ -36,8 +37,8 @@ class transactionController extends Controller
     
     public function transactionList()
     {
-        $transactions = transaction::join('client_creations', 'transactions.account_number', '=', 'client_creations.id')->select('client_creations.client_name', 'client_creations.client_acNum','transactions.*')->get();
-        return view('transaction.transactionList', ['transactions' => $transactions]);
+        $transactions = transaction::join('client_creations', 'transactions.transaction_client_name', '=', 'client_creations.id')->select('client_creations.client_name','transactions.*')->get();
+        return view('transaction.clientTransactionList', ['transactions' => $transactions]);
     }
 
     public function transactionEdit($id)
