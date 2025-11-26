@@ -68,25 +68,29 @@ class bankManageController extends Controller
     //bank account creation view function
     public function bankAccountCreationView()
     {
-        
-        return view('bank.bankAccountCreation');   
+        $bankAccounts = bankAccount::join('bank_manages', 'bank_accounts.bank_manage_id', '=', 'bank_manages.id')
+                        ->select('bank_manages.bank_name','bank_manages.branch_name','bank_manages.routing_number','bank_accounts.*')
+                        ->get();
+        return view('bank.bankAccountCreation', ['bankAccounts' => $bankAccounts]);   
     }
 
     //bank account save function
     public function saveBankAccount(Request $request)
     {
         $data = new bankAccount();
-        $data->account_name = $request->accountName;
-        $data->account_number = $request->accountNumber;
-        $data->bank_manage_id = $request->bankManageId;
-        $data->entry_date = $request->entryDate;
-        $data->opning_balance = $request->opningBalance;    
+        $data->account_name     = $request->fullName;
+        $data->account_number   = $request->accountNumber;
+        $data->bank_manage_id   = $request->bankManageId;
+        $data->entry_date       = $request->entryDate;
+        $data->opning_balance   = $request->opningBalance;    
         if ($data->save()) :
             return back()->with('success', 'Success! Bank Account created successfully');
         else :
             return back()->with('error', 'Opps! Bank Account creation failed. Please try later');
         endif;
     }
+
+
     
 
 }

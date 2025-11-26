@@ -9,11 +9,11 @@ Bank Manage
 @php
     if(!empty($itemId)):
             $items          = \App\Models\bankManage::find($itemId);
+        if(!empty($items)): 
+
             $bankName       = $items->bank_name;
             $branchName     = $items->branch_name;
             $routingNumber  = $items->routing_number;
-
-        if($items):
 
         endif;
     else:
