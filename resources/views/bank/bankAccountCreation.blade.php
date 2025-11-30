@@ -20,6 +20,81 @@ Bank Account Creation
         @endif
     </div>
 </div>
+@if(!empty($itemId))
+<div class="row">
+    <div class="card">
+        <div class="card-header">
+            <h5 class="">Update Account Detail</h5>
+        </div>
+        <div class="card-body">
+            <form action="{{route('updateBankAccount')}}" method="POST" >
+                @csrf
+                <input type="hidden" name="id" value="{{ $itemId }}">
+                <div class=" mb-2">
+                    <label for="fullName">Full Name</label> 
+                    <div class="input-group">                                                            
+                        <span class="input-group-text" id="fullName"><i class="fas fa-user"></i></span>
+                        <input type="text" class="form-control" placeholder="Name" aria-label="fullName" name="fullName" value="{{ $bankAccount->account_name }}">
+                    </div>
+                </div>
+                <div class=" mb-2">
+                    <label for="accountNumber">Account Number</label> 
+                    <div class="input-group">                                                            
+                        <span class="input-group-text" id="AccountNumber"><i class="fas fa-credit-card"></i></span>
+                        <input type="number" class="form-control" placeholder="**** **** **** ****" aria-label="accountNumber" name="accountNumber" value="{{ $bankAccount->account_number }}">
+                    </div>
+                </div>
+                    @php
+                        $bankMagages = App\Models\bankManage::all();
+                    @endphp
+                <div class=" mb-2">
+                    <label for="bankManageId">Bank Manage</label>
+                        <select class="form-select" id="bankManageId" name="bankManageId" required>
+                            @if(!empty($bankAccount->bank_manage_id))
+                                <option value="{{ $bankAccount->bank_manage_id }}">{{ $bankAccount->bank_name }} - {{ $bankAccount->branch_name }} -{{ $bankAccount->routing_number }}</option>
+                                @else
+                                <option value="">-- Select --</option>
+                                @endif
+                            @if(!empty($bankMagages) && $bankMagages->count()>0)
+                            @foreach($bankMagages as $bankManage)
+                            <option value="{{ $bankManage->id }}">{{ $bankManage->bank_name }} - {{ $bankManage->branch_name }} - {{ $bankManage->routing_number }}
+                            </option>
+                            @endforeach
+                            @else
+                            <option value="">No Source Found</option>
+                            @endif
+                        </select>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="mb-2">
+                            <label for="entryDate">Entry Date</label> 
+                            <div class="input-group">
+                                <span class="input-group-text" id="entryDate"><i class="far fa-calendar"></i></span>
+                                <input type="date" class="form-control" placeholder="01/35" aria-label="entryDate" name="entryDate">
+                            </div>
+                        </div>
+                    </div><!--end col-->
+                    <div class="col-md-6">
+                        <div class="mb-2">
+                            <label for="opningBalance">Opning Balance</label> 
+                            <div class="input-group">
+                                <span class="input-group-text" id="opningBalance"><i class="fas fa-ellipsis"></i></span>
+                                <input type="number" class="form-control" placeholder="123" aria-label="opningBalance" name="opningBalance">
+                            </div>
+                        </div>                                                            
+                    </div>
+                </div>           
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary w-100">Add Account</button>
+                    <button type="reset" class="btn btn-light w-100">Reset</button>
+                </div>
+            </form>     
+        </div>
+    </div>
+</div>
+@else
     <div class="row mb-3">                            
         <div class="col-md-12 col-lg-3">
             <div class="card  h-100 bg-blue bg-globe-img">
@@ -135,21 +210,21 @@ Bank Account Creation
                 </div><!--end card-body-->                            
             </div><!--end card-->
         </div><!--end col-->
-    <div class="col-md-12 col-lg-3">
-        <div class="card  h-100 bg-dark-subtle bg-globe-img">
-            <div class="card-body text-center">
-                <a href="#" class="h-100 d-block" data-bs-toggle="modal" data-bs-target="#addCard">
-                <div class="position-relative h-100 d-block">
-                    <div class="position-absolute top-50 start-50 translate-middle">
-                        <i class="fas fa-plus fs-30"></i>
-                        <h5 class="fw-medium fs-18 text-muted">Account</h5> 
-                    </div> 
-                </div>
-                </a>                    
-            </div><!--end card-body-->                            
-        </div><!--end card-->
-    </div><!--end col-->
-</div><!--end row-->
+        <div class="col-md-12 col-lg-3">
+            <div class="card  h-100 bg-dark-subtle bg-globe-img">
+                <div class="card-body text-center">
+                    <a href="#" class="h-100 d-block" data-bs-toggle="modal" data-bs-target="#addCard">
+                    <div class="position-relative h-100 d-block">
+                        <div class="position-absolute top-50 start-50 translate-middle">
+                            <i class="fas fa-plus fs-30"></i>
+                            <h5 class="fw-medium fs-18 text-muted">Account</h5> 
+                        </div> 
+                    </div>
+                    </a>                    
+                </div><!--end card-body-->                            
+            </div><!--end card-->
+        </div><!--end col-->
+    </div><!--end row-->
 
 <div class="row justify-content-center">
     <div class="col-md-12 col-lg-12">
@@ -198,7 +273,8 @@ Bank Account Creation
                                 <td>{{ $bankAccount->opning_balance }}</td>
                                 <td>
                                     <a href="#"><i class="las la-print text-secondary fs-18"></i></a>
-                                    <a href="#"><i class="las la-download text-secondary fs-18"></i></a>
+                                    
+                                    <a href="{{ route('bankAccountEdit',['id'=>$bankAccount->id]) }}"><i class="las la-pen text-secondary fs-18"></i></a>
                                     <a href="#"><i class="las la-trash-alt text-secondary fs-18"></i></a>
                                 </td>
                             </tr><!--end tr-->    
@@ -314,4 +390,5 @@ Bank Account Creation
           </div>
         </div>
       </div>
-@endsection
+@endif
+      @endsection

@@ -145,6 +145,20 @@ Route::post('/save-bank-account', [
      'saveBankAccount'])
      ->name('saveBankAccount');
 
+      //bank account edit route
+Route::get('/bank-account-edit/{id}', [
+    bankManageController::class,
+      'bankAccountEdit'])
+      ->name('bankAccountEdit');
+
+      //bank account update route
+Route::post('/update-bank-account', [
+    bankManageController::class,
+      'updateBankAccount'])
+      ->name('updateBankAccount');
+
+      //bank
+
      
 
 

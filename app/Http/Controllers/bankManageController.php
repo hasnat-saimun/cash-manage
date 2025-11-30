@@ -90,7 +90,32 @@ class bankManageController extends Controller
         endif;
     }
 
+    //bank account edit function
+    public function bankAccountEdit($id)
+    {
+        $editBankAccount = bankAccount::find($id)::join('bank_manages', 'bank_accounts.bank_manage_id', '=', 'bank_manages.id')
+                        ->select('bank_manages.bank_name','bank_manages.branch_name','bank_manages.routing_number')
+                        ->first();
+        return view('bank.bankAccountCreation', [
+            'bankAccount' => $editBankAccount,
+            'itemId' => $id,
+        ]);
+    }
 
-    
+    //bank account update function
+    public function updateBankAccount(Request $request)
+    {
+        $data = bankAccount::find($request->id);
+        $data->account_name     = $request->fullName;
+        $data->account_number   = $request->accountNumber;
+        $data->bank_manage_id   = $request->bankManageId;
+        $data->entry_date       = $request->entryDate;
+        $data->opning_balance   = $request->opningBalance;    
+        if ($data->save()) :
+            return redirect(route('bankAccountCreationView'))->with('success', 'Success! Bank Account updated successfully');
+        else :
+            return back()->with('error', 'Opps! Bank Account update failed. Please try later');
+        endif;
+    }
 
 }
