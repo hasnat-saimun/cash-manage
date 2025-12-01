@@ -2,8 +2,11 @@
 @section('backTitle')
 Bank Account Creation
 @endsection
-@section('bodyTitle')
-<a href="{{ route('bankAccountCreationView') }}">Bank Account</a>
+@section('bodyTitleFrist')
+   Bank Account
+@endsection
+@section('bodyTitleEnd')
+Bank
 @endsection
 @section('bodyContent')
 <div class="row">

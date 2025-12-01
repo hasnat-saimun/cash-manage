@@ -2,7 +2,10 @@
 @section('backTitle')
 Bank Transaction
 @endsection
-@section('bodyTitle')
+@section('bodyTitleFrist')
+   Transaction Creation
+@endsection
+@section('bodyTitleEnd')
    <a href="{{route('bankTransactionList')}}"> Transaction List</a>
 @endsection
 @section('bodyContent')

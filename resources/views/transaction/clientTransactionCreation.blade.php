@@ -1,8 +1,11 @@
  @extends('include')
 @section('backTitle')
-New Transaction
+Client Transaction
 @endsection
-@section('bodyTitle')
+@section('bodyTitleFrist')
+   Transaction Creation
+@endsection
+@section('bodyTitleEnd')
    <a href="{{route('transactionList')}}"> Transaction List</a>
 @endsection
 @section('bodyContent')

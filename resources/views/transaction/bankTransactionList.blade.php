@@ -2,9 +2,12 @@
 @section('backTitle')
 Bank Transaction List
 @endsection
-@section('bodyTitle')
-<a href="{{route('bankTransactionCreation')}}"> Transaction Creation</a>
-@endsection 
+@section('bodyTitleFrist')
+   Transaction List
+@endsection
+@section('bodyTitleEnd')
+   <a href="{{route('bankTransactionCreation')}}"> Transaction Creation</a>
+@endsection
 @section('bodyContent')
 <div class="row">
     <div class="col-12">

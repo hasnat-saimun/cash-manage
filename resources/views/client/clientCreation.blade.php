@@ -2,8 +2,11 @@
 @section('backTitle')
 Clint
 @endsection
-@section('bodyTitle')
-Client
+@section('bodyTitleFrist')
+    Client
+@endsection
+@section('bodyTitleEnd')
+    client
 @endsection
 @section('bodyContent')
 

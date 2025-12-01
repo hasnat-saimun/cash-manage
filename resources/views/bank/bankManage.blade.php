@@ -2,8 +2,12 @@
 @section('backTitle')
 Bank Manage
 @endsection
-@section('bodyTitle')
-<a href="{{ route('bankManageView') }}">Bank Entry</a>
+
+@section('bodyTitleFrist')
+   Bank Manage
+@endsection
+@section('bodyTitleEnd')
+   <a href="{{ route('bankManageView') }}">Bank Entry</a>
 @endsection
 @section('bodyContent')
 @php

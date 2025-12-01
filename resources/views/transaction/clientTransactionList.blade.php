@@ -1,10 +1,13 @@
  @extends('include')
 @section('backTitle')
-Transaction List
+Client Transaction List
 @endsection
-@section('bodyTitle')
-<a href="{{route('transactionCreation')}}"> Transaction Creation</a>
-@endsection 
+@section('bodyTitleFrist')
+   Transaction List
+@endsection
+@section('bodyTitleEnd')
+   <a href="{{route('transactionCreation')}}"> Transaction Creation</a>
+@endsection
 @section('bodyContent')
 <div class="row">
     <div class="col-12">

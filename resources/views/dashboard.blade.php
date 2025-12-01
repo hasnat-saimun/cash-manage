@@ -2,8 +2,11 @@
 @section('backTitle')
 Dashboard
 @endsection
-@section('bodyTitle')
-Dashboard
+@section('bodyTitleFrist')
+   Dashboard
+@endsection
+@section('bodyTitleEnd')
+     Home
 @endsection
 @section('bodyContent')
  

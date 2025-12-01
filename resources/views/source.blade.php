@@ -2,8 +2,12 @@
 @section('backTitle')
 New Source
 @endsection
-@section('bodyTitle')
-<a href="{{ route('sourceView') }}">New Source</a>
+
+@section('bodyTitleFrist')
+   New Source
+@endsection
+@section('bodyTitleEnd')
+   <a href="{{ route('sourceView') }}">New Source</a>
 @endsection
 @section('bodyContent')
 @php
