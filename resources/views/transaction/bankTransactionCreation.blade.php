@@ -1,9 +1,9 @@
- @extends('include')
+@extends('include')
 @section('backTitle')
-New Transaction
+Bank Transaction
 @endsection
 @section('bodyTitle')
-   <a href="{{route('transactionList')}}"> Transaction List</a>
+   <a href="{{route('bankTransactionList')}}"> Transaction List</a>
 @endsection
 @section('bodyContent')
 <div class="row">
@@ -163,118 +163,55 @@ New Transaction
         <!--end card-->
     </div>
     <!--end col-->
-    @php
-        if(!empty($itemId)):
-            $items = App\Models\transaction::find($itemId);
-            if(!empty($items)):
-                $clientName         = $items->transaction_client_name;
-                $transactionSource         = $items->transaction_source;
-                $type           = $items->type;
-                $amount         = $items->amount;
-                $date           = $items->date;
-                $description    = $items->description;
-        endif;
-    else:
-                $itemId         = null;
-                $clientName         = '';
-                $transactionSource         = '';
-                $type           = '';
-                $amount         = '';
-                $date           = '';
-                $description    = '';
-        endif;
-    @endphp
     <div class="col-md-12 col-lg-8">
         <div class="card">
             <div class="card-body">
-                <form class="" method="POST" action="{{ route('saveTransaction') }}">
+                <form class="" method="POST" action="{{ route('saveBankTransaction') }}">
                     @csrf
-                    <input type="hidden" name="itemId" value="{{ $itemId }}">
+                    <input type="hidden" name="itemId" value="{{ !empty($transaction) ? $transaction->id : '' }}">
                     <div class="row">
                         @php
-                            $clients = App\Models\clientCreation::all();
+                            $bankAccount = App\Models\bankAccount::all();
                         @endphp
-                        @if(!empty($clientName))
-                            @php
-                                $transactionClient= App\Models\clientCreation::find($clientName)->client_name;
-                            @endphp
-                        @else
-                            @php
-                                $transactionClient = null;
-                            @endphp
-                        @endif
-                    <div class="col-6 mb-2">
-                        <label for="clientId">Client Name</label>
-                            <select class="form-select" id="clientId" name="clientId" required>
-                                @if(!empty($clientName))
-                                <option value="{{ $clientName }}">{{$transactionClient}}</option>
+                        <div class="col-6 mb-2">
+                            <label for="accountId">Account Name</label>
+                            <select class="form-select" id="accountId" name="accountId" required>
+                                @if(!empty($transaction))
+                                <option value="{{ $transaction->bank_account_id }}">{{ $transaction->account_name }} - {{ $transaction->account_number }}</option>
                                 @else
                                 <option value="">-- Select --</option>
                                 @endif
-                                @if(!empty($clients) && $clients->count()>0)
-                                @foreach($clients as $client)
-                                <option value="{{ $client->id }}">{{ $client->client_name }}
-                                </option>
+                                @if(!empty($bankAccount) && $bankAccount->count() > 0)
+                                @foreach($bankAccount as $account)
+                                <option value="{{ $account->id }}">{{ $account->account_name }} - {{ $account->account_number }}</option>
                                 @endforeach
                                 @else
-                                <option value="">No Client Found</option>
+                                <option value="">No Account Found</option>
                                 @endif
                             </select>
-                    </div>
-                        @php
-                            $sources = App\Models\source::all();
-                        @endphp
-                        @if(!empty($transactionSource))
-                            @php
-                                $sourceName= App\Models\source::find($transactionSource)->source_name;
-                            @endphp
-                        @else
-                            @php
-                                $sourceName = null;
-                            @endphp
-                        @endif
-                    <div class="col-6 mb-2">
-                        <label for="sourceId">Source Type</label>
-                            <select class="form-select" id="sourceId" name="sourceId" required>
-                                @if(!empty($transactionSource))
-                                <option value="{{ $transactionSource }}">{{$sourceName}}</option>
-                                @else
-                                <option value="">-- Select --</option>
-                                @endif
-                                @if(!empty($sources) && $sources->count()>0)
-                                @foreach($sources as $source)
-                                <option value="{{ $source->id }}">{{ $source->source_name }}
-                                </option>
-                                @endforeach
-                                @else
-                                <option value="">No Source Found</option>
-                                @endif
-                            </select>
-                    </div>
-                    </div>
-                    <!--end row-->
-                    <div class="row">
-                        <!--end col-->
+                        </div>
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label class="form-label" for="amount" id="amount" required>Amount</label>
+                                <label class="form-label" for="date">Date</label>
                                 <input
-                                    type="number"
+                                    type="date"
                                     class="form-control"
-                                    id="aApprox"
-                                    required=""
-                                    placeholder="00.00"
-                                    name="amount"
-                                     value="{{ $amount }}"
+                                    id="date"
+                                    required
+                                    name="date"
+                                    value="{{ !empty($transaction) ? $transaction->transaction_date : '' }}"
                                 />
                             </div>
                         </div>
+                    </div>
+                    <!--end row-->
+                    <div class="row">
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label" for="type">Transaction Type</label>
                                 <select class="form-select" id="type" name="type" required>
-                                    @if(!empty($type))
-                                    <option value="{{ $type }}">{{ $type }}</option>
+                                    @if(!empty($transaction))
+                                    <option value="{{ $transaction->transaction_type }}">{{ $transaction->transaction_type }}</option>
                                     @else
                                     <option>-- Select --</option>
                                     @endif
@@ -286,33 +223,43 @@ New Transaction
                         <!--end col-->
                         <div class="col-md-6">
                             <div class="mb-3">
-                                <label class="form-label" for="date">Date</label>
-                                <input type="date" class="form-control" id="date" required="" placeholder="00.00" name="date"  value="{{ $date }}" />
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="row">
-                        <div class="col-md-12">
-                            <div class="mb-3">
-                                <label class="form-label" id="description" for="description">Description</label>
-                                <textarea
+                                <label class="form-label" for="amount">Amount</label>
+                                <input
+                                    type="number"
                                     class="form-control"
-                                    rows="2"
-                                    id="description"
-                                    placeholder="Enter Description"
-                                    name="description"
-                                >{{ $description }}</textarea>
+                                    id="aApprox"
+                                    required
+                                    placeholder="00.00"
+                                    name="amount"
+                                    value="{{ !empty($transaction) ? $transaction->amount : '' }}"
+                                />
                             </div>
                         </div>
                         <!--end col-->
                     </div>
                     <!--end row-->
+                    <div class="row">
+                        <div class="col-md-12">
+                            <div class="mb-3">
+                                <label class="form-label" for="description">Description</label>
+                                <textarea
+                                    class="form-control"
+                                    rows="2"
+                                    id="description"
+                                    name="description"
+                                    placeholder="Enter Description"
+                                >{{ !empty($transaction) ? $transaction->description : '' }}</textarea>
+                            </div>
+                        </div>
+                        <!--end col-->
+                    </div>
                     <!--end row-->
                     <div class="row">
                         <div class="col-sm-12 text-start">
-                            <button type="submit" class="btn btn-primary px-4">@if(!empty($itemId))Update Data @else Save Data @endif</button>
-                            <button type="submit" class="btn btn-danger px-4">Cancle</button>
+                            <button type="submit" class="btn btn-primary px-4">
+                                @if(!empty($transaction)) Update Data @else Save Data @endif
+                            </button>
+                            <a href="{{ route('transactionList') }}" class="btn btn-danger px-4">Cancel</a>
                         </div>
                     </div>
                 </form>

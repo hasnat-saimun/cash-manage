@@ -168,6 +168,38 @@ Route::get('/delete-bank-account/{id}', [
       'deleteBankAccount'])
       ->name('deleteBankAccount');
 
+      //bank transaction creation route
+Route::get('/bank-transaction', [
+    transactionController::class,
+      'bankTransactionCreation'])
+      ->name('bankTransactionCreation');
+
+      //bank transaction save route
+Route::post('/save-bank-transaction', [
+    transactionController::class,
+      'saveBankTransaction'])
+      ->name('saveBankTransaction');
+
+      //bank transaction list route
+Route::get('/bank-transaction-list', [
+    transactionController::class,
+      'bankTransactionList'])
+      ->name('bankTransactionList');
+      
+      //bank transaction edit route
+Route::get('/bank-transaction-edit/{id}', [
+    transactionController::class,
+      'bankTransactionEdit'])
+      ->name('bankTransactionEdit');
+
+      //bank transaction delete route
+Route::get('/delete-bank-transaction/{id}', [
+    transactionController::class,
+      'deleteBankTransaction'])
+      ->name('deleteBankTransaction');
+      
+
+
 
      
 

@@ -13,6 +13,12 @@ return new class extends Migration
     {
         Schema::create('bank_transactions', function (Blueprint $table) {
             $table->id();
+            
+            $table->unsignedBigInteger('bank_account_id')->nullable();
+            $table->date('transaction_date')->nullable();
+            $table->decimal('amount', 15, 2)->default(0);
+            $table->string('transaction_type')->nullable(); // e.g., 'deposit' or 'withdrawal'
+            $table->string('description')->nullable();
             $table->timestamps();
         });
     }

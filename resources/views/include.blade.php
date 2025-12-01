@@ -502,6 +502,32 @@
                                     <span>Bank account</span>
                                     <span class="badge text-bg-pink ms-auto">03</span>
                                 </a>
+                            </li>  <li class="nav-item">
+                                <a
+                                    class="nav-link"
+                                    href="#sidebarBankTransactions"
+                                    data-bs-toggle="collapse"
+                                    role="button"
+                                    aria-expanded="false"
+                                    aria-controls="sidebarBankTransactions"
+                                >
+                                    <i class="iconoir-task-list menu-icon"></i>
+                                    <span>Bank Transactions</span>
+                                </a>
+                                <div class="collapse" id="sidebarBankTransactions">
+                                    <ul class="nav flex-column">
+                                        <li class="nav-item">
+                                            <a class="nav-link" href="{{route('bankTransactionList')}}">Overview</a>
+                                        </li>
+                                        <!--end nav-item-->
+                                        <li class="nav-item">
+                                            <a class="nav-link" href="{{route('bankTransactionCreation')}}">Add Transactions</a>
+                                        </li>
+                                        <!--end nav-item-->
+                                    </ul>
+                                    <!--end nav-->
+                                </div>
+                                <!--end startbarTables-->
                             </li>
                             <!--end nav-item-->
                             <li class="nav-item">
