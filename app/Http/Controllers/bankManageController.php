@@ -94,7 +94,7 @@ class bankManageController extends Controller
     public function bankAccountEdit($id)
     {
         $editBankAccount = bankAccount::find($id)::join('bank_manages', 'bank_accounts.bank_manage_id', '=', 'bank_manages.id')
-                        ->select('bank_manages.bank_name','bank_manages.branch_name','bank_manages.routing_number')
+                        ->select('bank_manages.bank_name','bank_manages.branch_name','bank_manages.routing_number','bank_accounts.*')
                         ->first();
         return view('bank.bankAccountCreation', [
             'bankAccount' => $editBankAccount,
@@ -118,4 +118,14 @@ class bankManageController extends Controller
         endif;
     }
 
+    //bank account delete function
+    public function deleteBankAccount($id)
+    {
+        $data = bankAccount::find($id);
+        if ($data->delete()) :
+            return back()->with('success', 'Success! Bank Account deleted successfully');
+        else : 
+            return back()->with('error', 'Opps! Bank Account deletion failed. Please try later');
+        endif;
+    }
 }

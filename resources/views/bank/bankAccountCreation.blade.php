@@ -71,7 +71,7 @@ Bank Account Creation
                             <label for="entryDate">Entry Date</label> 
                             <div class="input-group">
                                 <span class="input-group-text" id="entryDate"><i class="far fa-calendar"></i></span>
-                                <input type="date" class="form-control" placeholder="01/35" aria-label="entryDate" name="entryDate">
+                                <input type="date" class="form-control" placeholder="01/35" aria-label="entryDate" name="entryDate" value="{{ $bankAccount->entry_date }}">
                             </div>
                         </div>
                     </div><!--end col-->
@@ -80,15 +80,14 @@ Bank Account Creation
                             <label for="opningBalance">Opning Balance</label> 
                             <div class="input-group">
                                 <span class="input-group-text" id="opningBalance"><i class="fas fa-ellipsis"></i></span>
-                                <input type="number" class="form-control" placeholder="123" aria-label="opningBalance" name="opningBalance">
+                                <input type="number" class="form-control" placeholder="123" aria-label="opningBalance" name="opningBalance" value="{{ $bankAccount->opning_balance }}">
                             </div>
                         </div>                                                            
                     </div>
-                </div>           
-                </div>
-                <div class="modal-footer">
-                    <button type="submit" class="btn btn-primary w-100">Add Account</button>
-                    <button type="reset" class="btn btn-light w-100">Reset</button>
+                </div> 
+                <div class="text-center mb-4 mt-3">
+                    <button type="submit" class="btn btn-primary">Update Account</button>
+                    <button type="reset" class="btn btn-light ">Reset</button>
                 </div>
             </form>     
         </div>
@@ -275,7 +274,7 @@ Bank Account Creation
                                     <a href="#"><i class="las la-print text-secondary fs-18"></i></a>
                                     
                                     <a href="{{ route('bankAccountEdit',['id'=>$bankAccount->id]) }}"><i class="las la-pen text-secondary fs-18"></i></a>
-                                    <a href="#"><i class="las la-trash-alt text-secondary fs-18"></i></a>
+                                    <a href="{{ route('deleteBankAccount',['id'=>$bankAccount->id]) }}"><i class="las la-trash-alt text-secondary fs-18"></i></a>
                                 </td>
                             </tr><!--end tr-->    
                                 @endforeach

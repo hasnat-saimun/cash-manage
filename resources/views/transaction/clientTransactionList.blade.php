@@ -7,6 +7,15 @@ Transaction List
 @endsection 
 @section('bodyContent')
 <div class="row">
+    <div class="col-12">
+        @if(session()->has('success'))
+        <div class="alert alert-success w-100 rounded-0">{{ session()->get('success') }}</div>
+        @endif @if(session()->has('error'))
+        <div class="alert alert-danger w-100 rounded-0">{{ session()->get('error') }}</div>
+        @endif
+    </div>
+</div>
+<div class="row">
     <div class="col-md-12 col-lg-4">
         <div class="card bg-globe-img">
             <div class="card-body">
@@ -225,8 +234,8 @@ Transaction List
                                 <td>{{ $transaction->description }}</td>
                                 <td>
                                     <a href="#"><i class="las la-print text-secondary fs-18"></i></a>
-                                    <a href="{{ route('transactionEdit',['id'=>$transaction->id]) }}"><i class="las la-download text-secondary fs-18"></i></a>
-                                    <a href="#"><i class="las la-trash-alt text-secondary fs-18"></i></a>
+                                    <a href="{{ route('transactionEdit',['id'=>$transaction->id]) }}"><i class="las la-pen text-secondary fs-18"></i></a>
+                                    <a href="{{ route('deleteTransaction',['id'=>$transaction->id]) }}"><i class="las la-trash-alt text-secondary fs-18"></i></a>
                                 </td>
                             </tr>
                             @endforeach

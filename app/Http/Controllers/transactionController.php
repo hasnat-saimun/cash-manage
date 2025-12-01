@@ -45,7 +45,17 @@ class transactionController extends Controller
     {
         $transaction = transaction::find($id);
 
-        return view('transaction.transactionCreation', ['itemId' => $id]);
+        return view('transaction.clientTransactionCreation', ['itemId' => $id]);
+    }
+
+    public function deleteTransaction($id)
+    {
+        $data = transaction::find($id);
+        if ($data->delete()) :
+            return back()->with('success', 'Success! transaction deleted successfully');
+        else :
+            return back()->with('error', 'Opps! transaction deletion failed. Please try later');
+        endif;
     }
 
 }

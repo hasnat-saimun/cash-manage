@@ -101,7 +101,12 @@ Route::get('/transaction-edit/{id}',
  [   transactionController::class,
   'transactionEdit'])
   ->name('transactionEdit');
-  
+
+  //transaction delete route
+  Route::get('/delete-transaction/{id}',
+ [   transactionController::class,
+  'deleteTransaction'])
+  ->name('deleteTransaction');
 
   //bank manage route
 Route::get('/bank-manage', [
@@ -157,7 +162,12 @@ Route::post('/update-bank-account', [
       'updateBankAccount'])
       ->name('updateBankAccount');
 
-      //bank
+      //bank account delete route
+Route::get('/delete-bank-account/{id}', [
+    bankManageController::class,
+      'deleteBankAccount'])
+      ->name('deleteBankAccount');
+
 
      
 
