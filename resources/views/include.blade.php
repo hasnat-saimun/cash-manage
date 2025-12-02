@@ -613,7 +613,7 @@
                                 <h4 class="page-title">@yield('bodyTitleFrist')</h4>
                                 <div class="">
                                     <ol class="breadcrumb mb-0">
-                                        <li class="breadcrumb-item"><a href="#">Approx</a></li>
+                                        <li class="breadcrumb-item"><a href="{{route('dashboard')}}">Cash Calculas</a></li>
                                         <!--end nav-item-->
                                         <li class="breadcrumb-item active">@yield('bodyTitleEnd')</li>
                                     </ol>

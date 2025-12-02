@@ -5,10 +5,27 @@ use App\Http\Controllers\clintController;
 use App\Http\Controllers\transactionController;
 use App\Http\Controllers\frontController;
 use App\Http\Controllers\bankManageController;
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ConfigController;
+use App\Http\Controllers\Admin\UserController as AdminUserController;
+
+//login route
+Route::get('/login', function () {
+    return view('login.userlogin');
+});
+
+//register route
+Route::get('/register', function () {
+    return view('login.userregister');
+});
 
 
 Route::get('/', function () {
-    return view('dashboard');
+    if (\App\Models\User::count() === 0) {
+        return redirect()->route('auth.register');
+    }
+    return redirect()->route('auth.loginForm');
 });
 
 //dashboard route
@@ -197,10 +214,35 @@ Route::get('/delete-bank-transaction/{id}', [
     transactionController::class,
       'deleteBankTransaction'])
       ->name('deleteBankTransaction');
-      
+
+
+// Auth
+Route::get('login', [AuthController::class,'showLogin'])->name('auth.loginForm');
+Route::post('login', [AuthController::class,'login'])->name('auth.login');
+Route::get('register', [AuthController::class,'showRegister'])->name('auth.register');
+Route::post('register', [AuthController::class,'register'])->name('auth.register.post');
+Route::post('logout', [AuthController::class,'logout'])->name('auth.logout');
+
+// Protected routes
+Route::middleware(['auth'])->group(function () {
+    // Dashboard
+    Route::get('dashboard', function () {
+        return view('dashboard');
+    })->name('dashboard');
+
+    Route::get('dashboard-view', function () {
+        return redirect()->route('dashboard');
+    })->name('dashboardView');
+
+    Route::get('profile', [ProfileController::class,'show'])->name('profile.show');
+    Route::post('profile/update', [ProfileController::class,'updateProfile'])->name('profile.update');
+    Route::post('profile/password', [ProfileController::class,'changePassword'])->name('profile.password');
+    Route::post('profile/avatar', [ProfileController::class,'updateAvatar'])->name('profile.avatar');
+});
 
 
 
-     
+
+
 
 
