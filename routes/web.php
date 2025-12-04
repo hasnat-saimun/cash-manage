@@ -9,6 +9,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ConfigController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
+use App\Http\Controllers\ReportController;
 
 //login route
 Route::get('/login', function () {
@@ -238,6 +239,9 @@ Route::middleware(['auth'])->group(function () {
     Route::post('profile/update', [ProfileController::class,'updateProfile'])->name('profile.update');
     Route::post('profile/password', [ProfileController::class,'changePassword'])->name('profile.password');
     Route::post('profile/avatar', [ProfileController::class,'updateAvatar'])->name('profile.avatar');
+
+    // Reports: client-wise transaction report
+    Route::get('reports/client-transaction', [ReportController::class, 'index'])->name('reports.clientTransaction');
 });
 
 
