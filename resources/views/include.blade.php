@@ -15,6 +15,26 @@
         <link href="{{asset('/public/projectFile/home')}}/assets/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
         <link href="{{asset('/public/projectFile/home')}}/assets/css/icons.min.css" rel="stylesheet" type="text/css" />
         <link href="{{asset('/public/projectFile/home')}}/assets/css/app.min.css" rel="stylesheet" type="text/css" />
+
+        <!-- page-specific styles -->
+        @stack('styles')
+
+        <!-- print styles: hide navigation / controls and show print-only content -->
+        <style>
+            .print-only{ display: none !important; }
+            @media print {
+                /* hide UI chrome */
+                .startbar, .topbar, .footer, .startbar-overlay, .offcanvas, .no-print { display: none !important; }
+                /* ensure content container uses full width */
+                .page-content .container-fluid, .page-wrapper, .page-content { width: 100% !important; margin: 0; padding: 0; }
+                /* show print-only blocks */
+                .print-only { display: block !important; }
+                /* adjust table font size for print */
+                table { font-size: 12px; }
+                /* avoid page breaks inside table rows */
+                table tr, table td, table th { page-break-inside: avoid; }
+            }
+        </style>
     </head>
 
     <body>
@@ -731,9 +751,13 @@
 
         <script src="{{asset('/public/projectFile/home')}}/assets/libs/apexcharts/apexcharts.min.js"></script>
         <script src="{{asset('/public/projectFile')}}/apexcharts.com/samples/assets/stock-prices.js"></script>
-        <script src="{{asset('/public/projectFile/home')}}/assets/js/pages/index.init.js"></script>
+        <!-- page-specific scripts (push index.init.js only on pages that include chart placeholders) -->
+        @stack('pageScripts')
         <script src="{{asset('/public/projectFile/home')}}/assets/js/DynamicSelect.js"></script>
         <script src="{{asset('/public/projectFile/home')}}/assets/js/app.js"></script>
+
+        {{-- page-specific inline scripts (e.g. @push('scripts') from views) --}}
+        @stack('scripts')
     </body>
     <!--end body-->
 </html>

@@ -1,4 +1,4 @@
- @extends('include')
+@extends('include')
 @section('backTitle')
 Client Transaction List
 @endsection
@@ -202,6 +202,7 @@ Client Transaction List
                         <thead class="table-light">
                             <tr>
                                 <th class="border-top-0">Clinet</th>
+                                <th class="border-top-0">Source</th>
                                 <th class="border-top-0">Transaction Type</th>
                                 <th class="border-top-0">Amount</th>
                                 <th class="border-top-0">Date</th>
@@ -211,19 +212,34 @@ Client Transaction List
                             <!--end tr-->
                         </thead>
                         <tbody>
+                            @php $__sourceCache = []; @endphp
                             @if(!$transactions->isEmpty())
                             @foreach ($transactions as $transaction)
                             <tr>
                                 <td>{{ $transaction->client_name }}</td>               
+                                @php
+                                    $sourceName = '';
+                                    $srcId = $transaction->transaction_source ?? $transaction->source ?? null;
+                                    if ($srcId) {
+                                        if (isset($__sourceCache[$srcId])) {
+                                            $sourceName = $__sourceCache[$srcId];
+                                        } else {
+                                            $s = \App\Models\source::find($srcId);
+                                            $sourceName = $s?->source_name ?? '';
+                                            $__sourceCache[$srcId] = $sourceName;
+                                        }
+                                    }
+                                @endphp
+                                <td>{{ $sourceName ?: '-' }}</td>
                                 @if($transaction->type == 'Debit')
                                 <td>
-                                    <span class="badge bg-danger-subtle text-success fs-11 fw-medium px-2"
+                                    <span class="badge bg-success-subtle text-danger fs-11 fw-medium px-2"
                                         >Debit</span
                                     >
                                 </td>
                                 @elseif($transaction->type == 'Credit')
                                 <td>
-                                    <span class="badge bg-success-subtle text-danger fs-11 fw-medium px-2"
+                                    <span class="badge bg-danger-subtle text-success fs-11 fw-medium px-2"
                                         >Credit</span
                                     >
                                 </td>

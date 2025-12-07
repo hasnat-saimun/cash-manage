@@ -1,6 +1,6 @@
 @extends('include')
 @section('backTitle') Dashboard @endsection
-@section('bodyTitleFrist') Dashboard @endsection
+@section('bodyTitleFrist') Welcome @endsection
 @section('bodyContent')
  <div class="container-fluid">
                 
@@ -596,3 +596,7 @@
                 </div><!--end row-->
             </div><!-- container -->
 @endsection
+
+@push('pageScripts')
+<script src="{{asset('/public/projectFile/home')}}/assets/js/pages/index.init.js"></script>
+@endpush

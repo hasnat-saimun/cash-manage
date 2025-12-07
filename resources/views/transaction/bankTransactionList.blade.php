@@ -219,13 +219,13 @@ Bank Transaction List
                                 <td>{{ $transaction->account_number}}</td>
                                 @if($transaction->transaction_type == 'Debit')
                                 <td>
-                                    <span class="badge bg-danger-subtle text-success fs-11 fw-medium px-2"
+                                    <span class="badge bg-success-subtle text-danger fs-11 fw-medium px-2"
                                         >Debit</span
                                     >
                                 </td>
                                 @elseif($transaction->transaction_type == 'Credit')
                                 <td>
-                                    <span class="badge bg-success-subtle text-danger fs-11 fw-medium px-2"
+                                    <span class="badge bg-danger-subtle text-success fs-11 fw-medium px-2"
                                         >Credit</span
                                     >
                                 </td>
