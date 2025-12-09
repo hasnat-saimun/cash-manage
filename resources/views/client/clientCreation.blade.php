@@ -1,4 +1,4 @@
- @extends('include')
+@extends('include')
 @section('backTitle')
 Clint
 @endsection
@@ -12,25 +12,33 @@ Clint
 
 
 @php
-if(!empty($itemId)):
-        $items       = \App\Models\clientCreation::find($itemId);
-        if(!empty($items)): 
-            $fullName              = $items->client_name;
-            $email              = $items->client_email   ;
-            $mobileNo              = $items->client_phone;
-            $clientSource              = $items->client_source;
-            $clientOpBalance         = $items->client_opBalance;
-            $registerDate              = $items->client_regDate;
-        endif;
-    else:
-        $itemId                 = null;
-        $fullName               = "";
-        $email                  = "";
-        $mobileNo               = "";
-        $clientSource               = "";
-        $clientOpBalance        = "";
-        $registerDate           = "";
-    endif;
+// Replace the previous colon-style conditional with a safer brace-style block
+$fullName = $email = $mobileNo = $clientSource = $clientOpBalance = $registerDate = '';
+if (!empty($itemId)) {
+    $items = \App\Models\clientCreation::find($itemId);
+    if ($items) {
+        $fullName     = $items->client_name ?? '';
+        $email        = $items->client_email ?? '';
+        $mobileNo     = $items->client_phone ?? '';
+        $clientSource = $items->client_source ?? '';
+
+        // Compute current balance from transactions: credits - debits
+        $tot = \Illuminate\Support\Facades\DB::table('transactions')
+            ->where('transaction_client_name', $items->id)
+            ->selectRaw("
+                COALESCE(SUM(CASE WHEN LOWER(type) = 'credit' THEN amount ELSE 0 END),0) as total_credit,
+                COALESCE(SUM(CASE WHEN LOWER(type) = 'debit' THEN amount ELSE 0 END),0) as total_debit
+            ")->first();
+
+        $clientOpBalance = (float)($tot->total_credit ?? 0) - (float)($tot->total_debit ?? 0);
+
+        $registerDate = $items->client_regDate ?? '';
+    } else {
+        $itemId = null;
+    }
+} else {
+    // keep defaults (already initialized)
+}
 @endphp
 
 <div class="row">
@@ -84,54 +92,58 @@ if(!empty($itemId)):
                             </tr>
                         </thead>
                         <tbody>
-                            @php
-                           
-                            $x = 1;
-                        @endphp
-                        @if(!empty($allClient) && $allClient->count()>0)
-                        @foreach($allClient as $client)
-                            <tr>
-                                <td>{{ $x }}</td>
-                                <td class="">
-                                    <div class="flex-grow-1 text-truncate">
-                                        <h6 class="m-0">{{$client->client_name}}</h6>
-                                    </div>
-                                    <!--end media body-->
-                                </td>
-                                <td>{{$client->client_opBalance}}</td>
-                                <td>{{$client->client_regDate}}</td>
-                                <td>{{$client->client_email}}</td>
-                                <td>{{$client->client_phone}}</td>
-                                <td><span class="badge rounded text-success bg-success-subtle">Active</span></td>
-                                <td class="text-end">
-                                    <a href="{{ route('clientEdit',['id'=>$client->id]) }}"><i class="las la-pen text-secondary fs-18"></i></a>
-                                    <a href="{{route('deleteClient',['id'=>$client->id])}}"><i class="las la-trash-alt text-secondary fs-18"></i></a>
-                                </td>
-                            </tr>
-                        @php
-                            $x++;
-                        @endphp
-                        @endforeach
-                        @else
-                         <tr>
-                                <td>{{ $x }}</td>
-                                <td class="d-flex align-items-center">
-                                    <div class="flex-grow-1 text-truncate">
-                                        <h6 class="m-0">Virtual It Professional</h6>
-                                    </div>
-                                    <!--end media body-->
-                                </td>
-                                <td>+1 234 567 890</td>
-                                <td>9000</td>
-                                <td>22 August 2024</td>
-                                <td><a href="#" class="text-body text-decoration-underline">dummy@gmail.com</a></td>
-                                <td><span class="badge rounded text-success bg-success-subtle">Active</span></td>
-                                <td class="text-end">
-                                    <a href="#"><i class="las la-pen text-secondary fs-18"></i></a>
-                                    <a href="#"><i class="las la-trash-alt text-secondary fs-18"></i></a>
-                                </td>
-                            </tr>
-                        @endif
+                            @php $x = 1; @endphp
+
+                            @if(!empty($allClient) && $allClient->count()>0)
+                                @foreach($allClient as $client)
+                                    @php
+                                        // compute current balance from transactions for this client
+                                        $tot = \Illuminate\Support\Facades\DB::table('transactions')
+                                                ->where('transaction_client_name', $client->id)
+                                                ->selectRaw("
+                                                    COALESCE(SUM(CASE WHEN LOWER(type) = 'credit' THEN amount ELSE 0 END),0) as total_credit,
+                                                    COALESCE(SUM(CASE WHEN LOWER(type) = 'debit' THEN amount ELSE 0 END),0) as total_debit
+                                                ")->first();
+                                        $bal = (float)($tot->total_credit ?? 0) - (float)($tot->total_debit ?? 0);
+                                    @endphp
+                                    <tr>
+                                        <td>{{ $x }}</td>
+                                        <td>
+                                            <div class="flex-grow-1 text-truncate">
+                                                <h6 class="m-0">{{ $client->client_name }}</h6>
+                                            </div>
+                                        </td>
+                                        <td>{{ number_format($bal,2) }}</td>
+                                        <td>{{ $client->client_regDate }}</td>
+                                        <td>{{ $client->client_email }}</td>
+                                        <td>{{ $client->client_phone }}</td>
+                                        <td><span class="badge rounded text-success bg-success-subtle">Active</span></td>
+                                        <td class="text-end">
+                                            <a href="{{ route('clientEdit',['id'=>$client->id]) }}"><i class="las la-pen text-secondary fs-18"></i></a>
+                                            <a href="{{ route('deleteClient',['id'=>$client->id]) }}"><i class="las la-trash-alt text-secondary fs-18"></i></a>
+                                        </td>
+                                    </tr>
+                                    @php $x++; @endphp
+                                @endforeach
+                            @else
+                                <tr>
+                                    <td>{{ $x }}</td>
+                                    <td class="d-flex align-items-center">
+                                        <div class="flex-grow-1 text-truncate">
+                                            <h6 class="m-0">Virtual It Professional</h6>
+                                        </div>
+                                    </td>
+                                    <td>+1 234 567 890</td>
+                                    <td>9000</td>
+                                    <td>22 August 2024</td>
+                                    <td><a href="#" class="text-body text-decoration-underline">dummy@gmail.com</a></td>
+                                    <td><span class="badge rounded text-success bg-success-subtle">Active</span></td>
+                                    <td class="text-end">
+                                        <a href="#"><i class="las la-pen text-secondary fs-18"></i></a>
+                                        <a href="#"><i class="las la-trash-alt text-secondary fs-18"></i></a>
+                                    </td>
+                                </tr>
+                            @endif
                         </tbody>
                     </table>
                 </div>
@@ -171,11 +183,13 @@ if(!empty($itemId)):
                                 <input type="text" class="form-control" placeholder="Name" aria-label="FullName" name="fullName" value="{{ $fullName }}" required />
                             </div>
                         </div>
+
+                        <!-- Updated label: show Current Balance (value comes from client_balances via $clientOpBalance) -->
                         <div class="col-6 mb-2">
-                            <label for="clientOpBalance">Opning Balance</label>
+                            <label for="clientOpBalance">Current Balance</label>
                             <div class="input-group">
                                 <span class="input-group-text" id="clientOpBalance">$</span>
-                                <input type="number" class="form-control" placeholder="Opning Balance" aria-label="clientOpBalance" name="clientOpBalance" value="{{ $clientOpBalance }}"  required />
+                                <input type="number" step="0.01" class="form-control" placeholder="Current Balance" aria-label="clientOpBalance" name="clientOpBalance" value="{{ $clientOpBalance }}"  required />
                             </div>
                         </div>
                     </div> 
