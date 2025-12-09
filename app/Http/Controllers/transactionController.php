@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\clientCreation;
 use App\Models\transaction;
 use App\Models\bankTransaction;
+use App\Models\clientBalance;
 
 class transactionController extends Controller
 {
@@ -16,12 +17,20 @@ class transactionController extends Controller
 
     public function saveTransaction(Request $request)
     {
-    
-         if(empty($request->itemId)):
-            $transaction   = new transaction();
-        else:
-            $transaction   = transaction::find($request->itemId);
-        endif;
+        // Determine if create or update and compute balance delta
+        if (empty($request->itemId)) {
+            // creating new transaction
+            $transaction = new transaction();
+            $oldSigned = 0.0;
+        } else {
+            // editing existing transaction - capture old signed amount
+            $transaction = transaction::find($request->itemId);
+            $oldType = $transaction->type ?? null;
+            $oldAmount = (float) ($transaction->amount ?? 0);
+            $oldSigned = ($oldType === 'Debit') ? $oldAmount : -$oldAmount;
+        }
+
+        // assign new values
         $transaction->transaction_client_name = $request->clientId;
         $transaction->type = $request->type;
         $transaction->transaction_source = $request->sourceId;
@@ -29,11 +38,27 @@ class transactionController extends Controller
         $transaction->date = $request->date;
         $transaction->description = $request->description;
 
-        if ($transaction->save()) :
-        return back()->with('success', 'Transaction saved successfully.');
-        else :
-        return back()->with('error', 'Failed to save transaction. Please try again.');
-        endif;
+        if ($transaction->save()) {
+            // compute signed new amount: Debit -> +amount, Credit -> -amount
+            $newSigned = ($request->type === 'Debit') ? (float) $request->amount : - (float) $request->amount;
+            // delta to apply to client balance
+            $delta = $newSigned - $oldSigned;
+
+            // update or create client balance row
+            $clientId = $request->clientId;
+            $cb = clientBalance::firstOrCreate(
+                ['client_id' => $clientId],
+                ['balance' => 0.0]
+            );
+
+            // apply delta
+            $cb->balance = round((float)$cb->balance + $delta, 2);
+            $cb->save();
+
+            return back()->with('success', 'Transaction saved successfully.');
+        } else {
+            return back()->with('error', 'Failed to save transaction. Please try again.');
+        }
     }
     
     public function transactionList()
