@@ -33,7 +33,7 @@ class AuthController extends Controller
     public function showRegister()
     {
         if (User::count() > 0) {
-            return redirect()->route('auth.loginForm')->with('error','Registration closed');
+            return redirect()->route('login')->with('error','Registration closed');
         }
 
         // Use the renamed view
@@ -43,7 +43,7 @@ class AuthController extends Controller
     public function register(Request $request)
     {
         if (User::count() > 0) {
-            return redirect()->route('auth.loginForm')->with('error','Registration closed');
+            return redirect()->route('login')->with('error','Registration closed');
         }
 
         $data = $request->validate([
@@ -70,6 +70,6 @@ class AuthController extends Controller
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
-        return redirect()->route('auth.loginForm');
+        return redirect()->route('login');
     }
 }

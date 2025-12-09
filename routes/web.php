@@ -11,22 +11,11 @@ use App\Http\Controllers\ConfigController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\ReportController;
 
-//login route
-Route::get('/login', function () {
-    return view('login.userlogin');
-});
-
-//register route
-Route::get('/register', function () {
-    return view('login.userregister');
-});
-
-
 Route::get('/', function () {
-    if (\App\Models\User::count() === 0) {
-        return redirect()->route('auth.register');
-    }
-    return redirect()->route('auth.loginForm');
+  if (\App\Models\User::count() === 0) {
+    return redirect()->route('auth.register');
+  }
+  return redirect()->route('login');
 });
 
 //dashboard route
@@ -218,7 +207,7 @@ Route::get('/delete-bank-transaction/{id}', [
 
 
 // Auth
-Route::get('login', [AuthController::class,'showLogin'])->name('auth.loginForm');
+Route::get('login', [AuthController::class,'showLogin'])->name('login');
 Route::post('login', [AuthController::class,'login'])->name('auth.login');
 Route::get('register', [AuthController::class,'showRegister'])->name('auth.register');
 Route::post('register', [AuthController::class,'register'])->name('auth.register.post');

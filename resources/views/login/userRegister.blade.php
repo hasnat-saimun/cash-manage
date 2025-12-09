@@ -127,7 +127,7 @@
                                         <div class="text-center">
                                             <p class="text-muted">
                                                 Already have an account ?
-                                                <a href="{{ route('auth.loginForm') }}" class="text-primary ms-2">Log in</a>
+                                                <a href="{{ route('login') }}" class="text-primary ms-2">Log in</a>
                                             </p>
                                         </div>
                                     </div>
