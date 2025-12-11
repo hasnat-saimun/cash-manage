@@ -1,12 +1,12 @@
 @extends('include')
 @section('backTitle')
-Client Transaction
+Bank Account
 @endsection
 @section('bodyTitleFrist')
-   Transaction Creation
+   Account Edit
 @endsection
 @section('bodyTitleEnd')
-   <a href="{{route('transactionList')}}"> Transaction List</a>
+   <a href="{{route('bankAccountCreationView')}}"> Account List</a>
 @endsection
 @section('bodyContent')
 <div class="row">
@@ -310,6 +310,10 @@ if (!empty($itemId)) {
                         <!--end col-->
                     </div>
                     <!--end row-->
+                    <div class="mb-3">
+                        <label for="opening_balance" class="form-label">Current Balance</label>
+                        <input type="number" class="form-control" id="opening_balance" name="opening_balance" value="{{ $currentBalance ?? 0 }}" required>
+                    </div>
                     <!--end row-->
                     <div class="row">
                         <div class="col-sm-12 text-start">

@@ -258,56 +258,147 @@ class transactionController extends Controller
     }
 
     //bank transaction creation
-    public function bankTransactionCreation()
+    public function bankTransactionCreation(Request $request)
     {
-        return view('transaction.bankTransactionCreation');  
+        $accounts = DB::table('bank_accounts')->get();
+        $itemId = $request->query('id');
+        $editData = null;
+        if ($itemId) {
+            $editData = DB::table('bank_transactions')->where('id', $itemId)->first();
+        }
+        return view('transaction.bankTransactionCreation', compact('accounts', 'editData', 'itemId'));
     }
 
-    //bank transaction save
+    // Helper: detect columns for bank_transactions
+    protected function detectBankTransactionTypeColumn()
+    {
+        $candidates = ['type','transaction_type','txn_type','payment_type','tran_type','txnType','trx_type'];
+        foreach ($candidates as $c) {
+            if (Schema::hasColumn('bank_transactions', $c)) return $c;
+        }
+        return 'type';
+    }
+    protected function detectBankTransactionAmountColumn()
+    {
+        $candidates = ['amount','txn_amount','transaction_amount','credit_amount','debit_amount','amount_paid'];
+        foreach ($candidates as $c) {
+            if (Schema::hasColumn('bank_transactions', $c)) return $c;
+        }
+        return 'amount';
+    }
+    protected function detectBankTransactionDateColumn()
+    {
+        $candidates = ['date', 'txn_date', 'transaction_date', 'trans_date', 'entry_date'];
+        foreach ($candidates as $c) {
+            if (Schema::hasColumn('bank_transactions', $c)) return $c;
+        }
+        return 'date';
+    }
+
+    // Helper: update bank_balances incrementally
+    protected function applyBankBalanceDelta(int $bankAccountId, float $delta)
+    {
+        $now = \Carbon\Carbon::now();
+        \DB::table('bank_balances')->updateOrInsert(
+            ['bank_account_id' => $bankAccountId],
+            [
+                'balance' => \DB::raw('COALESCE(balance,0) + ' . $delta),
+                'updated_at' => $now,
+                'created_at' => \DB::raw('COALESCE(created_at, "' . $now->toDateTimeString() . '")')
+            ]
+        );
+    }
+
+    // Save or update bank transaction
     public function saveBankTransaction(Request $request)
     {
-        if(empty($request->itemId)):
-            $transaction   = new bankTransaction();
-        else:
-            $transaction   = bankTransaction::find($request->itemId);
-        endif;
-        $transaction->bank_account_id = $request->accountId;
-        $transaction->transaction_type = $request->type;
-        $transaction->amount = $request->amount;
-        $transaction->transaction_date = $request->date;
-        $transaction->description = $request->description;  
+        $typeCol = $this->detectBankTransactionTypeColumn();
+        $amtCol = $this->detectBankTransactionAmountColumn();
+        $dateCol = $this->detectBankTransactionDateColumn();
 
-        if ($transaction->save()) :
-        return back()->with('success', 'Transaction saved successfully.');
-        else :
-        return back()->with('error', 'Failed to save transaction. Please try again.');
-        endif;
+        $validated = $request->validate([
+            'bank_account_id' => 'required|integer|exists:bank_accounts,id',
+            'type' => 'required|in:Debit,Credit,credit,debit',
+            'amount' => 'required|numeric',
+            'date' => 'required|date',
+            'description' => 'nullable|string|max:255',
+            'itemId' => 'nullable|integer'
+        ]);
+
+        $bankAccountId = $validated['bank_account_id'];
+        $type = strtolower($validated['type']);
+        $amount = (float)$validated['amount'];
+
+        \DB::beginTransaction();
+        try {
+            if (!empty($validated['itemId'])) {
+                // Update: reverse old effect, apply new effect
+                $txn = \DB::table('bank_transactions')->where('id', $validated['itemId'])->first();
+                if ($txn) {
+                    $oldType = strtolower($txn->{$typeCol});
+                    $oldAmount = (float)$txn->{$amtCol};
+                    $oldEffect = $oldType === 'credit' ? $oldAmount : -$oldAmount;
+                    $newEffect = $type === 'credit' ? $amount : -$amount;
+                    $delta = $newEffect - $oldEffect;
+                    $this->applyBankBalanceDelta($bankAccountId, $delta);
+
+                    \DB::table('bank_transactions')->where('id', $validated['itemId'])->update([
+                        'bank_account_id' => $bankAccountId,
+                        $typeCol => $validated['type'],
+                        $amtCol => $validated['amount'],
+                        $dateCol => $validated['date'],
+                        'description' => $validated['description'] ?? null,
+                        'updated_at' => \Carbon\Carbon::now(),
+                    ]);
+                }
+                $msg = 'Bank transaction updated successfully.';
+            } else {
+                // Insert: apply effect
+                $effect = $type === 'credit' ? $amount : -$amount;
+                $this->applyBankBalanceDelta($bankAccountId, $effect);
+
+                \DB::table('bank_transactions')->insert([
+                    'bank_account_id' => $bankAccountId,
+                    $typeCol => $validated['type'],
+                    $amtCol => $validated['amount'],
+                    $dateCol => $validated['date'],
+                    'description' => $validated['description'] ?? null,
+                    'created_at' => \Carbon\Carbon::now(),
+                    'updated_at' => \Carbon\Carbon::now(),
+                ]);
+                $msg = 'Bank transaction saved successfully.';
+            }
+            \DB::commit();
+        } catch (\Throwable $e) {
+            \DB::rollBack();
+            return redirect()->route('bankTransactionList')->with('error', 'Failed to save transaction.');
+        }
+        return redirect()->route('bankTransactionList')->with('success', $msg);
     }
 
-    //bank transaction list
-    public function bankTransactionList()
-    {
-        $transactions = bankTransaction::join('bank_accounts', 'bank_transactions.bank_account_id', '=', 'bank_accounts.id')->select('bank_accounts.account_name','bank_accounts.account_number','bank_transactions.*')->get();
-        return view('transaction.bankTransactionList', ['transactions' => $transactions]);
-    }
-
-    //bank transaction edit
-    public function bankTransactionEdit($id)
-    {
-        $transaction = bankTransaction::find($id)::join('bank_accounts', 'bank_transactions.bank_account_id', '=', 'bank_accounts.id')->select('bank_accounts.account_name','bank_accounts.account_number','bank_transactions.*')->where('bank_transactions.id', $id)->first();
-        return view('transaction.bankTransactionCreation', ['itemId' => $id], ['transaction' => $transaction]);
-    }
-
-    //bank transaction delete
+    // Delete bank transaction
     public function deleteBankTransaction($id)
     {
-        $data = bankTransaction::find($id);
-        if ($data->delete()) :
-            return back()->with('success', 'Success! transaction deleted successfully');
-        else :
-            return back()->with('error', 'Opps! transaction deletion failed. Please try later');
-        endif;
-    }
+        $typeCol = $this->detectBankTransactionTypeColumn();
+        $amtCol = $this->detectBankTransactionAmountColumn();
 
+        \DB::beginTransaction();
+        try {
+            $txn = \DB::table('bank_transactions')->where('id', $id)->first();
+            if ($txn) {
+                $bankAccountId = $txn->bank_account_id;
+                $type = strtolower($txn->{$typeCol});
+                $amount = (float)$txn->{$amtCol};
+                $effect = $type === 'credit' ? -$amount : $amount;
+                $this->applyBankBalanceDelta($bankAccountId, $effect);
+                \DB::table('bank_transactions')->where('id', $id)->delete();
+            }
+            \DB::commit();
+        } catch (\Throwable $e) {
+            \DB::rollBack();
+            return redirect()->route('bankTransactionList')->with('error', 'Failed to delete transaction.');
+        }
+        return redirect()->route('bankTransactionList')->with('success', 'Bank transaction deleted.');
+    }
 }
 

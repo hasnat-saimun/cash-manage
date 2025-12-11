@@ -17,7 +17,6 @@ return new class extends Migration
             $table->string('account_number')->nullable();
             $table->unsignedBigInteger('bank_manage_id')->nullable();
             $table->date('entry_date')->nullable();
-            $table->decimal('opning_balance', 15, 2)->default(0);
             $table->timestamps();
         });
     }

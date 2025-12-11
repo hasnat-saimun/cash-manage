@@ -25,6 +25,16 @@ Bank
 </div>
 @if(!empty($itemId))
 <div class="row">
+    @php
+        // Ensure $currentBalance is defined for edit page.
+        // If controller didn't pass it, read from bank_balances table (safe fallback).
+        if (!isset($currentBalance)) {
+            $acctId = $bankAccount->id ?? $itemId;
+            $currentBalance = \DB::table('bank_balances')
+                ->where('bank_account_id', $acctId)
+                ->value('balance') ?? 0;
+        }
+    @endphp
     <div class="card">
         <div class="card-header">
             <h5 class="">Update Account Detail</h5>
@@ -55,9 +65,9 @@ Bank
                         <select class="form-select" id="bankManageId" name="bankManageId" required>
                             @if(!empty($bankAccount->bank_manage_id))
                                 <option value="{{ $bankAccount->bank_manage_id }}">{{ $bankAccount->bank_name }} - {{ $bankAccount->branch_name }} -{{ $bankAccount->routing_number }}</option>
-                                @else
+                            @else
                                 <option value="">-- Select --</option>
-                                @endif
+                            @endif
                             @if(!empty($bankMagages) && $bankMagages->count()>0)
                             @foreach($bankMagages as $bankManage)
                             <option value="{{ $bankManage->id }}">{{ $bankManage->bank_name }} - {{ $bankManage->branch_name }} - {{ $bankManage->routing_number }}
@@ -80,12 +90,12 @@ Bank
                     </div><!--end col-->
                     <div class="col-md-6">
                         <div class="mb-2">
-                            <label for="opningBalance">Opning Balance</label> 
+                            <label for="currentBalance">Current Balance</label> 
                             <div class="input-group">
-                                <span class="input-group-text" id="opningBalance"><i class="fas fa-ellipsis"></i></span>
-                                <input type="number" class="form-control" placeholder="123" aria-label="opningBalance" name="opningBalance" value="{{ $bankAccount->opning_balance }}">
+                                <span class="input-group-text" id="currentBalance"><i class="fas fa-ellipsis"></i></span>
+                                <input type="number" class="form-control" placeholder="123" aria-label="currentBalance" name="currentBalance" value="{{ $currentBalance }}">
                             </div>
-                        </div>                                                            
+                        </div>                                                
                     </div>
                 </div> 
                 <div class="text-center mb-4 mt-3">
@@ -260,22 +270,25 @@ Bank
                                 <th class="border-top-0">Account Name</th>
                                 <th class="border-top-0">Account Number</th>                                                
                                 <th class="border-top-0">Branch</th>
-                                <th class="border-top-0">Opning Balance</th>
+                                <th class="border-top-0">Current Balance</th>
                                 <th class="border-top-0">Action</th>
                             </tr><!--end tr-->
                         </thead>
                         <tbody>
                             @if(isset($bankAccounts) && count($bankAccounts) > 0)
                                 @foreach($bankAccounts as $bankAccount)
+                                    @php
+                                        $balanceRow = \DB::table('bank_balances')->where('bank_account_id', $bankAccount->id)->first();
+                                        $currentBalance = $balanceRow ? $balanceRow->balance : 0;
+                                    @endphp
                             <tr>   
                                 <td>{{ $bankAccount->entry_date }}</td>
                                 <td>{{ $bankAccount->account_name }}</td>
                                 <td>{{ $bankAccount->account_number }}</td>
                                 <td>{{ $bankAccount->bank_name }} - {{ $bankAccount->branch_name }} - {{ $bankAccount->routing_number }}</td>
-                                <td>{{ $bankAccount->opning_balance }}</td>
+                                <td>{{ number_format($currentBalance,2) }}</td>
                                 <td>
                                     <a href="#"><i class="las la-print text-secondary fs-18"></i></a>
-                                    
                                     <a href="{{ route('bankAccountEdit',['id'=>$bankAccount->id]) }}"><i class="las la-pen text-secondary fs-18"></i></a>
                                     <a href="{{ route('deleteBankAccount',['id'=>$bankAccount->id]) }}"><i class="las la-trash-alt text-secondary fs-18"></i></a>
                                 </td>
@@ -375,12 +388,12 @@ Bank
                         </div><!--end col-->
                         <div class="col-md-6">
                             <div class="mb-2">
-                                <label for="opningBalance">Opning Balance</label> 
+                                <label for="currentBalance">Current Balance</label> 
                                 <div class="input-group">
-                                    <span class="input-group-text" id="opningBalance"><i class="fas fa-ellipsis"></i></span>
-                                    <input type="number" class="form-control" placeholder="123" aria-label="opningBalance" name="opningBalance">
+                                    <span class="input-group-text" id="currentBalance"><i class="fas fa-ellipsis"></i></span>
+                                    <input type="number" class="form-control" placeholder="123" aria-label="currentBalance" name="currentBalance">
                                 </div>
-                            </div>                                                            
+                            </div>                                                
                         </div>
                     </div>           
                 </div>

@@ -12,7 +12,7 @@ Clint
 
 
 @php
-// Replace the previous colon-style conditional with a safer brace-style block
+// Replace the balance computation: prefer client_balances row, otherwise compute from transactions
 $fullName = $email = $mobileNo = $clientSource = $clientOpBalance = $registerDate = '';
 if (!empty($itemId)) {
     $items = \App\Models\clientCreation::find($itemId);
@@ -22,15 +22,21 @@ if (!empty($itemId)) {
         $mobileNo     = $items->client_phone ?? '';
         $clientSource = $items->client_source ?? '';
 
-        // Compute current balance from transactions: credits - debits
-        $tot = \Illuminate\Support\Facades\DB::table('transactions')
-            ->where('transaction_client_name', $items->id)
-            ->selectRaw("
-                COALESCE(SUM(CASE WHEN LOWER(type) = 'credit' THEN amount ELSE 0 END),0) as total_credit,
-                COALESCE(SUM(CASE WHEN LOWER(type) = 'debit' THEN amount ELSE 0 END),0) as total_debit
-            ")->first();
+        // Prefer client_balances value first
+        $balanceRow = \Illuminate\Support\Facades\DB::table('client_balances')->where('client_id', $items->id)->first();
+        if ($balanceRow && isset($balanceRow->balance)) {
+            $clientOpBalance = (float) $balanceRow->balance;
+        } else {
+            // fallback: compute current balance from transactions: credits - debits
+            $tot = \Illuminate\Support\Facades\DB::table('transactions')
+                ->where('transaction_client_name', $items->id)
+                ->selectRaw("
+                    COALESCE(SUM(CASE WHEN LOWER(type) = 'credit' THEN amount ELSE 0 END),0) as total_credit,
+                    COALESCE(SUM(CASE WHEN LOWER(type) = 'debit' THEN amount ELSE 0 END),0) as total_debit
+                ")->first();
 
-        $clientOpBalance = (float)($tot->total_credit ?? 0) - (float)($tot->total_debit ?? 0);
+            $clientOpBalance = (float)($tot->total_credit ?? 0) - (float)($tot->total_debit ?? 0);
+        }
 
         $registerDate = $items->client_regDate ?? '';
     } else {
@@ -97,14 +103,23 @@ if (!empty($itemId)) {
                             @if(!empty($allClient) && $allClient->count()>0)
                                 @foreach($allClient as $client)
                                     @php
-                                        // compute current balance from transactions for this client
-                                        $tot = \Illuminate\Support\Facades\DB::table('transactions')
-                                                ->where('transaction_client_name', $client->id)
-                                                ->selectRaw("
-                                                    COALESCE(SUM(CASE WHEN LOWER(type) = 'credit' THEN amount ELSE 0 END),0) as total_credit,
-                                                    COALESCE(SUM(CASE WHEN LOWER(type) = 'debit' THEN amount ELSE 0 END),0) as total_debit
-                                                ")->first();
-                                        $bal = (float)($tot->total_credit ?? 0) - (float)($tot->total_debit ?? 0);
+                                        // prefer client_balances
+                                        $bal = \Illuminate\Support\Facades\DB::table('client_balances')
+                                                ->where('client_id', $client->id)
+                                                ->value('balance');
+
+                                        if ($bal === null) {
+                                            // fallback: compute from transactions
+                                            $tot = \Illuminate\Support\Facades\DB::table('transactions')
+                                                    ->where('transaction_client_name', $client->id)
+                                                    ->selectRaw("
+                                                        COALESCE(SUM(CASE WHEN LOWER(type) = 'credit' THEN amount ELSE 0 END),0) as total_credit,
+                                                        COALESCE(SUM(CASE WHEN LOWER(type) = 'debit' THEN amount ELSE 0 END),0) as total_debit
+                                                    ")->first();
+                                            $bal = (float)($tot->total_credit ?? 0) - (float)($tot->total_debit ?? 0);
+                                        } else {
+                                            $bal = (float) $bal;
+                                        }
                                     @endphp
                                     <tr>
                                         <td>{{ $x }}</td>

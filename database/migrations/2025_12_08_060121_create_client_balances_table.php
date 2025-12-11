@@ -11,12 +11,15 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('client_balances', function (Blueprint $table) {
-            $table->id();
-            $table->unsignedBigInteger('client_id');
-            $table->decimal('balance', 15, 2)->default(0);
-            $table->timestamps();
-        });
+        // Only create if not exists, and only one definition for client_balances
+        if (!Schema::hasTable('client_balances')) {
+            Schema::create('client_balances', function (Blueprint $table) {
+                $table->id();
+                $table->unsignedBigInteger('client_id');
+                $table->decimal('balance', 15, 2)->default(0);
+                $table->timestamps();
+            });
+        }
     }
 
     /**

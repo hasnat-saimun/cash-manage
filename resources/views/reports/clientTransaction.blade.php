@@ -73,31 +73,96 @@
         </div>
     </div>
 
-    <!-- Print header: visible only during printing -->
-    <div class="card mt-3 print-only">
-        <div class="card-body">
-            <h5 class="mb-1">Client Report</h5>
-            <div>
-                <strong>Client:</strong>
-                @php
-                    $clientLabel = '';
-                    if(!empty($clientId)) {
-                        $cl = $clients->firstWhere('id', $clientId);
-                        $clientLabel = $cl?->client_name ?? $clientId;
-                    }
-                @endphp
-                {{ $clientLabel ?: '—' }}
-                <span class="ms-3"><strong>Range:</strong> {{ $rangeLabel ?? '—' }}</span>
-            </div>
-        </div>
-    </div>
-
+    
     <!-- Report table -->
     <div class="card mt-3">
         <div class="card-header">
-            <h5 class="card-title mb-0">Client Transactions (Debit / Credit)</h5>
+            <h5 class="card-title mb-0">Client Calculas</h5>
         </div>
         <div class="card-body">
+            <!-- Print header: visible only during printing -->
+            <div class="card mt-3 print-only">
+                <div class="card-body">
+                    <h5 class="mb-1">Client Report</h5>
+                    <div>
+                        <strong>Client:</strong>
+                        @php
+                            $clientLabel = '';
+                            if(!empty($clientId)) {
+                                $cl = $clients->firstWhere('id', $clientId);
+                                $clientLabel = $cl?->client_name ?? $clientId;
+                            }
+                        @endphp
+                        {{ $clientLabel ?: '—' }}
+                        <span class="ms-3"><strong>Range:</strong> {{ $rangeLabel ?? '—' }}</span>
+                    </div>
+                </div>
+            </div>
+
+            @php
+                $isDaily = (isset($reportType) && $reportType === 'daily');
+                // determine statement label: for daily show single date, otherwise the rangeLabel
+                if ($isDaily) {
+                    $statementDate = $from ?? $date ?? \Carbon\Carbon::today()->toDateString();
+                } else {
+                    $statementDate = $rangeLabel ?? ($from && $to ? ($from . ' — ' . $to) : '—');
+                }
+                $clientObj = null;
+                if (!empty($clientId)) {
+                    $clientObj = $clients->firstWhere('id', $clientId);
+                }
+                // number of visible columns in table (used for colspan adjustments)
+                $colCount = $isDaily ? 5 : 6; // daily: Description,Source,Debit,Credit,Balance (5) ; custom: Date + those (6)
+                $colsBeforeBalance = $colCount - 1;
+            @endphp
+
+            {{-- Statement header: client details + statement date --}}
+            <div class="mb-3 d-flex justify-content-between align-items-start">
+                <div>
+                    <h6 class="mb-1">Client:</h6>
+                    <div class="small text-muted">
+                        <div><strong>Name:</strong> {{ $clientObj?->client_name ?? '—' }}</div>
+                        <div><strong>Mobile:</strong> {{ $clientObj?->client_phone ?? '—' }}</div>
+                        <div><strong>Email:</strong> {{ $clientObj?->client_email ?? '—' }}</div>
+                    </div>
+                </div>
+                <div class="text-end">
+                    <h6 class="mb-1">Statement</h6>
+                    <div class="small text-muted">
+                        <div><strong>Date/Range:</strong> {{ $statementDate }}</div>
+                        @if(isset($rangeLabel) && !$isDaily)
+                            <div><strong>Range label:</strong> {{ $rangeLabel }}</div>
+                        @endif
+                    </div>
+                </div>
+            </div>
+            
+
+            @if(isset($openingBalance) || isset($closingBalance) || isset($grandTotal))
+                @php
+                    // determine grand total status (positive => Balance, negative => Due)
+                    $gt = isset($grandTotal) ? (float) $grandTotal : 0.0;
+                    $grandLabel = $gt < 0 ? 'Due' : 'Balance';
+                    $grandClass = $gt < 0 ? 'bg-danger' : 'bg-success';
+                @endphp
+
+                <div class="mb-2 d-flex gap-3 align-items-center">
+                    @if(isset($openingBalance))
+                        <div><small class="text-muted">Opening Balance at start: <strong>{{ number_format($openingBalance,2) }}</strong></small></div>
+                    @endif
+                    @if(isset($closingBalance))
+                        <div><small class="text-muted">Closing Balance at end: <strong>{{ number_format($closingBalance,2) }}</strong></small></div>
+                    @endif
+                    @if(isset($grandTotal))
+                        <div class="ms-3">
+                            <span class="badge {{ $grandClass }} text-white">
+                                {{ $grandLabel }} ({{ number_format($gt,2) }})
+                            </span>
+                        </div>
+                    @endif
+                </div>
+            @endif
+
             @if(empty($clientId))
                 <div class="alert alert-info">Please select a client and date range then click Generate.</div>
             @else
@@ -105,42 +170,78 @@
                     <table class="table table-bordered align-middle">
                         <thead class="table-light">
                             <tr>
-                                <th style="width:130px">Date</th>
+                                @unless($isDaily)
+                                    <th style="width:130px">Date</th>
+                                @endunless
                                 <th>Description</th>
                                 <th>Source</th>
-                                <th class="text-end" style="width:150px">Debit</th>
-                                <th class="text-end" style="width:150px">Credit</th>
+                                <th class="text-end" style="width:120px">Debit</th>
+                                <th class="text-end" style="width:120px">Credit</th>
+                                <th class="text-end" style="width:140px">Balance</th>
                             </tr>
                         </thead>
                         <tbody>
+                            {{-- Opening balance row (inside table body) --}}
+                            @if(isset($openingBalance))
+                                <tr class="table-secondary">
+                                    <td colspan="{{ $colsBeforeBalance }}"><strong>Opening Balance</strong></td>
+                                    <td class="text-end"><strong>{{ number_format($openingBalance,2) }}</strong></td>
+                                </tr>
+                            @endif
+
                             @forelse($rows as $r)
                                 <tr>
-                                    <td>{{ $r['date'] }}</td>
+                                    @unless($isDaily)
+                                        <td>{{ $r['date'] }}</td>
+                                    @endunless
                                     <td>{{ $r['description'] }}</td>
                                     <td>{{ $r['source'] }}</td>
                                     <td class="text-end">{{ $r['debit'] ? number_format($r['debit'],2) : '-' }}</td>
                                     <td class="text-end">{{ $r['credit'] ? number_format($r['credit'],2) : '-' }}</td>
+                                    <td class="text-end">{{ number_format($r['balance'],2) }}</td>
                                 </tr>
                             @empty
                                 <tr>
-                                    <td colspan="5" class="text-center text-muted">No transactions found for the selected client and date range.</td>
+                                    <td colspan="{{ $colCount }}" class="text-center text-muted">No transactions found for the selected client and date range.</td>
                                 </tr>
                             @endforelse
+
+                            {{-- Closing balance row (inside table body) --}}
+                            @php
+                                // prefer controller-provided closingBalance; if not, derive from last row or opening + totals
+                                $closing = $closingBalance ?? null;
+                                if ($closing === null && !empty($rows)) {
+                                    $last = end($rows);
+                                    $closing = $last['balance'] ?? null;
+                                }
+                                if ($closing === null) {
+                                    $closing = (isset($openingBalance) ? $openingBalance : 0) + ($totalCredit ?? 0) - ($totalDebit ?? 0);
+                                }
+                            @endphp
+                            @if(isset($closing))
+                                <tr class="table-secondary">
+                                    <td colspan="{{ $colsBeforeBalance }}"><strong>Closing Balance</strong></td>
+                                    <td class="text-end"><strong>{{ number_format($closing,2) }}</strong></td>
+                                </tr>
+                            @endif
                         </tbody>
                         <tfoot>
+                            @php $labelColspan = max(1, $colCount - 3); @endphp
                             <tr>
-                                <th colspan="3" class="text-end">Totals</th>
+                                <th colspan="{{ $labelColspan }}" class="text-end">Totals</th>
                                 <th class="text-end">{{ number_format($totalDebit,2) }}</th>
                                 <th class="text-end">{{ number_format($totalCredit,2) }}</th>
+                                <th class="text-end"></th>
                             </tr>
                             <tr>
-                                <th colspan="3" class="text-end">Grand Total (Credit - Debit)</th>
-                                <th colspan="2" class="text-end">
+                                <th colspan="{{ $labelColspan }}" class="text-end">Grand Total (Credit - Debit)</th>
+                                <th colspan="3" class="text-end">
                                     <span class="fw-semibold">{{ number_format($grandTotal,2) }}</span>
-                                    @if($grandTotal >= 0)
-                                        <span class="badge bg-success ms-2">Balance</span>
-                                    @else
+                                    @php $gt = (float) ($grandTotal ?? 0); @endphp
+                                    @if($gt < 0)
                                         <span class="badge bg-danger ms-2">Due</span>
+                                    @else
+                                        <span class="badge bg-success ms-2">Balance</span>
                                     @endif
                                 </th>
                             </tr>
@@ -212,6 +313,21 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // initial toggle
     toggleFields();
+
+    // qsFromForm helper (was missing; used by Export button)
+    function qsFromForm(form) {
+        var params = new URLSearchParams();
+        var elements = form.elements;
+        for (var i = 0; i < elements.length; i++) {
+            var el = elements[i];
+            if (!el.name) continue;
+            if ((el.type === 'checkbox' || el.type === 'radio') && !el.checked) continue;
+            // include zero values and allow '0'
+            if (el.value === '') continue;
+            params.append(el.name, el.value);
+        }
+        return params.toString();
+    }
 
     // export / print handlers
     var exportBtn = document.getElementById('exportCsvBtn');

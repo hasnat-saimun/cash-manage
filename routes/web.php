@@ -233,6 +233,12 @@ Route::middleware(['auth'])->group(function () {
     Route::get('reports/client-transaction', [ReportController::class, 'index'])->name('reports.clientTransaction');
     // export CSV
     Route::get('reports/client-transaction/export', [ReportController::class, 'export'])->name('reports.clientTransaction.export');
+
+    //bank-wise transaction report
+    Route::get('reports/bank-transaction', [ReportController::class, 'bankTransactionReport'])->name('reports.bankTransaction');
+    // bank export CSV
+    Route::get('reports/bank-transaction/export', [ReportController::class, 'bankTransactionExport'])->name('reports.bankTransaction.export');
+    // export CSV
 });
 
 

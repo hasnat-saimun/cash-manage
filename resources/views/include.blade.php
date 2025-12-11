@@ -543,6 +543,9 @@
                                         <li class="nav-item">
                                             <a class="nav-link" href="{{route('bankTransactionCreation')}}">Add Transactions</a>
                                         </li>
+                                        <li class="nav-item">
+                                            <a class="nav-link" href="{{route('reports.bankTransaction')}}">Transactions Report</a>
+                                        </li>
                                         <!--end nav-item-->
                                     </ul>
                                     <!--end nav-->
