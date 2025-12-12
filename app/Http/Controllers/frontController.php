@@ -22,6 +22,9 @@ class frontController extends Controller
     {
         $data = new source();
         $data->source_name = $request->sourceName;
+        if ($request->session()->has('business_id')) {
+            $data->business_id = $request->session()->get('business_id');
+        }
 
         if ($data->save()) :
             return back()->with('success', 'Success! Source added successfully');
@@ -43,6 +46,9 @@ class frontController extends Controller
     {
         $data = source::find($request->itemId);
         $data->source_name = $request->sourceName;  
+        if ($request->session()->has('business_id')) {
+            $data->business_id = $request->session()->get('business_id');
+        }
         if ($data->save()) :
             return redirect(route('sourceView'))->with('success', 'Success! Source updated successfully');
         else :

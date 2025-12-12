@@ -61,6 +61,15 @@ class AuthController extends Controller
         ]);
 
         Auth::login($user);
+
+        // Create a first business for the first admin
+        $businessName = $request->input('business_name') ?: 'My Business';
+        $biz = \App\Models\Business::create([
+            'name' => $businessName,
+            'slug' => \Illuminate\Support\Str::slug($businessName).'-'.\Illuminate\Support\Str::random(6),
+        ]);
+        $user->businesses()->attach($biz->id, ['role' => 'owner']);
+        $request->session()->put('business_id', $biz->id);
         // go to dashboard after registration
         return redirect()->route('dashboard')->with('success','Admin account created');
     }

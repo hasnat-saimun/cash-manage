@@ -240,7 +240,10 @@ class ReportController extends Controller
     // Account-wise bank transaction report (view)
     public function bankTransactionReport(Request $request)
     {
-        $accounts = DB::table('bank_accounts')->orderBy('account_name')->get();
+        $accounts = DB::table('bank_accounts')
+            ->where('bank_accounts.business_id', request()->session()->get('business_id'))
+            ->orderBy('account_name')
+            ->get();
 
         $accountId = $request->query('account_id');
         $reportType = $request->query('report_type', 'daily');
@@ -481,7 +484,10 @@ class ReportController extends Controller
      */
     protected function resolveBankAccountCurrentBalance(int $accountId): float
     {
-        $bal = \DB::table('bank_balances')->where('bank_account_id', $accountId)->value('balance');')->where('bank_account_id', $accountId)->value('balance');
+        $bal = \DB::table('bank_balances')
+            ->where('bank_account_id', $accountId)
+            ->where('bank_balances.business_id', request()->session()->get('business_id'))
+            ->value('balance');
         return (float) ($bal ?? 0);
-    }    }
+    }
 }

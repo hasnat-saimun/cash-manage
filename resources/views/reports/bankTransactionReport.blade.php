@@ -48,6 +48,9 @@
                 <div class="col-md-2 d-grid no-print">
                     <button id="exportCsvBtn" type="button" class="btn btn-outline-success">Export CSV</button>
                 </div>
+                <div class="col-md-2 d-grid no-print">
+                    <button id="printBtn" type="button" class="btn btn-outline-secondary">Print</button>
+                </div>
             </form>
         </div>
     </div>
@@ -58,9 +61,20 @@
         $colsBeforeBalance = $colCount - 1;
     @endphp
 
-    <div class="card mt-3">
+    <div class="card mt-3" id="bank-report-print-section">
         <div class="card-header"><h5 class="card-title mb-0">Account Statement</h5></div>
         <div class="card-body">
+            <!-- Print header: visible only during printing -->
+            <div class="card mt-3 print-only">
+                <div class="card-body">
+                    <h5 class="mb-1">Bank Account Report</h5>
+                    <div>
+                        <strong>Account:</strong>
+                        {{ optional($accounts->firstWhere('id',$accountId))->account_name ?? '—' }}
+                        <span class="ms-3"><strong>Range:</strong> {{ $rangeLabel ?? ($from ?? $date ?? '-') }}</span>
+                    </div>
+                </div>
+            </div>
             @if(empty($accountId))
                 <div class="alert alert-info">Please select an account and date range then click Generate.</div>
             @else
@@ -142,6 +156,30 @@
     </div>
 </div>
 
+@push('styles')
+<style>
+@page { size: A4 portrait; margin: 20mm 15mm; }
+@media screen { .print-only { display: none !important; } }
+@media print {
+    body * { visibility: hidden !important; }
+    #bank-report-print-section, #bank-report-print-section * { visibility: visible !important; }
+    #bank-report-print-section {
+        position: absolute; left: 0; right: 0; top: 0; width: auto;
+        transform-origin: top left;
+        transform: scale(var(--print-scale, 0.9));
+        width: calc(100% / var(--print-scale, 0.9));
+    }
+    #bank-report-print-section table.table { font-size: 12px; }
+    #bank-report-print-section th, #bank-report-print-section td { padding: 4px 6px !important; }
+    #bank-report-print-section thead { display: table-header-group; }
+    #bank-report-print-section tfoot { display: table-footer-group; }
+    #bank-report-print-section tr, #bank-report-print-section table, #bank-report-print-section img { page-break-inside: avoid; break-inside: avoid; }
+    .no-print { display: none !important; }
+    .print-only { display: block !important; }
+}
+</style>
+@endpush
+
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function () {
@@ -170,6 +208,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
     var exportBtn=document.getElementById('exportCsvBtn'), form=document.getElementById('reportForm');
     if(exportBtn && form){ exportBtn.addEventListener('click', function(){ var qs=qsFromForm(form); var url="{{ route('reports.bankTransaction.export') }}"; if(qs) url += '?' + qs; window.open(url,'_blank'); }); }
+
+    var printBtn=document.getElementById('printBtn');
+    if(printBtn){ printBtn.addEventListener('click', function(){ window.print(); }); }
 });
 </script>
 @endpush

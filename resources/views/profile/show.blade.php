@@ -31,7 +31,7 @@
     <div class="col-md-6">
         <h5>Avatar</h5>
         @if($user->avatar)
-            <img src="{{ asset('storage/'.$user->avatar) }}" alt="avatar" class="img-thumbnail mb-3" style="max-width:150px;">
+            <img src="{{ asset('public/storage/'.$user->avatar) }}" alt="avatar" class="img-thumbnail mb-3" style="max-width:150px;">
         @endif
         <form method="POST" action="{{ route('profile.avatar') }}" enctype="multipart/form-data">
             @csrf

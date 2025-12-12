@@ -27,11 +27,17 @@ class transactionController extends Controller
         DB::beginTransaction();
         try {
             // try to lock existing row
-            $exists = DB::table('client_balances')->where('client_id', $clientId)->lockForUpdate()->first();
+            $exists = DB::table('client_balances')
+                ->where('client_id', $clientId)
+                ->where('client_balances.business_id', request()->session()->get('business_id'))
+                ->lockForUpdate()->first();
 
             if ($exists) {
                 // update existing balance
-                DB::table('client_balances')->where('client_id', $clientId)->update([
+                DB::table('client_balances')
+                    ->where('client_id', $clientId)
+                    ->where('client_balances.business_id', request()->session()->get('business_id'))
+                    ->update([
                     'balance'    => DB::raw("balance + ({$delta})"),
                     'updated_at' => $now,
                 ]);
@@ -39,6 +45,7 @@ class transactionController extends Controller
                 // insert new balance row
                 DB::table('client_balances')->insert([
                     'client_id'  => $clientId,
+                    'business_id' => request()->session()->get('business_id'),
                     'balance'    => $delta,
                     'created_at' => $now,
                     'updated_at' => $now,
@@ -46,7 +53,10 @@ class transactionController extends Controller
             }
 
             // fetch the new balance
-            $newBalance = (float) DB::table('client_balances')->where('client_id', $clientId)->value('balance');
+            $newBalance = (float) DB::table('client_balances')
+                ->where('client_id', $clientId)
+                ->where('client_balances.business_id', request()->session()->get('business_id'))
+                ->value('balance');
 
             DB::commit();
             return $newBalance;
@@ -105,7 +115,10 @@ class transactionController extends Controller
                     $newBalance = $this->applyClientBalanceDelta($clientId, $delta);
                 } else {
                     // no change to balance
-                    $newBalance = (float) DB::table('client_balances')->where('client_id', $clientId)->value('balance');
+                    $newBalance = (float) DB::table('client_balances')
+                        ->where('client_id', $clientId)
+                        ->where('transactions.business_id', request()->session()->get('business_id'))
+                        ->value('balance');
                 }
 
                 // save txnBalance on transaction
@@ -120,6 +133,7 @@ class transactionController extends Controller
                 $txn->amount = $amount;
                 $txn->date = $data['date'];
                 $txn->description = $data['description'] ?? null;
+                $txn->business_id = $request->session()->get('business_id');
                 $txn->save();
 
                 // effect: +amount for Credit, -amount for Debit
@@ -178,15 +192,22 @@ class transactionController extends Controller
         $closing = $opening + $totalCredit - $totalDebit;
 
         // Persist into client_balances table (insert or update)
-        $exists = DB::table('client_balances')->where('client_id', $clientId)->first();
+        $exists = DB::table('client_balances')
+            ->where('client_id', $clientId)
+            ->where('client_balances.business_id', request()->session()->get('business_id'))
+			->first();
         if ($exists) {
-            DB::table('client_balances')->where('client_id', $clientId)->update([
+            DB::table('client_balances')
+                ->where('client_id', $clientId)
+                ->where('client_balances.business_id', request()->session()->get('business_id'))
+                ->update([
                 'balance' => $closing,
                 'updated_at' => Carbon::now(),
             ]);
         } else {
             DB::table('client_balances')->insert([
                 'client_id'  => $clientId,
+                'business_id' => request()->session()->get('business_id'),
                 'balance'    => $closing,
                 'created_at' => Carbon::now(),
                 'updated_at' => Carbon::now(),
@@ -216,7 +237,10 @@ class transactionController extends Controller
     
     public function transactionList()
     {
-        $transactions = transaction::join('client_creations', 'transactions.transaction_client_name', '=', 'client_creations.id')->select('client_creations.client_name','transactions.*')->get();
+        $transactions = transaction::join('client_creations', 'transactions.transaction_client_name', '=', 'client_creations.id')
+            ->where('transactions.business_id', request()->session()->get('business_id'))
+            ->select('client_creations.client_name','transactions.*')
+            ->get();
         return view('transaction.clientTransactionList', ['transactions' => $transactions]);
     }
 
@@ -260,7 +284,9 @@ class transactionController extends Controller
     //bank transaction creation
     public function bankTransactionCreation(Request $request)
     {
-        $accounts = DB::table('bank_accounts')->get();
+        $accounts = DB::table('bank_accounts')
+            ->where('business_id', request()->session()->get('business_id'))
+            ->get();
         $itemId = $request->query('id');
         $editData = null;
         if ($itemId) {
@@ -359,6 +385,7 @@ class transactionController extends Controller
 
                 \DB::table('bank_transactions')->insert([
                     'bank_account_id' => $bankAccountId,
+                    'business_id' => $request->session()->get('business_id'),
                     $typeCol => $validated['type'],
                     $amtCol => $validated['amount'],
                     $dateCol => $validated['date'],
@@ -399,6 +426,24 @@ class transactionController extends Controller
             return redirect()->route('bankTransactionList')->with('error', 'Failed to delete transaction.');
         }
         return redirect()->route('bankTransactionList')->with('success', 'Bank transaction deleted.');
+    }
+
+    // List bank transactions
+    public function bankTransactionList()
+    {
+        $typeCol = $this->detectBankTransactionTypeColumn();
+        $amtCol = $this->detectBankTransactionAmountColumn();
+        $dateCol = $this->detectBankTransactionDateColumn();
+
+        $bizId = request()->session()->get('business_id');
+        $txns = \DB::table('bank_transactions')
+            ->join('bank_accounts', 'bank_transactions.bank_account_id', '=', 'bank_accounts.id')
+            ->select('bank_transactions.*', 'bank_accounts.account_name', 'bank_accounts.account_number')
+            ->where('bank_transactions.business_id', $bizId)
+            ->orderByDesc('bank_transactions.id')
+            ->get();
+
+        return view('transaction.bankTransactionList', compact('txns','typeCol','amtCol','dateCol'));
     }
 }
 

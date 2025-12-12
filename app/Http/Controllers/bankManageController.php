@@ -24,6 +24,9 @@ class bankManageController extends Controller
         $data->bank_name = $request->bankName;
         $data->branch_name = $request->branchName;
         $data->routing_number = $request->routingNumber;
+        if ($request->session()->has('business_id')) {
+            $data->business_id = $request->session()->get('business_id');
+        }
 
         if ($data->save()) :
             return back()->with('success', 'Success! data added successfully');
@@ -48,6 +51,9 @@ class bankManageController extends Controller
         $data->bank_name = $request->bankName;
         $data->branch_name = $request->branchName;
         $data->routing_number = $request->routingNumber;  
+        if ($request->session()->has('business_id')) {
+            $data->business_id = $request->session()->get('business_id');
+        }
         if ($data->save()) :
             return redirect(route('bankManageView'))->with('success', 'Success! data updated successfully');
         else :
@@ -69,9 +75,12 @@ class bankManageController extends Controller
     //bank account creation view function
     public function bankAccountCreationView()
     {
-        $bankAccounts = bankAccount::join('bank_manages', 'bank_accounts.bank_manage_id', '=', 'bank_manages.id')
-                        ->select('bank_manages.bank_name','bank_manages.branch_name','bank_manages.routing_number','bank_accounts.*')
-                        ->get();
+        $bizId = request()->session()->get('business_id');
+            $bankAccounts = bankAccount::join('bank_manages', 'bank_accounts.bank_manage_id', '=', 'bank_manages.id')
+                            ->select('bank_manages.bank_name','bank_manages.branch_name','bank_manages.routing_number','bank_accounts.*')
+                            ->where('bank_accounts.business_id', $bizId)
+                            ->orderByDesc('bank_accounts.id')
+                            ->paginate(12);
         return view('bank.bankAccountCreation', ['bankAccounts' => $bankAccounts]);   
     }
 
@@ -91,21 +100,24 @@ class bankManageController extends Controller
 			'account_number' => $validated['accountNumber'] ?? null,
 			'bank_manage_id' => $validated['bankManageId'] ?? null,
 			'entry_date'     => $validated['entryDate'] ?? null,
+                'business_id'    => $request->session()->get('business_id'),
 			'created_at'     => now(),
 			'updated_at'     => now(),
 		]);
 
 		// Persist current balance into bank_balances (create row)
-		$balance = (float) ($validated['currentBalance'] ?? 0);
-		\DB::table('bank_balances')->updateOrInsert(
-			['bank_account_id' => $accountId],
-			[
-				'balance' => $balance,
-				'updated_at' => now(),
-				// set created_at only if inserting (updateOrInsert will not overwrite existing created_at)
-				'created_at' => now()
-			]
-		);
+        $balance = (float) ($validated['currentBalance'] ?? 0);
+        \DB::table('bank_balances')->updateOrInsert(
+            [
+                'bank_account_id' => $accountId,
+                'business_id' => $request->session()->get('business_id')
+            ],
+            [
+                'balance' => $balance,
+                'updated_at' => now(),
+                'created_at' => now()
+            ]
+        );
 
 		return redirect()->route('bankAccountCreationView')->with('success', 'Bank account created.');
 	}
@@ -113,10 +125,15 @@ class bankManageController extends Controller
     //bank account edit function
     public function bankAccountEdit($id)
     {
+        $bizId = request()->session()->get('business_id');
         $editBankAccount = bankAccount::find($id)::join('bank_manages', 'bank_accounts.bank_manage_id', '=', 'bank_manages.id')
                         ->select('bank_manages.bank_name','bank_manages.branch_name','bank_manages.routing_number','bank_accounts.*')
+                        ->where('bank_accounts.business_id', $bizId)
                         ->first();
-        $balanceRow = \DB::table('bank_balances')->where('bank_account_id', $id)->first();
+        $balanceRow = \DB::table('bank_balances')
+            ->where('bank_account_id', $id)
+            ->where('business_id', request()->session()->get('business_id'))
+            ->first();
         $currentBalance = $balanceRow ? $balanceRow->balance : 0;
         return view('bank.bankAccountCreation', [
             'bankAccount' => $editBankAccount,
@@ -148,19 +165,25 @@ class bankManageController extends Controller
 		// create or update the bank_balances row with currentBalance
 		$balance = (float) ($validated['currentBalance'] ?? 0);
 
-		// If the row exists, only update balance and updated_at; if not, insert created_at too.
-		$exists = \DB::table('bank_balances')->where('bank_account_id', $validated['id'])->exists();
-		if ($exists) {
-			\DB::table('bank_balances')->where('bank_account_id', $validated['id'])
-				->update(['balance' => $balance, 'updated_at' => now()]);
-		} else {
-			\DB::table('bank_balances')->insert([
-				'bank_account_id' => $validated['id'],
-				'balance' => $balance,
-				'created_at' => now(),
-				'updated_at' => now(),
-			]);
-		}
+        // If the row exists, only update balance and updated_at; if not, insert created_at too.
+        $exists = \DB::table('bank_balances')
+            ->where('bank_account_id', $validated['id'])
+            ->where('business_id', $request->session()->get('business_id'))
+            ->exists();
+        if ($exists) {
+            \DB::table('bank_balances')
+                ->where('bank_account_id', $validated['id'])
+                ->where('business_id', $request->session()->get('business_id'))
+                ->update(['balance' => $balance, 'updated_at' => now()]);
+        } else {
+            \DB::table('bank_balances')->insert([
+                'bank_account_id' => $validated['id'],
+                'business_id' => request()->session()->get('business_id'),
+                'balance' => $balance,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
 
 		return redirect()->route('bankAccountCreationView')->with('success', 'Bank account updated.');
 	}

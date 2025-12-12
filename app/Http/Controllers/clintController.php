@@ -42,11 +42,14 @@ class clintController extends Controller
 		$client->client_email = $validated['email'] ?? null;
 		$client->client_phone = $validated['mobileNo'] ?? null;
 		$client->client_regDate = $validated['registerDate'];
+		if ($request->session()->has('business_id')) {
+			$client->business_id = $request->session()->get('business_id');
+		}
 		$client->save();
 
 		// Persist opening balance into client_balances only (do NOT save to client_creations)
 		DB::table('client_balances')->updateOrInsert(
-			['client_id' => $client->id],
+				['client_id' => $client->id, 'business_id' => $request->session()->get('business_id')],
 			[
 				'balance' => (float)$validated['clientOpBalance'],
 				'created_at' => Carbon::now(),
@@ -83,7 +86,7 @@ class clintController extends Controller
 
 		// Update client_balances with new balance (replace opening/current balance)
 		DB::table('client_balances')->updateOrInsert(
-			['client_id' => $client->id],
+				['client_id' => $client->id, 'business_id' => $request->session()->get('business_id')],
 			[
 				'balance' => (float)$validated['clientOpBalance'],
 				'updated_at' => Carbon::now(),
@@ -100,7 +103,10 @@ class clintController extends Controller
 		$client = clientCreation::find($id);
 		if ($client) {
 			$client->delete();
-			DB::table('client_balances')->where('client_id', $id)->delete();
+			DB::table('client_balances')
+				->where('client_id', $id)
+				->where('client_creations.business_id', request()->session()->get('business_id'))
+				->delete();
 		}
 		return redirect()->route('clientCreation')->with('success','Client deleted.');
 	}

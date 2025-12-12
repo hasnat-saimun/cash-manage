@@ -20,19 +20,93 @@ class UserController extends Controller
         });
     }
 
-    public function index() { return view('admin.users.index', ['users'=>User::paginate(20)]); }
-    public function create() { return view('admin.users.create'); }
+    public function index() {
+        $current = auth()->user();
+        $query = User::query();
+        if (!$current->isSuperAdmin()) {
+            // Guard: only filter by created_by if column exists
+            if (\Illuminate\Support\Facades\Schema::hasColumn('users','created_by')) {
+                $query->where('created_by', $current->id);
+            }
+        }
+        return view('admin.users.index', ['users'=>$query->paginate(20)]);
+    }
+    public function create() {
+        // Non-super admins can only assign permissions they themselves have
+        return view('admin.users.create');
+    }
     public function store(Request $r) {
-        $r->validate(['name'=>'required','email'=>'required|email|unique:users','password'=>'required|confirmed','role'=>'required']);
-        User::create(['name'=>$r->name,'email'=>$r->email,'password'=>Hash::make($r->password),'role'=>$r->role]);
-        return redirect()->route('users.index')->with('success','User created');
+        $r->validate([
+            'name'=>'required',
+            'email'=>'required|email|unique:users',
+            'password'=>'required|confirmed',
+            'role'=>'required',
+            'permissions' => 'array'
+        ]);
+        // Enforce permission bounds for non-super admins
+        $current = auth()->user();
+        $requestedPerms = collect($r->input('permissions', []))->filter()->values();
+        if (!$current->isSuperAdmin()) {
+            $currentPerms = collect($current->permissions ?? []);
+            $diff = $requestedPerms->diff($currentPerms);
+            if ($diff->isNotEmpty()) {
+                return back()->with('error','You cannot grant permissions you do not have.')->withInput();
+            }
+        }
+        User::create([
+            'name'=>$r->name,
+            'email'=>$r->email,
+            'password'=>Hash::make($r->password),
+            'role'=>$r->role,
+            'permissions' => $requestedPerms->all(),
+            'created_by' => $current->id,
+            'need_new_business' => (bool)$r->boolean('need_new_business')
+        ]);
+        return redirect()->route('admin.users.index')->with('success','User created');
     }
-    public function edit(User $user) { return view('admin.users.edit',['user'=>$user]); }
+    public function edit(User $user) {
+        $current = auth()->user();
+        if (!$current->isSuperAdmin() && $user->created_by !== $current->id) {
+            abort(403);
+        }
+        return view('admin.users.edit',['user'=>$user]);
+    }
     public function update(Request $r, User $user) {
-        $r->validate(['name'=>'required','email'=>"required|email|unique:users,email,{$user->id}",'role'=>'required']);
-        $user->update($r->only('name','email','role'));
+        $r->validate([
+            'name'=>'required',
+            'email'=>"required|email|unique:users,email,{$user->id}",
+            'role'=>'required',
+            'permissions' => 'array'
+        ]);
+        $current = auth()->user();
+        if (!$current->isSuperAdmin() && $user->created_by !== $current->id) {
+            abort(403);
+        }
+        $requestedPerms = collect($r->input('permissions', []))->filter()->values();
+        if (!$current->isSuperAdmin()) {
+            $currentPerms = collect($current->permissions ?? []);
+            $diff = $requestedPerms->diff($currentPerms);
+            if ($diff->isNotEmpty()) {
+                return back()->with('error','You cannot grant permissions you do not have.')->withInput();
+            }
+        }
+        $user->update([
+            'name' => $r->name,
+            'email' => $r->email,
+            'role' => $r->role,
+            'need_new_business' => (bool)$r->boolean('need_new_business')
+        ]);
+        $user->permissions = $requestedPerms->all();
+        $user->save();
         if ($r->filled('password')) { $user->password = Hash::make($r->password); $user->save(); }
-        return redirect()->route('users.index')->with('success','User updated');
+        return redirect()->route('admin.users.index')->with('success','User updated');
     }
-    public function destroy(User $user) { $user->delete(); return back()->with('success','User deleted'); }
+    public function destroy(User $user) {
+        $current = auth()->user();
+        if (!$current->isSuperAdmin() && $user->created_by !== $current->id) {
+            abort(403);
+        }
+        $user->delete();
+        return back()->with('success','User deleted');
+    }
 }

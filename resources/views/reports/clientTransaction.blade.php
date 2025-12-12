@@ -75,7 +75,7 @@
 
     
     <!-- Report table -->
-    <div class="card mt-3">
+    <div class="card mt-3" id="client-report-print-section">
         <div class="card-header">
             <h5 class="card-title mb-0">Client Calculas</h5>
         </div>
@@ -252,6 +252,46 @@
         </div>
     </div>
 </div>
+
+@push('styles')
+<style>
+@page { size: A4 portrait; margin: 20mm 15mm; }
+/* Hide print-only elements on screen */
+@media screen {
+    .print-only { display: none !important; }
+}
+/* Print only the report section */
+@media print {
+    /* hide everything by default */
+    body * { visibility: hidden !important; }
+    /* show only the selected section */
+    #client-report-print-section, #client-report-print-section * { visibility: visible !important; }
+    /* position section within page margins for clean print */
+    #client-report-print-section {
+        position: absolute; left: 0; right: 0; top: 0; width: auto;
+        /* scale down to try to fit one page; adjust as needed */
+        transform-origin: top left;
+        transform: scale(var(--print-scale, 0.9));
+        width: calc(100% / var(--print-scale, 0.9));
+    }
+
+    /* compact table for print */
+    #client-report-print-section table.table { font-size: 12px; }
+    #client-report-print-section th, #client-report-print-section td { padding: 4px 6px !important; }
+
+    /* keep headers/footers with table and avoid row splits */
+    #client-report-print-section thead { display: table-header-group; }
+    #client-report-print-section tfoot { display: table-footer-group; }
+    #client-report-print-section tr, 
+    #client-report-print-section table, 
+    #client-report-print-section img { page-break-inside: avoid; break-inside: avoid; }
+
+    /* generic helpers */
+    .no-print { display: none !important; }
+    .print-only { display: block !important; }
+}
+</style>
+@endpush
 
 @push('scripts')
 <script>

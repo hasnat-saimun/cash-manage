@@ -42,6 +42,26 @@
         <div class="topbar d-print-none">
             <div class="container-fluid">
                 <nav class="topbar-custom d-flex justify-content-between" id="topbar-custom">
+                    @php($user = auth()->user())
+                    @if(session('success'))
+                        <div class="alert alert-success alert-dismissible fade show" role="alert">
+                                    @php($currentBizId = session('business_id'))
+                                    @php($currentBiz = $user && $currentBizId ? $user->businesses->firstWhere('id', $currentBizId) : null)
+                                    @if($currentBiz)
+                                        <div class="mt-1">Business: <strong>{{ $currentBiz->name }}</strong></div>
+                                    @elseif($currentBizId)
+                                        <div class="mt-1">Business ID: <strong>{{ $currentBizId }}</strong></div>
+                                    @endif
+                            {{ session('success') }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    @endif
+                    @if(session('error'))
+                        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                            {{ session('error') }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                    @endif
                     <ul class="topbar-item list-unstyled d-inline-flex align-items-center mb-0">
                         <li>
                             <button class="nav-link mobile-menu-btn nav-icon" id="togglemenu">
@@ -50,17 +70,17 @@
                         </li>
                         <li class="hide-phone app-search">
                             <form role="search" action="#" method="get">
-                                <input
-                                    type="search"
-                                    name="search"
-                                    class="form-control top-search mb-0"
-                                    placeholder="Search here..."
-                                />
+                                <input type="search" name="search" class="form-control top-search mb-0" placeholder="Search here..." />
                                 <button type="submit"><i class="iconoir-search"></i></button>
                             </form>
                         </li>
                     </ul>
                     <ul class="topbar-item list-unstyled d-inline-flex align-items-center mb-0">
+                        @auth
+                        <li class="me-2">
+                            @include('partials.business-switcher')
+                        </li>
+                        @endauth
                         <li class="dropdown">
                             <a
                                 class="nav-link dropdown-toggle arrow-none nav-icon"
@@ -117,6 +137,16 @@
                             </a>
                         </li>
 
+                        @auth
+                        @php($user = auth()->user())
+                        @php($avatarUrl = asset('/public/projectFile/home/assets/images/users/avatar-1.jpg'))
+                        @php(
+                            $avatarUrl = ($user && $user->avatar)
+                                ? (\Illuminate\Support\Str::startsWith($user->avatar, ['http://','https://'])
+                                    ? $user->avatar
+                                    : asset('public/storage/'.ltrim($user->avatar,'/')))
+                                : $avatarUrl
+                        )
                         <li class="dropdown topbar-item">
                             <a
                                 class="nav-link dropdown-toggle arrow-none nav-icon"
@@ -435,28 +465,24 @@
                                 aria-expanded="false"
                                 data-bs-offset="0,19"
                             >
-                                <img src="{{asset('/public/projectFile/home')}}/assets/images/users/avatar-1.jpg" alt="" class="thumb-md rounded-circle" />
+                                <img src="{{ $avatarUrl }}" alt="" class="thumb-md rounded-circle" />
                             </a>
                             <div class="dropdown-menu dropdown-menu-end py-0">
                                 <div class="d-flex align-items-center dropdown-item py-2 bg-secondary-subtle">
                                     <div class="flex-shrink-0">
-                                        <img
-                                            src="{{asset('/public/projectFile/home')}}/assets/images/users/avatar-1.jpg"
-                                            alt=""
-                                            class="thumb-md rounded-circle"
-                                        />
+                                        <img src="{{ $avatarUrl }}" alt="" class="thumb-md rounded-circle" />
                                     </div>
                                     <div class="flex-grow-1 ms-2 text-truncate align-self-center">
-                                        <h6 class="my-0 fw-medium text-dark fs-13">William Martin</h6>
-                                        <small class="text-muted mb-0">Front End Developer</small>
+                                        <h6 class="my-0 fw-medium text-dark fs-13">{{ $user ? $user->name : 'User' }}</h6>
+                                        <small class="text-muted mb-0">{{ $user ? $user->email : '' }}</small>
                                     </div>
                                     <!--end media-body-->
                                 </div>
                                 <div class="dropdown-divider mt-0"></div>
                                 <small class="text-muted px-2 pb-1 d-block">Account</small>
-                                <a class="dropdown-item" href="pages-profile.html"
-                                    ><i class="las la-user fs-18 me-1 align-text-bottom"></i> Profile</a
-                                >
+                                <a class="dropdown-item" href="{{ route('profile.show') }}">
+                                    <i class="las la-user fs-18 me-1 align-text-bottom"></i> Profile
+                                </a>
                                 <a class="dropdown-item" href="pages-faq.html"
                                     ><i class="las la-wallet fs-18 me-1 align-text-bottom"></i> Earning</a
                                 >
@@ -471,11 +497,15 @@
                                     ><i class="las la-question-circle fs-18 me-1 align-text-bottom"></i> Help Center</a
                                 >
                                 <div class="dropdown-divider mb-0"></div>
-                                <a class="dropdown-item text-danger" href="auth-login.html"
-                                    ><i class="las la-power-off fs-18 me-1 align-text-bottom"></i> Logout</a
-                                >
+                                <form method="POST" action="{{ route('auth.logout') }}" class="px-2 py-2">
+                                    @csrf
+                                    <button class="dropdown-item text-danger" type="submit">
+                                        <i class="las la-power-off fs-18 me-1 align-text-bottom"></i> Logout
+                                    </button>
+                                </form>
                             </div>
                         </li>
+                        @endauth
                     </ul>
                     <!--end topbar-nav-->
                 </nav>
@@ -487,13 +517,15 @@
         <div class="startbar d-print-none">
             <!--start brand-->
             <div class="brand">
-                <a href="index.html" class="logo">
-                    <span>
-                        <img src="{{asset('/public/projectFile/home')}}/assets/images/logo-sm.png" alt="logo-small" class="logo-sm" />
-                    </span>
-                    <span class="">
-                        <img src="{{asset('/public/projectFile/home')}}/assets/images/logo-light.png" alt="logo-large" class="logo-lg logo-light" />
-                        <img src="{{asset('/public/projectFile/home')}}/assets/images/logo-dark.png" alt="logo-large" class="logo-lg logo-dark" />
+                @php($siteLogo = \App\Models\Config::get('sidebar_logo_path') ?: \App\Models\Config::get('logo_path'))
+                @php($siteName = \App\Models\Config::get('site_name','Cash Calculas'))
+                <a href="{{ route('dashboard') }}" class="logo d-flex align-items-center">
+                    <span class="flex-column text-center">
+                        @if(!empty($siteLogo))
+                            <img src="{{ asset('public/storage/'.$siteLogo) }}" alt="logo" class="w-50" />
+                        @else
+                            <img src="{{asset('/public/projectFile/home')}}/assets/images/logo-sm.png" alt="logo-small" class="logo-sm" />
+                        @endif
                     </span>
                 </a>
             </div>
@@ -501,6 +533,17 @@
             <!--start startbar-menu-->
             <div class="startbar-menu">
                 <div class="startbar-collapse" id="startbarCollapse" data-simplebar>
+                    @auth
+                    @php($currentBizId = session('business_id'))
+                    @php($currentBiz = auth()->user()->businesses->firstWhere('id', $currentBizId))
+                    <div class="px-3 py-2 mb-2 border-bottom small text-muted d-flex align-items-center justify-content-between">
+                        <span>
+                            Current Business:
+                            <strong>{{ $currentBiz ? $currentBiz->name : ($currentBizId ?? 'none') }}</strong>
+                        </span>
+                        <a href="{{ route('business.index') }}" class="btn btn-sm btn-outline-primary">Manage</a>
+                    </div>
+                    @endauth
                     <div class="d-flex align-items-start flex-column w-100">
                         <!-- Navigation -->
                         <ul class="navbar-nav mb-auto w-100">
@@ -508,13 +551,16 @@
                                 <span>Main</span>
                             </li>
 
+                            @php($canDashboard = auth()->check() ? auth()->user()->hasPermission('dashboard.view') : false)
+                            @if($canDashboard)
                             <li class="nav-item">
-                                <a class="nav-link" href="{{route('dashboardView')}}">
+                                <a class="nav-link" href="{{ route('dashboardView') }}">
                                     <i class="iconoir-report-columns menu-icon"></i>
                                     <span>Dashboard</span>
                                     <span class="badge text-bg-info ms-auto">New</span>
                                 </a>
                             </li>
+                            @endif
                             <!--end nav-item-->
                             <li class="nav-item">
                                 <a class="nav-link" href="{{route('bankAccountCreationView')}}">
@@ -522,89 +568,139 @@
                                     <span>Bank account</span>
                                     <span class="badge text-bg-pink ms-auto">03</span>
                                 </a>
-                            </li>  <li class="nav-item">
-                                <a
-                                    class="nav-link"
-                                    href="#sidebarBankTransactions"
-                                    data-bs-toggle="collapse"
-                                    role="button"
-                                    aria-expanded="false"
-                                    aria-controls="sidebarBankTransactions"
-                                >
+                            @php(
+                                $canBankTxView = auth()->check() ? auth()->user()->hasPermission('bank.transactions.view') : false
+                            )
+                            @php(
+                                $canBankTxCreate = auth()->check() ? auth()->user()->hasPermission('bank.transactions.create') : false
+                            )
+                            @php(
+                                $canBankReport = auth()->check() ? auth()->user()->hasPermission('reports.bank') : false
+                            )
+                            @if($canBankTxView || $canBankTxCreate || $canBankReport)
+                            <li class="nav-item">
+                                <a class="nav-link" href="#sidebarBankTransactions" data-bs-toggle="collapse" role="button" aria-expanded="false" aria-controls="sidebarBankTransactions">
                                     <i class="iconoir-task-list menu-icon"></i>
                                     <span>Bank Transactions</span>
                                 </a>
                                 <div class="collapse" id="sidebarBankTransactions">
                                     <ul class="nav flex-column">
+                                        @if($canBankTxView)
                                         <li class="nav-item">
-                                            <a class="nav-link" href="{{route('bankTransactionList')}}">Overview</a>
+                                            <a class="nav-link" href="{{ route('bankTransactionList') }}">Overview</a>
                                         </li>
-                                        <!--end nav-item-->
+                                        @endif
+                                        @if($canBankTxCreate)
                                         <li class="nav-item">
-                                            <a class="nav-link" href="{{route('bankTransactionCreation')}}">Add Transactions</a>
+                                            <a class="nav-link" href="{{ route('bankTransactionCreation') }}">Add Transactions</a>
                                         </li>
+                                        @endif
+                                        @if($canBankReport)
                                         <li class="nav-item">
-                                            <a class="nav-link" href="{{route('reports.bankTransaction')}}">Transactions Report</a>
+                                            <a class="nav-link" href="{{ route('reports.bankTransaction') }}">Transactions Report</a>
                                         </li>
-                                        <!--end nav-item-->
+                                        @endif
                                     </ul>
-                                    <!--end nav-->
                                 </div>
-                                <!--end startbarTables-->
                             </li>
+                            @endif
                             <!--end nav-item-->
+                            @php($canClients = auth()->check() ? auth()->user()->hasPermission('clients.manage') : false)
+                            @if($canClients)
                             <li class="nav-item">
-                                <a class="nav-link" href="{{route('clientCreation')}}">
+                                <a class="nav-link" href="{{ route('clientCreation') }}">
                                     <i class="iconoir-community menu-icon"></i>
                                     <span>Contact List</span>
                                 </a>
                             </li>
+                            @endif
                             <!--end nav-item-->
+                            @php(
+                                $canClientTxView = auth()->check() ? auth()->user()->hasPermission('transactions.view') : false
+                            )
+                            @php(
+                                $canClientTxCreate = auth()->check() ? auth()->user()->hasPermission('transactions.create') : false
+                            )
+                            @php(
+                                $canClientReport = auth()->check() ? auth()->user()->hasPermission('reports.client') : false
+                            )
+                            @if($canClientTxView || $canClientTxCreate || $canClientReport)
                             <li class="nav-item">
-                                <a
-                                    class="nav-link"
-                                    href="#sidebarTransactions"
-                                    data-bs-toggle="collapse"
-                                    role="button"
-                                    aria-expanded="false"
-                                    aria-controls="sidebarTransactions"
-                                >
+                                <a class="nav-link" href="#sidebarTransactions" data-bs-toggle="collapse" role="button" aria-expanded="false" aria-controls="sidebarTransactions">
                                     <i class="iconoir-task-list menu-icon"></i>
                                     <span>Client Transactions</span>
                                 </a>
                                 <div class="collapse" id="sidebarTransactions">
                                     <ul class="nav flex-column">
+                                        @if($canClientTxView)
                                         <li class="nav-item">
-                                            <a class="nav-link" href="{{route('transactionList')}}">Overview</a>
+                                            <a class="nav-link" href="{{ route('transactionList') }}">Overview</a>
                                         </li>
-                                        <!--end nav-item-->
+                                        @endif
+                                        @if($canClientTxCreate)
                                         <li class="nav-item">
-                                            <a class="nav-link" href="{{route('transactionCreation')}}">Add Transactions</a>
+                                            <a class="nav-link" href="{{ route('transactionCreation') }}">Add Transactions</a>
                                         </li>
+                                        @endif
+                                        @if($canClientReport)
                                         <li class="nav-item">
-                                            <a class="nav-link" href="{{route('reports.clientTransaction')}}">Transaction Report
-                                            </a>
+                                            <a class="nav-link" href="{{ route('reports.clientTransaction') }}">Transaction Report</a>
                                         </li>
-                                        <!--end nav-item-->
+                                        @endif
                                     </ul>
-                                    <!--end nav-->
                                 </div>
-                                <!--end startbarTables-->
                             </li>
+                            @endif
                             <!--end nav-item-->
+                            @php($canSource = auth()->check() ? auth()->user()->hasPermission('source.manage') : false)
+                            @if($canSource)
                             <li class="nav-item">
-                                <a class="nav-link" href="{{route('sourceView')}}">
+                                <a class="nav-link" href="{{ route('sourceView') }}">
                                     <i class="iconoir-plug-type-l menu-icon"></i>
                                     <span>Source</span>
                                 </a>
                             </li>
+                            @endif
                             <!--end nav-item-->
+                            @php($canBankManage = auth()->check() ? auth()->user()->hasPermission('bank.manage') : false)
+                            @if($canBankManage)
                             <li class="nav-item">
-                                <a class="nav-link" href="{{route('bankManageView')}}">
+                                <a class="nav-link" href="{{ route('bankManageView') }}">
                                     <i class="iconoir-plug-type-l menu-icon"></i>
                                     <span>Bank Manage</span>
                                 </a>
                             </li>
+                            @endif
+                            <!-- Business Management -->
+                            @php($canBizManage = auth()->check() ? auth()->user()->hasPermission('business.manage') : false)
+                            @if($canBizManage)
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('business.index') }}">
+                                    <i class="iconoir-building menu-icon"></i>
+                                    <span>Business Management</span>
+                                </a>
+                            </li>
+                            @endif
+                            <!-- Admin Users -->
+                            @php($canAdminUsers = auth()->check() ? (auth()->user()->isSuperAdmin() || auth()->user()->hasPermission('admin.users')) : false)
+                            @if($canAdminUsers)
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('admin.users.index') }}">
+                                    <i class="iconoir-user-cog menu-icon"></i>
+                                    <span>Admin</span>
+                                </a>
+                            </li>
+                            @endif
+                            <!-- Settings -->
+                            @php($canSettings = auth()->check() ? (auth()->user()->isSuperAdmin() || auth()->user()->hasPermission('settings.manage')) : false)
+                            @if($canSettings)
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('settings.index') }}">
+                                    <i class="iconoir-settings menu-icon"></i>
+                                    <span>Settings</span>
+                                </a>
+                            </li>
+                            @endif
                         </ul>
                         <!--end navbar-nav--->
                         <div class="update-msg text-center">
