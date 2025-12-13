@@ -9,6 +9,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ConfigController;
 use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\MobileBankingController;
 use App\Http\Controllers\Admin\UserController as AdminUserController;
 use App\Http\Controllers\ReportController;
 
@@ -116,10 +117,26 @@ Route::middleware(['auth', \App\Http\Middleware\SetBusiness::class])->group(func
     // bank export CSV
     Route::get('reports/bank-transaction/export', [ReportController::class, 'bankTransactionExport'])->name('reports.bankTransaction.export');
     // export CSV
+      // Capital Account (total business)
+      Route::get('reports/capital-account', [ReportController::class, 'capitalAccount'])->name('reports.capitalAccount');
 
     // Site Settings
     Route::get('settings', [SettingsController::class, 'index'])->name('settings.index');
     Route::post('settings', [SettingsController::class, 'update'])->name('settings.update');
+
+    // Mobile Banking (daily balance + profit)
+    Route::get('mobile-banking', [MobileBankingController::class, 'index'])->name('mobile.index');
+    Route::post('mobile-banking', [MobileBankingController::class, 'store'])->name('mobile.store');
+    Route::post('mobile-banking/accounts', [MobileBankingController::class, 'addAccount'])->name('mobile.accounts.add');
+    Route::post('mobile-banking/accounts/update', [MobileBankingController::class, 'updateAccount'])->name('mobile.accounts.update');
+    Route::delete('mobile-banking/accounts/{id}', [MobileBankingController::class, 'deleteAccount'])->name('mobile.accounts.delete');
+    Route::delete('mobile-banking/entries/{id}', [MobileBankingController::class, 'deleteEntry'])->name('mobile.entries.delete');
+    Route::post('mobile-banking/entries/update', [MobileBankingController::class, 'updateEntry'])->name('mobile.entries.update');
+    
+      // Mobile Providers management
+      Route::get('/mobile-banking/providers', [\App\Http\Controllers\MobileProviderController::class, 'index'])->name('mobile.providers.index');
+      Route::post('/mobile-banking/providers', [\App\Http\Controllers\MobileProviderController::class, 'store'])->name('mobile.providers.store');
+      Route::delete('/mobile-banking/providers/{id}', [\App\Http\Controllers\MobileProviderController::class, 'delete'])->name('mobile.providers.delete');
 });
 
 // Super Admin / Admin users management
@@ -133,6 +150,9 @@ Route::middleware(['auth', \App\Http\Middleware\AdminAccess::class])
     Route::get('users/{user}/edit', [AdminUserController::class,'edit'])->name('users.edit');
     Route::put('users/{user}', [AdminUserController::class,'update'])->name('users.update');
     Route::delete('users/{user}', [AdminUserController::class,'destroy'])->name('users.destroy');
+    // permissions mapping
+    Route::get('users/{user}/permissions', [AdminUserController::class,'permissions'])->name('users.permissions');
+    Route::post('users/{user}/permissions', [AdminUserController::class,'updatePermissions'])->name('users.permissions.update');
 });
 
 

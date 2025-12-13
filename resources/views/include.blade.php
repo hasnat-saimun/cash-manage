@@ -561,6 +561,22 @@
                                 </a>
                             </li>
                             @endif
+                            <!-- Mobile Banking -->
+                            @php($canMobile = auth()->check() ? (auth()->user()->isSuperAdmin() || auth()->user()->hasPermission('mobile.manage')) : false)
+                            @if($canMobile)
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('mobile.index') }}">
+                                    <i class="iconoir-smartphone-device menu-icon"></i>
+                                    <span>Mobile Banking</span>
+                                </a>
+                            </li>
+                                <li class="nav-item">
+                                    <a class="nav-link" href="{{ route('mobile.providers.index') }}">
+                                        <i class="iconoir-smartphone-device menu-icon"></i>
+                                        <span>Mobile Providers</span>
+                                    </a>
+                                </li>
+                            @endif
                             <!--end nav-item-->
                             <li class="nav-item">
                                 <a class="nav-link" href="{{route('bankAccountCreationView')}}">
@@ -688,6 +704,16 @@
                                 <a class="nav-link" href="{{ route('admin.users.index') }}">
                                     <i class="iconoir-user-cog menu-icon"></i>
                                     <span>Admin</span>
+                                </a>
+                            </li>
+                            @endif
+                            <!-- Capital Account -->
+                            @php($canCapital = auth()->check() ? (auth()->user()->isSuperAdmin() || auth()->user()->hasPermission('reports.capital')) : false)
+                            @if($canCapital)
+                            <li class="nav-item">
+                                <a class="nav-link" href="{{ route('reports.capitalAccount') }}">
+                                    <i class="iconoir-wallet menu-icon"></i>
+                                    <span>Capital Account</span>
                                 </a>
                             </li>
                             @endif
@@ -847,6 +873,33 @@
 
         <script src="{{asset('/public/projectFile/home')}}/assets/libs/bootstrap/js/bootstrap.bundle.min.js"></script>
         <script src="{{asset('/public/projectFile/home')}}/assets/libs/simplebar/simplebar.min.js"></script>
+
+        <!-- Auto-dismiss alerts after a few seconds -->
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                var AUTO_DISMISS_MS = 6000;
+                var alerts = document.querySelectorAll('.alert');
+                alerts.forEach(function(el) {
+                    setTimeout(function() {
+                        try {
+                            if (window.bootstrap && window.bootstrap.Alert) {
+                                var inst = window.bootstrap.Alert.getOrCreateInstance(el);
+                                inst.close();
+                            } else {
+                                // Fallback: fade then remove
+                                el.classList.add('fade');
+                                el.classList.remove('show');
+                                setTimeout(function(){
+                                    if (el && el.parentNode) el.parentNode.removeChild(el);
+                                }, 400);
+                            }
+                        } catch (e) {
+                            el.style.display = 'none';
+                        }
+                    }, AUTO_DISMISS_MS);
+                });
+            });
+        </script>
 
         <script src="{{asset('/public/projectFile/home')}}/assets/libs/apexcharts/apexcharts.min.js"></script>
         <script src="{{asset('/public/projectFile')}}/apexcharts.com/samples/assets/stock-prices.js"></script>

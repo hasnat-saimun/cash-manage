@@ -109,4 +109,48 @@ class UserController extends Controller
         $user->delete();
         return back()->with('success','User deleted');
     }
+
+    // Permissions mapping UI
+    public function permissions(User $user) {
+        $current = auth()->user();
+        if (!$current->isSuperAdmin() && $user->created_by !== $current->id) {
+            abort(403);
+        }
+        $available = [
+            'dashboard.view' => 'Dashboard',
+            'admin.users' => 'Admin Users',
+            'business.manage' => 'Business Management',
+            'clients.manage' => 'Clients Manage',
+            'source.manage' => 'Source Manage',
+            'transactions.view' => 'Client Transactions View',
+            'transactions.create' => 'Client Transactions Create',
+            'reports.client' => 'Client Reports',
+            'bank.manage' => 'Bank Manage',
+            'bank.transactions.view' => 'Bank Transactions View',
+            'bank.transactions.create' => 'Bank Transactions Create',
+            'reports.bank' => 'Bank Reports',
+            'reports.capital' => 'Capital Account',
+            'mobile.manage' => 'Mobile Banking',
+            'settings.manage' => 'Settings',
+        ];
+        return view('admin.users.permissions', ['user'=>$user,'available'=>$available]);
+    }
+
+    public function updatePermissions(Request $r, User $user) {
+        $current = auth()->user();
+        if (!$current->isSuperAdmin() && $user->created_by !== $current->id) {
+            abort(403);
+        }
+        $requested = collect($r->input('permissions', []))->filter()->values();
+        if (!$current->isSuperAdmin()) {
+            $currentPerms = collect($current->permissions ?? []);
+            $diff = $requested->diff($currentPerms);
+            if ($diff->isNotEmpty()) {
+                return back()->with('error','You cannot grant permissions you do not have.');
+            }
+        }
+        $user->permissions = $requested->all();
+        $user->save();
+        return redirect()->route('admin.users.index')->with('success','Permissions updated');
+    }
 }

@@ -18,6 +18,9 @@ Client Transaction List
         @endif
     </div>
 </div>
+<div class="d-flex justify-content-end mb-2 no-print">
+    <button id="printTransactions" type="button" class="btn btn-outline-secondary">Print</button>
+</div>
 <div class="row">
     <div class="col-md-12 col-lg-4">
         <div class="card bg-globe-img">
@@ -38,10 +41,9 @@ Client Transaction List
                         </form>
                     </div>
 
-                    <h4 class="my-2 fs-24 fw-semibold">122.5692.00 <small class="font-14">BTC</small></h4>
+                    <h4 class="my-2 fs-24 fw-semibold">{{ number_format($outstandingBalance ?? 0, 2) }} <small class="font-14">BDT</small></h4>
                     <p class="mb-3 text-muted fw-semibold">
-                        <span class="text-success"><i class="fas fa-arrow-up me-1"></i>11.1%</span> Outstanding balance
-                        boost
+                        Outstanding total client balance
                     </p>
                     <button type="submit" class="btn btn-soft-primary">Transfer</button>
                     <button type="button" class="btn btn-soft-danger">Request</button>
@@ -67,8 +69,8 @@ Client Transaction List
                                     <div class="card-body">
                                         <div class="row d-flex justify-content-center">
                                             <div class="col-9">
-                                                <p class="text-muted text-uppercase mb-0 fw-normal fs-13">Daily</p>
-                                                <h4 class="mt-1 mb-0 fw-medium">$76.50</h4>
+                                                <p class="text-muted text-uppercase mb-0 fw-normal fs-13">Daily Net</p>
+                                                <h4 class="mt-1 mb-0 fw-medium">{{ number_format($dailyNet ?? 0, 2) }}</h4>
                                             </div>
                                             <!--end col-->
                                             <div class="col-3 align-self-center">
@@ -94,8 +96,8 @@ Client Transaction List
                                     <div class="card-body">
                                         <div class="row d-flex justify-content-center">
                                             <div class="col-9">
-                                                <p class="text-muted text-uppercase mb-0 fw-normal fs-13">Weekly</p>
-                                                <h4 class="mt-1 mb-0 fw-medium">$852.50</h4>
+                                                <p class="text-muted text-uppercase mb-0 fw-normal fs-13">Weekly Net</p>
+                                                <h4 class="mt-1 mb-0 fw-medium">{{ number_format($weeklyNet ?? 0, 2) }}</h4>
                                             </div>
                                             <!--end col-->
                                             <div class="col-3 align-self-center">
@@ -121,8 +123,8 @@ Client Transaction List
                                     <div class="card-body">
                                         <div class="row d-flex justify-content-center">
                                             <div class="col-9">
-                                                <p class="text-muted text-uppercase mb-0 fw-normal fs-13">Monthly</p>
-                                                <h4 class="mt-1 mb-0 fw-medium">$8542.50</h4>
+                                                <p class="text-muted text-uppercase mb-0 fw-normal fs-13">Monthly Net</p>
+                                                <h4 class="mt-1 mb-0 fw-medium">{{ number_format($monthlyNet ?? 0, 2) }}</h4>
                                             </div>
                                             <!--end col-->
                                             <div class="col-3 align-self-center">
@@ -145,9 +147,13 @@ Client Transaction List
                             <!--end col-->
                         </div>
                         <!--end row-->
-                        <p class="mb-0 text-success bg-soft-success rounded p-2">
-                            The last transaction <span class="fw-bold text-dark">$2560.00</span> is Successful!
+                        @if(!empty($lastTxn))
+                        <p class="mb-0 bg-soft-success rounded p-2">
+                            Last transaction: <span class="fw-bold text-dark">{{ number_format($lastTxn->amount, 2) }}</span>
+                            <span class="ms-1">({{ ucfirst(strtolower($lastTxn->type)) }})</span>
+                            on <span>{{ $lastTxn->date }}</span>
                         </p>
+                        @endif
                     </div>
                     <!--end col-->
                 </div>
@@ -161,7 +167,7 @@ Client Transaction List
 </div>
 <!--end row-->
 
-<div class="row justify-content-center">
+<div class="row justify-content-center" id="transactions-print-section">
     <div class="col-md-12 col-lg-12">
         <div class="card">
             <div class="card-header">
@@ -197,6 +203,32 @@ Client Transaction List
             </div>
             <!--end card-header-->
             <div class="card-body pt-0">
+                <!-- Print-only summary header -->
+                <div class="print-only mb-3">
+                    <h5 class="mb-2">Client Transactions Summary</h5>
+                    <div class="table-responsive">
+                        <table class="table table-bordered align-middle">
+                            <tbody>
+                                <tr>
+                                    <th style="width:220px">Outstanding Balance</th>
+                                    <td class="text-end">{{ number_format($outstandingBalance ?? 0, 2) }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Daily Net</th>
+                                    <td class="text-end">{{ number_format($dailyNet ?? 0, 2) }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Weekly Net</th>
+                                    <td class="text-end">{{ number_format($weeklyNet ?? 0, 2) }}</td>
+                                </tr>
+                                <tr>
+                                    <th>Monthly Net</th>
+                                    <td class="text-end">{{ number_format($monthlyNet ?? 0, 2) }}</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
                 <div class="table-responsive">
                     <table class="table mb-0">
                         <thead class="table-light">

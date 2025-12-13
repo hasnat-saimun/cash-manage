@@ -490,4 +490,58 @@ class ReportController extends Controller
             ->value('balance');
         return (float) ($bal ?? 0);
     }
+
+    // Capital Account summary for current business
+    public function capitalAccount()
+    {
+        $bizId = request()->session()->get('business_id');
+        if (!$bizId) {
+            return redirect()->route('business.index')->with('error','Please select or create a business first.');
+        }
+
+        $totalBank = \DB::table('bank_balances')
+            ->where('business_id', $bizId)
+            ->sum('balance');
+
+        $totalClients = \DB::table('client_balances')
+            ->where('business_id', $bizId)
+            ->sum('balance');
+
+        // Mobile banking totals: use today's entries
+        $today = now()->toDateString();
+        $totalMobileBalance = \DB::table('mobile_entries')
+            ->join('mobile_accounts','mobile_entries.mobile_account_id','=','mobile_accounts.id')
+            ->where('mobile_accounts.business_id', $bizId)
+            ->where('mobile_entries.date', $today)
+            ->sum('mobile_entries.balance');
+        $totalMobileProfit = \DB::table('mobile_entries')
+            ->join('mobile_accounts','mobile_entries.mobile_account_id','=','mobile_accounts.id')
+            ->where('mobile_accounts.business_id', $bizId)
+            ->where('mobile_entries.date', $today)
+            ->sum('mobile_entries.profit');
+
+        $capitalTotal = (float)$totalBank + (float)$totalClients + (float)$totalMobileBalance;
+
+        $bankAccounts = \DB::table('bank_accounts')
+            ->leftJoin('bank_balances', function($join){
+                $join->on('bank_balances.bank_account_id','=','bank_accounts.id')
+                     ->where('bank_balances.business_id', request()->session()->get('business_id'));
+            })
+            ->where('bank_accounts.business_id', $bizId)
+            ->select('bank_accounts.account_name','bank_accounts.account_number','bank_balances.balance')
+            ->orderBy('bank_accounts.account_name')
+            ->get();
+
+        $clients = \DB::table('client_creations')
+            ->leftJoin('client_balances', function($join){
+                $join->on('client_balances.client_id','=','client_creations.id')
+                     ->where('client_balances.business_id', request()->session()->get('business_id'));
+            })
+            ->where('client_creations.business_id', $bizId)
+            ->select('client_creations.client_name','client_creations.client_phone','client_balances.balance')
+            ->orderBy('client_creations.client_name')
+            ->get();
+
+        return view('reports.capitalAccount', compact('totalBank','totalClients','capitalTotal','bankAccounts','clients','totalMobileBalance','totalMobileProfit'));
+    }
 }

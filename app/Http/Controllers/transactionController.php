@@ -237,11 +237,52 @@ class transactionController extends Controller
     
     public function transactionList()
     {
+        $bizId = request()->session()->get('business_id');
         $transactions = transaction::join('client_creations', 'transactions.transaction_client_name', '=', 'client_creations.id')
-            ->where('transactions.business_id', request()->session()->get('business_id'))
+            ->where('transactions.business_id', $bizId)
             ->select('client_creations.client_name','transactions.*')
             ->get();
-        return view('transaction.clientTransactionList', ['transactions' => $transactions]);
+
+        // Top calculations based on client transaction history
+        $today = now()->toDateString();
+        $weekStart = now()->copy()->subDays(6)->toDateString();
+        $monthStart = now()->copy()->subDays(29)->toDateString();
+
+        $dailyNet = \DB::table('transactions')
+            ->where('business_id', $bizId)
+            ->whereDate('date', $today)
+            ->selectRaw('COALESCE(SUM(CASE WHEN LOWER(type) = "credit" THEN amount ELSE -amount END),0) as net')
+            ->value('net');
+        $weeklyNet = \DB::table('transactions')
+            ->where('business_id', $bizId)
+            ->whereBetween('date', [$weekStart, $today])
+            ->selectRaw('COALESCE(SUM(CASE WHEN LOWER(type) = "credit" THEN amount ELSE -amount END),0) as net')
+            ->value('net');
+        $monthlyNet = \DB::table('transactions')
+            ->where('business_id', $bizId)
+            ->whereBetween('date', [$monthStart, $today])
+            ->selectRaw('COALESCE(SUM(CASE WHEN LOWER(type) = "credit" THEN amount ELSE -amount END),0) as net')
+            ->value('net');
+
+        $lastTxn = \DB::table('transactions')
+            ->where('business_id', $bizId)
+            ->orderByDesc('date')
+            ->orderByDesc('id')
+            ->select('amount','type','date')
+            ->first();
+
+        $outstandingBalance = \DB::table('client_balances')
+            ->where('business_id', $bizId)
+            ->sum('balance');
+
+        return view('transaction.clientTransactionList', [
+            'transactions' => $transactions,
+            'dailyNet' => (float)($dailyNet ?? 0),
+            'weeklyNet' => (float)($weeklyNet ?? 0),
+            'monthlyNet' => (float)($monthlyNet ?? 0),
+            'lastTxn' => $lastTxn,
+            'outstandingBalance' => (float)$outstandingBalance,
+        ]);
     }
 
     public function transactionEdit($id)
