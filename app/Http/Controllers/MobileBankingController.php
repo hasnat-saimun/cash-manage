@@ -88,14 +88,21 @@ class MobileBankingController extends Controller
         if ($exists) {
             return back()->withErrors(['number' => 'This mobile number already exists for the selected provider.'])->withInput();
         }
-        DB::table('mobile_accounts')->insert([
-            'business_id' => $bizId,
-            'number' => $validated['number'],
-            'provider' => $providerName,
-            'created_at' => now(),
-            'updated_at' => now(),
-        ]);
-        return back()->with('success','Mobile banking number added.');
+        try {
+            DB::table('mobile_accounts')->insert([
+                'business_id' => $bizId,
+                'number' => $validated['number'],
+                'provider' => $providerName,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+            return back()->with('success','Mobile banking number added.');
+        } catch (\Illuminate\Database\QueryException $e) {
+            if ((int)($e->errorInfo[1] ?? 0) === 1062) {
+                return back()->withErrors(['number' => 'This mobile number already exists for the selected provider.'])->withInput();
+            }
+            return back()->with('error','Failed to add mobile number.')->withInput();
+        }
     }
 
     public function updateAccount(Request $request)
