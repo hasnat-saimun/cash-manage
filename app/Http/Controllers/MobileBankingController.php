@@ -77,9 +77,16 @@ class MobileBankingController extends Controller
         $exists = DB::table('mobile_accounts')
             ->where('business_id', $bizId)
             ->where('number', $validated['number'])
+            ->where(function($q) use ($providerName) {
+                if ($providerName === null) {
+                    $q->whereNull('provider');
+                } else {
+                    $q->where('provider', $providerName);
+                }
+            })
             ->exists();
         if ($exists) {
-            return back()->withErrors(['number' => 'This mobile number already exists.'])->withInput();
+            return back()->withErrors(['number' => 'This mobile number already exists for the selected provider.'])->withInput();
         }
         DB::table('mobile_accounts')->insert([
             'business_id' => $bizId,

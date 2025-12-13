@@ -26,9 +26,16 @@ return new class extends Migration {
         if (Schema::hasTable('mobile_accounts')) {
             try {
                 Schema::table('mobile_accounts', function (Blueprint $table) {
-                    $table->unique(['business_id','number'], 'mobile_accounts_business_number_unique');
+                    // allow same number if provider differs: use triple unique
+                    $table->unique(['business_id','number','provider'], 'mobile_accounts_business_number_provider_unique');
                 });
             } catch (\Throwable $e) { /* ignore if exists */ }
+            // drop older unique if present
+            try {
+                Schema::table('mobile_accounts', function (Blueprint $table) {
+                    $table->dropUnique('mobile_accounts_business_number_unique');
+                });
+            } catch (\Throwable $e) { /* ignore */ }
         }
 
         if (Schema::hasTable('mobile_entries')) {
@@ -52,7 +59,7 @@ return new class extends Migration {
         if (Schema::hasTable('mobile_accounts')) {
             try {
                 Schema::table('mobile_accounts', function (Blueprint $table) {
-                    $table->dropUnique('mobile_accounts_business_number_unique');
+                    $table->dropUnique('mobile_accounts_business_number_provider_unique');
                 });
             } catch (\Throwable $e) { /* ignore */ }
         }
