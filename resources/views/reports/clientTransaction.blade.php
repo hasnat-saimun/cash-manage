@@ -165,6 +165,11 @@
                             <small class="text-muted">Total Transactions: <strong>{{ $txnCount }}</strong></small>
                         </div>
                     @endif
+                    @if(isset($debitTxnCount) || isset($creditTxnCount))
+                        <div class="ms-3">
+                            <small class="text-muted">Txn Count — Debit: <strong>{{ $debitTxnCount ?? 0 }}</strong>, Credit: <strong>{{ $creditTxnCount ?? 0 }}</strong></small>
+                        </div>
+                    @endif
                 </div>
             @endif
 

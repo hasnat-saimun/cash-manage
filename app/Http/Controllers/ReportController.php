@@ -36,6 +36,8 @@ class ReportController extends Controller
         $openingBalance = 0.0;
         $closingBalance = null; // ensure variable always exists to avoid undefined variable in compact()
         $txnCount = 0;
+        $debitTxnCount = 0;
+        $creditTxnCount = 0;
 
         if ($clientId) {
             try {
@@ -85,9 +87,11 @@ class ReportController extends Controller
                 if ($type === 'debit') {
                     $effect = -((float)$t->amount);
                     $totalDebit += (float)$t->amount;
+                    $debitTxnCount++;
                 } else {
                     $effect = (float)$t->amount;
                     $totalCredit += (float)$t->amount;
+                    $creditTxnCount++;
                 }
                 $running += $effect;
 
@@ -118,7 +122,7 @@ class ReportController extends Controller
         // pass closingBalance to view
         return view('reports.clientTransaction', compact(
             'clients','rows','totalDebit','totalCredit','grandTotal',
-            'clientId','reportType','date','from','to','rangeLabel','openingBalance','closingBalance','txnCount'
+            'clientId','reportType','date','from','to','rangeLabel','openingBalance','closingBalance','txnCount','debitTxnCount','creditTxnCount'
         ));
     }
 
