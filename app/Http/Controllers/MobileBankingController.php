@@ -25,11 +25,12 @@ class MobileBankingController extends Controller
             ->where('mobile_entries.date', $today)
             ->select('mobile_entries.*','mobile_accounts.number','mobile_accounts.provider')
             ->get();
+        // Recent should show only today's entries
         $recent = DB::table('mobile_entries')
             ->join('mobile_accounts','mobile_entries.mobile_account_id','=','mobile_accounts.id')
             ->where('mobile_accounts.business_id', $bizId)
-            ->orderByDesc('mobile_entries.date')
-            ->limit(20)
+            ->where('mobile_entries.date', $today)
+            ->orderByDesc('mobile_entries.updated_at')
             ->select('mobile_entries.*','mobile_accounts.number','mobile_accounts.provider')
             ->get();
         return view('mobile.index', compact('accounts','entries','recent','today','providers'));
