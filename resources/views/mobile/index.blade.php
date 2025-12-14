@@ -38,10 +38,6 @@
           <label class="form-label">Daily Balance</label>
           <input type="number" step="0.01" name="balance" class="form-control" value="{{ old('balance', '') }}" required>
         </div>
-        <div class="col-md-3">
-          <label class="form-label">Profit per 1000</label>
-          <input type="number" step="0.0001" name="rate_per_thousand" class="form-control" value="{{ old('rate_per_thousand', '') }}" required>
-        </div>
         <div class="col-md-3 d-grid">
           <label class="form-label">&nbsp;</label>
           <button class="btn btn-primary" type="submit">Save</button>
@@ -60,8 +56,6 @@
               <th>Date</th>
               <th>Account</th>
               <th class="text-end">Balance</th>
-              <th class="text-end">Rate/1000</th>
-              <th class="text-end">Profit</th>
               <th class="text-end">Actions</th>
             </tr>
           </thead>
@@ -71,8 +65,6 @@
                 <td>{{ $r->date }}</td>
                 <td>{{ $r->provider ? $r->provider.' - ' : '' }}{{ $r->number }}</td>
                 <td class="text-end">{{ number_format($r->balance,2) }}</td>
-                <td class="text-end">{{ number_format($r->rate_per_thousand,4) }}</td>
-                <td class="text-end">{{ number_format($r->profit,2) }}</td>
                 <td class="text-end">
                   <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editEntryModal{{ $r->id }}">Edit</button>
                   <form method="POST" action="{{ route('mobile.entries.delete', $r->id) }}" onsubmit="return confirm('Delete this entry?');" class="d-inline ms-1">
@@ -96,10 +88,6 @@
                             <div class="mb-3">
                               <label class="form-label">Balance</label>
                               <input type="number" step="0.01" name="balance" value="{{ $r->balance }}" class="form-control" required>
-                            </div>
-                            <div class="mb-3">
-                              <label class="form-label">Profit per 1000</label>
-                              <input type="number" step="0.0001" name="rate_per_thousand" value="{{ $r->rate_per_thousand }}" class="form-control" required>
                             </div>
                           </div>
                           <div class="modal-footer">

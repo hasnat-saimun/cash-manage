@@ -42,7 +42,6 @@ class MobileBankingController extends Controller
             'account_id' => 'required|integer|exists:mobile_accounts,id',
             'date' => 'required|date',
             'balance' => 'required|numeric',
-            'rate_per_thousand' => 'required|numeric',
         ]);
         $duplicate = DB::table('mobile_entries')
             ->where('mobile_account_id', $validated['account_id'])
@@ -51,13 +50,11 @@ class MobileBankingController extends Controller
         if ($duplicate) {
             return back()->withErrors(['date' => 'An entry for this account and date already exists. Use Edit to update it.'])->withInput();
         }
-        $profit = round(($validated['balance'] / 1000.0) * $validated['rate_per_thousand'], 2);
         DB::table('mobile_entries')->insert([
             'mobile_account_id' => $validated['account_id'],
             'date' => $validated['date'],
             'balance' => $validated['balance'],
-            'rate_per_thousand' => $validated['rate_per_thousand'],
-            'profit' => $profit,
+            // rate_per_thousand and profit removed from workflow; leave null if columns exist
             'created_at' => now(),
             'updated_at' => now(),
         ]);
@@ -144,13 +141,10 @@ class MobileBankingController extends Controller
         $validated = $request->validate([
             'id' => 'required|integer|exists:mobile_entries,id',
             'balance' => 'required|numeric',
-            'rate_per_thousand' => 'required|numeric',
         ]);
-        $profit = round(($validated['balance'] / 1000.0) * $validated['rate_per_thousand'], 2);
         DB::table('mobile_entries')->where('id', $validated['id'])->update([
             'balance' => $validated['balance'],
-            'rate_per_thousand' => $validated['rate_per_thousand'],
-            'profit' => $profit,
+            // rate_per_thousand and profit removed from workflow
             'updated_at' => now(),
         ]);
         return back()->with('success','Mobile banking entry updated.');
