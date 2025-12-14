@@ -160,6 +160,11 @@
                             </span>
                         </div>
                     @endif
+                    @if(isset($txnCount))
+                        <div class="ms-3">
+                            <small class="text-muted">Total Transactions: <strong>{{ $txnCount }}</strong></small>
+                        </div>
+                    @endif
                 </div>
             @endif
 

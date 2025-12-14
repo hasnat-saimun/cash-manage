@@ -35,6 +35,7 @@ class ReportController extends Controller
         $rangeLabel = '';
         $openingBalance = 0.0;
         $closingBalance = null; // ensure variable always exists to avoid undefined variable in compact()
+        $txnCount = 0;
 
         if ($clientId) {
             try {
@@ -75,6 +76,7 @@ class ReportController extends Controller
                 ->whereBetween('date', [$start->toDateString(), $end->toDateString()])
                 ->orderBy('date')
                 ->get();
+            $txnCount = $txns->count();
 
             $running = $openingBalance;
             foreach ($txns as $t) {
@@ -116,7 +118,7 @@ class ReportController extends Controller
         // pass closingBalance to view
         return view('reports.clientTransaction', compact(
             'clients','rows','totalDebit','totalCredit','grandTotal',
-            'clientId','reportType','date','from','to','rangeLabel','openingBalance','closingBalance'
+            'clientId','reportType','date','from','to','rangeLabel','openingBalance','closingBalance','txnCount'
         ));
     }
 
