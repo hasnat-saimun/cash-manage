@@ -235,13 +235,20 @@ class ReportController extends Controller
         // mPDF engine with OpenType layout support for Indic shaping
         if (env('PDF_ENGINE') === 'mpdf' && class_exists('Mpdf\\Mpdf')) {
             try {
-                $mpdf = new \Mpdf\Mpdf([
+                // Ensure writable temp directory for font cache/metrics
+                $tmp = storage_path('fonts');
+                if (!is_dir($tmp)) { @mkdir($tmp, 0775, true); }
+                $tt = $tmp . DIRECTORY_SEPARATOR . 'ttfontdata';
+                if (!is_dir($tt)) { @mkdir($tt, 0775, true); }
+
+                $mpdf = new \\Mpdf\\Mpdf([
                     'mode' => 'utf-8',
                     'format' => 'A4',
                     'margin_top' => 10,
                     'margin_right' => 10,
                     'margin_bottom' => 10,
                     'margin_left' => 10,
+                    'tempDir' => $tmp,
                 ]);
                 $mpdf->autoScriptToLang = true;
                 $mpdf->autoLangToFont = true;
@@ -258,19 +265,19 @@ class ReportController extends Controller
                     $fontDirs = $defaultConfig['fontDir'];
                     $defaultFontConfig = (new \Mpdf\Config\FontVariables())->getDefaults();
                     $fontData = $defaultFontConfig['fontdata'];
-                    $mpdf = new \Mpdf\Mpdf([
+                    $mpdf = new \\Mpdf\\Mpdf([
                         'mode' => 'utf-8',
                         'format' => 'A4',
                         'margin_top' => 10,
                         'margin_right' => 10,
                         'margin_bottom' => 10,
                         'margin_left' => 10,
+                        'tempDir' => $tmp,
                         'fontDir' => array_merge($fontDirs, [$fontDir]),
                         'fontdata' => $fontData + [
-                            'notosansbengali' => [
-                                'R' => 'NotoSansBengali-Regular.ttf',
-                                'B' => 'NotoSansBengali-Bold.ttf',
-                            ],
+                            'notosansbengali' => [ 'R' => 'NotoSansBengali-Regular.ttf', 'B' => 'NotoSansBengali-Bold.ttf' ],
+                            // Map CSS @font-face alias to the same files to avoid cache errors
+                            'notosansbengalilocal' => [ 'R' => 'NotoSansBengali-Regular.ttf', 'B' => 'NotoSansBengali-Bold.ttf' ],
                         ],
                         'default_font' => 'notosansbengali',
                     ]);
@@ -743,13 +750,19 @@ class ReportController extends Controller
         // mPDF engine with OpenType layout support for Indic shaping
         if (env('PDF_ENGINE') === 'mpdf' && class_exists('Mpdf\\Mpdf')) {
             try {
-                $mpdf = new \Mpdf\Mpdf([
+                $tmp = storage_path('fonts');
+                if (!is_dir($tmp)) { @mkdir($tmp, 0775, true); }
+                $tt = $tmp . DIRECTORY_SEPARATOR . 'ttfontdata';
+                if (!is_dir($tt)) { @mkdir($tt, 0775, true); }
+
+                $mpdf = new \\Mpdf\\Mpdf([
                     'mode' => 'utf-8',
                     'format' => 'A4',
                     'margin_top' => 10,
                     'margin_right' => 10,
                     'margin_bottom' => 10,
                     'margin_left' => 10,
+                    'tempDir' => $tmp,
                 ]);
                 $mpdf->autoScriptToLang = true;
                 $mpdf->autoLangToFont = true;
@@ -765,19 +778,18 @@ class ReportController extends Controller
                     $fontDirs = $defaultConfig['fontDir'];
                     $defaultFontConfig = (new \Mpdf\Config\FontVariables())->getDefaults();
                     $fontData = $defaultFontConfig['fontdata'];
-                    $mpdf = new \Mpdf\Mpdf([
+                    $mpdf = new \\Mpdf\\Mpdf([
                         'mode' => 'utf-8',
                         'format' => 'A4',
                         'margin_top' => 10,
                         'margin_right' => 10,
                         'margin_bottom' => 10,
                         'margin_left' => 10,
+                        'tempDir' => $tmp,
                         'fontDir' => array_merge($fontDirs, [$fontDir]),
                         'fontdata' => $fontData + [
-                            'notosansbengali' => [
-                                'R' => 'NotoSansBengali-Regular.ttf',
-                                'B' => 'NotoSansBengali-Bold.ttf',
-                            ],
+                            'notosansbengali' => [ 'R' => 'NotoSansBengali-Regular.ttf', 'B' => 'NotoSansBengali-Bold.ttf' ],
+                            'notosansbengalilocal' => [ 'R' => 'NotoSansBengali-Regular.ttf', 'B' => 'NotoSansBengali-Bold.ttf' ],
                         ],
                         'default_font' => 'notosansbengali',
                     ]);
