@@ -65,17 +65,16 @@ Bank
                     <label for="bankManageId">Bank Manage</label>
                         <select class="form-select" id="bankManageId" name="bankManageId" required>
                             @if(!empty($bankAccount->bank_manage_id))
-                                <option value="{{ $bankAccount->bank_manage_id }}">{{ $bankAccount->bank_name }} - {{ $bankAccount->branch_name }} -{{ $bankAccount->routing_number }}</option>
-                            @else
-                                <option value="">-- Select --</option>
+                                <option value="{{ $bankAccount->bank_manage_id }}" selected>{{ $bankAccount->bank_name }} - {{ $bankAccount->branch_name }} -{{ $bankAccount->routing_number }}</option>
                             @endif
                             @if(!empty($bankMagages) && $bankMagages->count()>0)
-                            @foreach($bankMagages as $bankManage)
-                            <option value="{{ $bankManage->id }}">{{ $bankManage->bank_name }} - {{ $bankManage->branch_name }} - {{ $bankManage->routing_number }}
-                            </option>
-                            @endforeach
+                                @foreach($bankMagages as $bankManage)
+                                    <option value="{{ $bankManage->id }}" @if(empty($bankAccount->bank_manage_id) ? $loop->first : false) selected @endif>
+                                        {{ $bankManage->bank_name }} - {{ $bankManage->branch_name }} - {{ $bankManage->routing_number }}
+                                    </option>
+                                @endforeach
                             @else
-                            <option value="">No Source Found</option>
+                                <option value="" selected disabled>No Source Found</option>
                             @endif
                         </select>
                 </div>
@@ -85,7 +84,7 @@ Bank
                             <label for="entryDate">Entry Date</label> 
                             <div class="input-group">
                                 <span class="input-group-text" id="entryDate"><i class="far fa-calendar"></i></span>
-                                <input type="date" class="form-control" placeholder="01/35" aria-label="entryDate" name="entryDate" value="{{ $bankAccount->entry_date }}">
+                                <input type="date" class="form-control" placeholder="01/35" aria-label="entryDate" name="entryDate" value="{{ old('entryDate', $bankAccount->entry_date ?? now()->toDateString()) }}">
                             </div>
                         </div>
                     </div><!--end col-->
@@ -302,14 +301,13 @@ Bank
                     <div class=" mb-2">
                         <label for="bankManageId">Bank Manage</label>
                             <select class="form-select" id="bankManageId" name="bankManageId" required>
-                                <option value="">-- Select --</option>
                                 @if(!empty($bankMagages) && $bankMagages->count()>0)
-                                @foreach($bankMagages as $bankManage)
-                                <option value="{{ $bankManage->id }}" @selected(old('bankManageId')==$bankManage->id)>{{ $bankManage->bank_name }} - {{ $bankManage->branch_name }} - {{ $bankManage->routing_number }}
-                                </option>
-                                @endforeach
+                                    @foreach($bankMagages as $bankManage)
+                                    <option value="{{ $bankManage->id }}" @if(old('bankManageId') ? old('bankManageId')==$bankManage->id : $loop->first) selected @endif>{{ $bankManage->bank_name }} - {{ $bankManage->branch_name }} - {{ $bankManage->routing_number }}
+                                    </option>
+                                    @endforeach
                                 @else
-                                <option value="">No Source Found</option>
+                                    <option value="" selected disabled>No Source Found</option>
                                 @endif
                             </select>
                             @error('bankManageId')<div class="text-danger small mt-1">{{ $message }}</div>@enderror
@@ -320,7 +318,7 @@ Bank
                                 <label for="entryDate">Entry Date</label> 
                                 <div class="input-group">
                                     <span class="input-group-text" id="entryDate"><i class="far fa-calendar"></i></span>
-                                    <input type="date" class="form-control" placeholder="01/35" aria-label="entryDate" name="entryDate" value="{{ old('entryDate') }}">
+                                    <input type="date" class="form-control" placeholder="01/35" aria-label="entryDate" name="entryDate" value="{{ old('entryDate', now()->toDateString()) }}">
                                 </div>
                             </div>
                         </div><!--end col-->

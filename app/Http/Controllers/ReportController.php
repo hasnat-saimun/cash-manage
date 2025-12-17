@@ -126,6 +126,107 @@ class ReportController extends Controller
         ));
     }
 
+    // Client report PDF
+    public function clientTransactionPdf(Request $request)
+    {
+        $clientId = $request->query('client_id');
+        if (!$clientId) {
+            return redirect()->route('reports.clientTransaction')->with('error','Please select a client to download PDF.');
+        }
+
+        $reportType = $request->query('report_type', 'daily');
+        $date = $request->query('date');
+        $from = $request->query('from_date');
+        $to = $request->query('to_date');
+
+        try {
+            if ($reportType === 'custom' && $from && $to) {
+                $start = Carbon::parse($from)->startOfDay();
+                $end = Carbon::parse($to)->endOfDay();
+                $rangeLabel = $start->toDateString() . ' — ' . $end->toDateString();
+            } else {
+                $dVal = $date ?? $from ?? Carbon::today()->toDateString();
+                $d = Carbon::parse($dVal);
+                $start = $d->startOfDay();
+                $end = $d->endOfDay();
+                $rangeLabel = $d->toDateString();
+            }
+        } catch (\Exception $e) {
+            return redirect()->route('reports.clientTransaction')->with('error','Invalid date format.');
+        }
+
+        $currentBalance = (float) DB::table('client_balances')->where('client_id', $clientId)->value('balance') ?? 0.0;
+        $sumFromStartToNow = DB::table('transactions')
+            ->where('transaction_client_name', $clientId)
+            ->where('date', '>=', $start->toDateString())
+            ->selectRaw("COALESCE(SUM(CASE WHEN LOWER(type)='credit' THEN amount ELSE 0 END),0) as csum, COALESCE(SUM(CASE WHEN LOWER(type)='debit' THEN amount ELSE 0 END),0) as dsum")
+            ->first();
+        $sumFromStartToNow = (float)($sumFromStartToNow->csum ?? 0) - (float)($sumFromStartToNow->dsum ?? 0);
+        $openingBalance = $currentBalance - $sumFromStartToNow;
+
+        // Build rows and totals exactly like the screen report
+        $txns = transaction::where('transaction_client_name', $clientId)
+            ->whereBetween('date', [$start->toDateString(), $end->toDateString()])
+            ->orderBy('date')
+            ->get();
+        $rows = [];
+        $totalDebit = 0.0; $totalCredit = 0.0; $running = $openingBalance;
+        foreach ($txns as $t) {
+            $type = strtolower(trim($t->type ?? ''));
+            $debit = $type === 'debit' ? (float)$t->amount : 0.0;
+            $credit = $type === 'debit' ? 0.0 : (float)$t->amount;
+            $totalDebit += $debit; $totalCredit += $credit; $running += ($credit - $debit);
+            $sourceVal = $t->transaction_source ?? $t->source ?? null;
+            $sourceName = '';
+            if ($sourceVal) {
+                $sourceName = is_numeric($sourceVal)
+                    ? (DB::table('sources')->where('id', $sourceVal)->value('source_name') ?? (string)$sourceVal)
+                    : (string)$sourceVal;
+            }
+            $rows[] = [
+                'date' => (string) ($t->date ?? ''),
+                'description' => $t->description ?? '',
+                'source' => $sourceName,
+                'debit' => $debit,
+                'credit' => $credit,
+                'balance' => $running,
+            ];
+        }
+        $closingBalance = $running;
+        $grandTotal = $totalCredit - $totalDebit;
+        $isDaily = ($reportType === 'daily');
+        $colCount = $isDaily ? 5 : 6; // same as view: daily excludes Date
+        $colsBeforeBalance = $colCount - 1;
+
+        $client = clientCreation::find($clientId);
+        $clientName = $client?->client_name ?? (string)$clientId;
+        $bizId = request()->session()->get('business_id');
+        $bizName = DB::table('businesses')->where('id', $bizId)->value('name') ?? config('app.name');
+        $generatedAt = Carbon::now()->format('Y-m-d H:i');
+
+        $html = view('reports.pdf-client-transaction', compact(
+            'client','clientName','rangeLabel','openingBalance','rows','closingBalance','totalDebit','totalCredit','grandTotal','isDaily','colCount','colsBeforeBalance','bizName','generatedAt'
+        ))->render();
+
+        $fileName = 'client-transactions-' . preg_replace('/[^A-Za-z0-9_\-]/','_', substr($clientName,0,40)) . '-' . $start->toDateString() . '.pdf';
+
+        if (class_exists('Barryvdh\\DomPDF\\Facade\\Pdf')) {
+            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadHTML($html)->setPaper('a4','portrait');
+            return $pdf->download($fileName);
+        }
+        if (class_exists('Dompdf\\Dompdf')) {
+            $dompdf = new \Dompdf\Dompdf();
+            $dompdf->loadHtml($html);
+            $dompdf->setPaper('A4', 'portrait');
+            $dompdf->render();
+            return response($dompdf->output(), 200, [
+                'Content-Type' => 'application/pdf',
+                'Content-Disposition' => 'attachment; filename="'.$fileName.'"'
+            ]);
+        }
+        return redirect()->route('reports.clientTransaction')->with('error','PDF export not available. Please run: composer require barryvdh/laravel-dompdf');
+    }
+
     // Export CSV for client transactions using same filters as index
     public function export(Request $request)
     {
@@ -451,6 +552,106 @@ class ReportController extends Controller
         $response->headers->set('Content-Type', 'text/csv; charset=UTF-8');
         $response->headers->set('Content-Disposition', "attachment; filename=\"{$fileName}\"");
         return $response;
+    }
+
+    // Bank report PDF
+    public function bankTransactionPdf(Request $request)
+    {
+        $accountId = $request->query('account_id');
+        if (!$accountId) {
+            return redirect()->route('reports.bankTransaction')->with('error','Please select an account to download PDF.');
+        }
+
+        $reportType = $request->query('report_type', 'daily');
+        $date = $request->query('date');
+        $from = $request->query('from_date');
+        $to = $request->query('to_date');
+
+        try {
+            if ($reportType === 'custom' && ($from && $to)) {
+                $start = Carbon::parse($from)->startOfDay();
+                $end = Carbon::parse($to)->endOfDay();
+                $rangeLabel = $start->toDateString() . ' — ' . $end->toDateString();
+            } else {
+                $dVal = $date ?? $from ?? Carbon::today()->toDateString();
+                $d = Carbon::parse($dVal);
+                $start = $d->startOfDay();
+                $end = $d->endOfDay();
+                $rangeLabel = $d->toDateString();
+            }
+        } catch (\Exception $e) {
+            return redirect()->route('reports.bankTransaction')->with('error','Invalid date format.');
+        }
+
+        $typeCol = $this->detectBankTransactionTypeColumn();
+        $amtCol  = $this->detectBankTransactionAmountColumn();
+        $dateCol = $this->detectBankTransactionDateColumn();
+
+        $currentBalance = $this->resolveBankAccountCurrentBalance((int) $accountId);
+        $sumFromStartToNow = \DB::table('bank_transactions')
+            ->where('bank_account_id', $accountId)
+            ->where($dateCol, '>=', $start->toDateString())
+            ->selectRaw("COALESCE(SUM(CASE WHEN LOWER({$typeCol})='credit' THEN {$amtCol} ELSE 0 END),0) as csum, COALESCE(SUM(CASE WHEN LOWER({$typeCol})='debit' THEN {$amtCol} ELSE 0 END),0) as dsum")
+            ->first();
+        $sumFromStartToNow = (float)($sumFromStartToNow->csum ?? 0) - (float)($sumFromStartToNow->dsum ?? 0);
+        $openingBalance = $currentBalance - $sumFromStartToNow;
+
+        $txns = \DB::table('bank_transactions')
+            ->where('bank_account_id', $accountId)
+            ->whereBetween($dateCol, [$start->toDateString(), $end->toDateString()])
+            ->orderBy($dateCol)
+            ->get();
+
+        // Build rows and totals to mirror the screen report
+        $rows = [];
+        $totalDebit = 0.0; $totalCredit = 0.0; $running = $openingBalance;
+        foreach ($txns as $t) {
+            $tType = strtolower(trim((string)($t->{$typeCol} ?? '')));
+            $amt = (float) ($t->{$amtCol} ?? 0);
+            $debit = $tType === 'debit' ? $amt : 0.0;
+            $credit = $tType === 'debit' ? 0.0 : $amt;
+            $totalDebit += $debit; $totalCredit += $credit; $running += ($credit - $debit);
+            $rows[] = [
+                'date' => (string)($t->{$dateCol} ?? ''),
+                'description' => $t->description ?? ($t->narration ?? ''),
+                'debit' => $debit,
+                'credit' => $credit,
+                'balance' => $running,
+            ];
+        }
+        $closingBalance = $running;
+        $grandTotal = $totalCredit - $totalDebit;
+        $isDaily = ($reportType === 'daily');
+        $colCount = $isDaily ? 4 : 5;
+        $colsBeforeBalance = $colCount - 1;
+
+        $account = \DB::table('bank_accounts')->where('id', $accountId)->first();
+        $accountName = $account?->account_name ?? ('Account '.$accountId);
+        $bizId = request()->session()->get('business_id');
+        $bizName = DB::table('businesses')->where('id', $bizId)->value('name') ?? config('app.name');
+        $generatedAt = Carbon::now()->format('Y-m-d H:i');
+
+        $html = view('reports.pdf-bank-transaction', compact(
+            'account','accountName','rangeLabel','openingBalance','rows','closingBalance','totalDebit','totalCredit','grandTotal','isDaily','colCount','colsBeforeBalance','bizName','generatedAt'
+        ))->render();
+
+        $fileName = 'bank-transactions-' . preg_replace('/[^A-Za-z0-9_\-]/','_', substr($accountName,0,40)) . '-' . $start->toDateString() . '.pdf';
+
+        if (class_exists('Barryvdh\\DomPDF\\Facade\\Pdf')) {
+            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadHTML($html)->setPaper('a4','portrait');
+            return $pdf->download($fileName);
+        }
+        if (class_exists('Dompdf\\Dompdf')) {
+            $dompdf = new \Dompdf\Dompdf();
+            $dompdf->loadHtml($html);
+            $dompdf->setPaper('A4', 'portrait');
+            $dompdf->render();
+            return response($dompdf->output(), 200, [
+                'Content-Type' => 'application/pdf',
+                'Content-Disposition' => 'attachment; filename="'.$fileName.'"'
+            ]);
+        }
+        return redirect()->route('reports.bankTransaction')->with('error','PDF export not available. Please run: composer require barryvdh/laravel-dompdf');
     }
 
     // --- column detection helpers (if already present keep them; otherwise add)

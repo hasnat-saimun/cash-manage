@@ -208,18 +208,14 @@ if (!empty($itemId)) {
                     <div class="col-6 mb-2">
                         <label for="clientId">Client Name</label>
                             <select class="form-select" id="clientId" name="clientId" required>
-                                @if(!empty($clientName))
-                                <option value="{{ $clientName }}">{{$transactionClient}}</option>
-                                @else
-                                <option value="">-- Select --</option>
-                                @endif
                                 @if(!empty($clients) && $clients->count()>0)
-                                @foreach($clients as $client)
-                                <option value="{{ $client->id }}">{{ $client->client_name }}
-                                </option>
-                                @endforeach
+                                    @foreach($clients as $client)
+                                        <option value="{{ $client->id }}" @if(!empty($clientName) ? (string)$client->id === (string)$clientName : $loop->first) selected @endif>
+                                            {{ $client->client_name }}
+                                        </option>
+                                    @endforeach
                                 @else
-                                <option value="">No Client Found</option>
+                                    <option value="" selected disabled>No Client Found</option>
                                 @endif
                             </select>
                     </div>
@@ -238,18 +234,14 @@ if (!empty($itemId)) {
                     <div class="col-6 mb-2">
                         <label for="sourceId">Source Type</label>
                             <select class="form-select" id="sourceId" name="sourceId" required>
-                                @if(!empty($transactionSource))
-                                <option value="{{ $transactionSource }}">{{$sourceName}}</option>
-                                @else
-                                <option value="">-- Select --</option>
-                                @endif
                                 @if(!empty($sources) && $sources->count()>0)
-                                @foreach($sources as $source)
-                                <option value="{{ $source->id }}">{{ $source->source_name }}
-                                </option>
-                                @endforeach
+                                    @foreach($sources as $source)
+                                        <option value="{{ $source->id }}" @if(!empty($transactionSource) ? (string)$source->id === (string)$transactionSource : $loop->first) selected @endif>
+                                            {{ $source->source_name }}
+                                        </option>
+                                    @endforeach
                                 @else
-                                <option value="">No Source Found</option>
+                                    <option value="" selected disabled>No Source Found</option>
                                 @endif
                             </select>
                     </div>
@@ -275,13 +267,8 @@ if (!empty($itemId)) {
                             <div class="mb-3">
                                 <label class="form-label" for="type">Transaction Type</label>
                                 <select class="form-select" id="type" name="type" required>
-                                    @if(!empty($type))
-                                    <option value="{{ $type }}">{{ $type }}</option>
-                                    @else
-                                    <option>-- Select --</option>
-                                    @endif
-                                    <option value="Debit">Debit</option>
-                                    <option value="Credit">Credit</option>
+                                    <option value="Debit" {{ (empty($type) || $type === 'Debit') ? 'selected' : '' }}>Debit</option>
+                                    <option value="Credit" {{ $type === 'Credit' ? 'selected' : '' }}>Credit</option>
                                 </select>
                             </div>
                         </div>
@@ -289,7 +276,7 @@ if (!empty($itemId)) {
                         <div class="col-md-6">
                             <div class="mb-3">
                                 <label class="form-label" for="date">Date</label>
-                                <input type="date" class="form-control" id="date" required="" placeholder="00.00" name="date"  value="{{ $date }}" />
+                                <input type="date" class="form-control" id="date" required="" placeholder="00.00" name="date"  value="{{ $date ?: now()->toDateString() }}" />
                             </div>
                         </div>
                     </div>

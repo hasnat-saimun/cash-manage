@@ -18,9 +18,8 @@
                 <div class="col-md-4">
                     <label class="form-label">Account</label>
                     <select name="account_id" class="form-select" required>
-                        <option value="">-- Select account --</option>
                         @foreach($accounts as $a)
-                            <option value="{{ $a->id }}" @if(isset($accountId) && $accountId == $a->id) selected @endif>{{ $a->account_name ?? $a->account_number ?? 'Account '.$a->id }}</option>
+                            <option value="{{ $a->id }}" @if(isset($accountId) ? ($accountId == $a->id) : $loop->first) selected @endif>{{ $a->account_name ?? $a->account_number ?? 'Account '.$a->id }}</option>
                         @endforeach
                     </select>
                 </div>
@@ -39,7 +38,7 @@
                 </div>
                 <div class="col-md-2 date-second" style="display:none;">
                     <label class="form-label">To</label>
-                    <input type="date" id="to_date" name="to_date" class="form-control" value="{{ $to ?? '' }}">
+                    <input type="date" id="to_date" name="to_date" class="form-control" value="{{ $to ?? \Carbon\Carbon::today()->toDateString() }}">
                 </div>
 
                 <div class="col-md-2 d-grid">
@@ -50,6 +49,9 @@
                 </div>
                 <div class="col-md-2 d-grid no-print">
                     <button id="printBtn" type="button" class="btn btn-outline-secondary">Print</button>
+                </div>
+                <div class="col-md-2 d-grid no-print">
+                    <button id="exportPdfBtn" type="button" class="btn btn-outline-danger">Download PDF</button>
                 </div>
             </form>
         </div>
@@ -206,8 +208,9 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function qsFromForm(form){ var params=new URLSearchParams(); Array.from(form.elements).forEach(function(el){ if(!el.name) return; if((el.type==='checkbox'||el.type==='radio')&&!el.checked) return; if(el.value==='') return; params.append(el.name,el.value); }); return params.toString(); }
 
-    var exportBtn=document.getElementById('exportCsvBtn'), form=document.getElementById('reportForm');
+    var exportBtn=document.getElementById('exportCsvBtn'), exportPdfBtn=document.getElementById('exportPdfBtn'), form=document.getElementById('reportForm');
     if(exportBtn && form){ exportBtn.addEventListener('click', function(){ var qs=qsFromForm(form); var url="{{ route('reports.bankTransaction.export') }}"; if(qs) url += '?' + qs; window.open(url,'_blank'); }); }
+    if(exportPdfBtn && form){ exportPdfBtn.addEventListener('click', function(){ var qs=qsFromForm(form); var url="{{ route('reports.bankTransaction.pdf') }}"; if(qs) url += '?' + qs; window.open(url,'_blank'); }); }
 
     var printBtn=document.getElementById('printBtn');
     if(printBtn){ printBtn.addEventListener('click', function(){ window.print(); }); }

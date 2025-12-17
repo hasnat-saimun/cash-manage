@@ -106,6 +106,8 @@ Route::middleware(['auth', \App\Http\Middleware\SetBusiness::class])->group(func
     Route::get('reports/client-transaction', [ReportController::class, 'index'])->name('reports.clientTransaction');
     // export CSV
     Route::get('reports/client-transaction/export', [ReportController::class, 'export'])->name('reports.clientTransaction.export');
+    // export PDF
+    Route::get('reports/client-transaction/pdf', [ReportController::class, 'clientTransactionPdf'])->name('reports.clientTransaction.pdf');
 
     // Business management
     Route::get('businesses', [\App\Http\Controllers\BusinessController::class, 'index'])->name('business.index');
@@ -116,6 +118,8 @@ Route::middleware(['auth', \App\Http\Middleware\SetBusiness::class])->group(func
     Route::get('reports/bank-transaction', [ReportController::class, 'bankTransactionReport'])->name('reports.bankTransaction');
     // bank export CSV
     Route::get('reports/bank-transaction/export', [ReportController::class, 'bankTransactionExport'])->name('reports.bankTransaction.export');
+    // bank export PDF
+    Route::get('reports/bank-transaction/pdf', [ReportController::class, 'bankTransactionPdf'])->name('reports.bankTransaction.pdf');
     // export CSV
       // Capital Account (total business)
       Route::get('reports/capital-account', [ReportController::class, 'capitalAccount'])->name('reports.capitalAccount');

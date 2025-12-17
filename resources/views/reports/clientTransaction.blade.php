@@ -23,9 +23,8 @@
                 <div class="col-md-4">
                     <label class="form-label">Client</label>
                     <select name="client_id" class="form-select" required>
-                        <option value="">-- Select client --</option>
                         @foreach($clients as $c)
-                            <option value="{{ $c->id }}" @if(isset($clientId) && $clientId == $c->id) selected @endif>
+                            <option value="{{ $c->id }}" @if(isset($clientId) ? ($clientId == $c->id) : $loop->first) selected @endif>
                                 {{ $c->client_name }}
                             </option>
                         @endforeach
@@ -49,7 +48,7 @@
                 <!-- Second date box (used only for Custom as "To") -->
                 <div class="col-md-2 date-second" style="display:none;">
                     <label class="form-label">To</label>
-                    <input type="date" id="to_date" name="to_date" class="form-control" value="{{ $to ?? '' }}">
+                    <input type="date" id="to_date" name="to_date" class="form-control" value="{{ $to ?? \Carbon\Carbon::today()->toDateString() }}">
                 </div>
 
                 <div class="col-md-2 d-grid">
@@ -62,6 +61,9 @@
                 </div>
                 <div class="col-md-2 d-grid no-print">
                     <button id="printBtn" type="button" class="btn btn-outline-secondary">Print</button>
+                </div>
+                <div class="col-md-2 d-grid no-print">
+                    <button id="exportPdfBtn" type="button" class="btn btn-outline-danger">Download PDF</button>
                 </div>
 
                 @if(isset($rangeLabel) && $rangeLabel)
@@ -381,6 +383,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     // export / print handlers
     var exportBtn = document.getElementById('exportCsvBtn');
+    var exportPdfBtn = document.getElementById('exportPdfBtn');
     var printBtn = document.getElementById('printBtn');
     var form = document.getElementById('reportForm');
 
@@ -388,6 +391,14 @@ document.addEventListener('DOMContentLoaded', function () {
         exportBtn.addEventListener('click', function(){
             var qs = qsFromForm(form);
             var url = "{{ route('reports.clientTransaction.export') }}";
+            if (qs) url += '?' + qs;
+            window.open(url, '_blank');
+        });
+    }
+    if (exportPdfBtn && form){
+        exportPdfBtn.addEventListener('click', function(){
+            var qs = qsFromForm(form);
+            var url = "{{ route('reports.clientTransaction.pdf') }}";
             if (qs) url += '?' + qs;
             window.open(url, '_blank');
         });

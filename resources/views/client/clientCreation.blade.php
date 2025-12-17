@@ -227,7 +227,7 @@ if (!empty($itemId)) {
                                         placeholder="00/2024"
                                         aria-label="ragisterDate"
                                         name="registerDate"
-                                        value="{{ $registerDate }}" required
+                                        value="{{ $registerDate ?: now()->toDateString() }}" required
                                     />
                                 </div>
                             </div>
@@ -308,7 +308,7 @@ if (!empty($itemId)) {
                                         class="form-control"
                                         placeholder="00/2024"
                                         aria-label="ragisterDate"
-                                        name="registerDate" required
+                                        name="registerDate" value="{{ old('registerDate', now()->toDateString()) }}" required
                                     />
                                 </div>
                             </div>

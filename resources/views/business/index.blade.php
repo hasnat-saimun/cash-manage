@@ -38,7 +38,7 @@ Manage businesses
         <div class="col-12 col-md-6">
           <select name="business_id" class="form-select">
             @foreach($businesses as $biz)
-              <option value="{{ $biz->id }}" {{ ($currentId==$biz->id)?'selected':'' }}>{{ $biz->name }} (ID: {{ $biz->id }})</option>
+              <option value="{{ $biz->id }}" {{ empty($currentId) ? ($loop->first ? 'selected' : '') : (($currentId==$biz->id)?'selected':'') }}>{{ $biz->name }} (ID: {{ $biz->id }})</option>
             @endforeach
           </select>
         </div>

@@ -12,7 +12,7 @@
                 <div class="mb-3"><label class="form-label">Email</label><input type="email" class="form-control" name="email" value="{{ old('email') }}" required></div>
                 <div class="mb-3"><label class="form-label">Role</label>
                     <select class="form-select" name="role" required>
-                        <option value="cashier" @selected(old('role')==='cashier')>Cashier</option>
+                        <option value="cashier" @selected(old('role','cashier')==='cashier')>Cashier</option>
                         <option value="general admin" @selected(old('role')==='general admin')>General Admin</option>
                         <option value="superAdmin" @selected(old('role')==='superAdmin')>Super Admin</option>
                     </select>

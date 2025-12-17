@@ -29,9 +29,8 @@ Bank Transaction
                     <div class="mb-3">
                         <label for="bank_account_id" class="form-label">Bank Account</label>
                         <select class="form-select" id="bank_account_id" name="bank_account_id" required>
-                            <option value="">-- Select --</option>
                             @foreach($accounts as $acc)
-                                <option value="{{ $acc->id }}" @if(isset($editData) && $editData->bank_account_id == $acc->id) selected @endif>
+                                <option value="{{ $acc->id }}" @if(isset($editData) ? ($editData->bank_account_id == $acc->id) : $loop->first) selected @endif>
                                     {{ $acc->account_name ?? $acc->account_number ?? 'Account '.$acc->id }}
                                 </option>
                             @endforeach
@@ -40,13 +39,8 @@ Bank Transaction
                     <div class="mb-3">
                         <label for="type" class="form-label">Transaction Type</label>
                         <select class="form-select" id="type" name="type" required>
-                            @if(isset($editData))
-                                <option value="{{ $editData->type ?? $editData->transaction_type }}">{{ ucfirst($editData->type ?? $editData->transaction_type) }}</option>
-                            @else
-                                <option value="">-- Select --</option>
-                            @endif
-                            <option value="Debit">Debit</option>
-                            <option value="Credit">Credit</option>
+                            <option value="Debit" {{ (isset($editData) ? (($editData->type ?? $editData->transaction_type) === 'Debit') : true) ? 'selected' : '' }}>Debit</option>
+                            <option value="Credit" {{ (isset($editData) && (($editData->type ?? $editData->transaction_type) === 'Credit')) ? 'selected' : '' }}>Credit</option>
                         </select>
                     </div>
                     <div class="mb-3">
@@ -55,7 +49,7 @@ Bank Transaction
                     </div>
                     <div class="mb-3">
                         <label for="date" class="form-label">Date</label>
-                        <input type="date" class="form-control" id="date" name="date" required value="{{ $editData->date ?? $editData->transaction_date ?? $editData->txn_date ?? '' }}">
+                        <input type="date" class="form-control" id="date" name="date" required value="{{ $editData->date ?? $editData->transaction_date ?? $editData->txn_date ?? now()->toDateString() }}">
                     </div>
                     <div class="mb-3">
                         <label for="description" class="form-label">Description</label>

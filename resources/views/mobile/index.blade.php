@@ -28,9 +28,8 @@
         <div class="col-md-3">
           <label class="form-label">Account</label>
           <select name="account_id" class="form-select" required>
-            <option value="">-- Select number --</option>
             @foreach(($accounts ?? []) as $a)
-              <option value="{{ $a->id }}">{{ $a->provider ? $a->provider.' - ' : '' }}{{ $a->number }}</option>
+              <option value="{{ $a->id }}" @if(old('account_id') ? old('account_id') == $a->id : $loop->first) selected @endif>{{ $a->provider ? $a->provider.' - ' : '' }}{{ $a->number }}</option>
             @endforeach
           </select>
         </div>
@@ -117,9 +116,8 @@
         <div class="col-md-4">
           <label class="form-label">Provider</label>
           <select name="provider_id" class="form-select">
-            <option value="">-- Select provider --</option>
             @foreach(($providers ?? []) as $p)
-              <option value="{{ $p->id }}">{{ $p->name }}</option>
+              <option value="{{ $p->id }}" @if(old('provider_id') ? old('provider_id') == $p->id : $loop->first) selected @endif>{{ $p->name }}</option>
             @endforeach
           </select>
           <div class="form-text">Manage providers from the <a href="{{ route('mobile.providers.index') }}">Providers</a> page.</div>
@@ -171,7 +169,6 @@
                             <div class="mb-3">
                               <label class="form-label">Provider</label>
                               <select name="provider_id" class="form-select">
-                                <option value="">-- Select provider --</option>
                                 @foreach(($providers ?? []) as $p)
                                   <option value="{{ $p->id }}" @if($a->provider === $p->name) selected @endif>{{ $p->name }}</option>
                                 @endforeach
