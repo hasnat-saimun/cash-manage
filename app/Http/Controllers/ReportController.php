@@ -210,6 +210,80 @@ class ReportController extends Controller
 
         $fileName = 'client-transactions-' . preg_replace('/[^A-Za-z0-9_\-]/','_', substr($clientName,0,40)) . '-' . $start->toDateString() . '.pdf';
 
+        // Prefer Browsershot (Chromium/Chrome) for full Unicode/Indic shaping if enabled
+        if (env('PDF_ENGINE') === 'browsershot' && class_exists('Spatie\\Browsershot\\Browsershot')) {
+            try {
+                $bs = \Spatie\Browsershot\Browsershot::html($html)
+                    ->showBackground()
+                    ->format('A4')
+                    ->margins(10, 10, 10, 10)
+                    ->timeout(120);
+                if ($chromePath = env('CHROME_PATH')) {
+                    $bs->setChromePath($chromePath);
+                }
+                $binary = $bs->pdf();
+                return response($binary, 200, [
+                    'Content-Type' => 'application/pdf',
+                    'Content-Disposition' => 'attachment; filename="'.$fileName.'"'
+                ]);
+            } catch (\Throwable $e) {
+                // fall back to DomPDF below
+            }
+        }
+
+        // mPDF engine with OpenType layout support for Indic shaping
+        if (env('PDF_ENGINE') === 'mpdf' && class_exists('Mpdf\\Mpdf')) {
+            try {
+                $mpdf = new \Mpdf\Mpdf([
+                    'mode' => 'utf-8',
+                    'format' => 'A4',
+                    'margin_top' => 10,
+                    'margin_right' => 10,
+                    'margin_bottom' => 10,
+                    'margin_left' => 10,
+                ]);
+                $mpdf->autoScriptToLang = true;
+                $mpdf->autoLangToFont = true;
+                if (property_exists($mpdf, 'useOTL')) { $mpdf->useOTL = 0xFF; }
+                // If local NotoSansBengali fonts exist under public/fonts, prefer them
+                $fontDir = public_path('fonts');
+                $reg = $fontDir.DIRECTORY_SEPARATOR.'NotoSansBengali-Regular.ttf';
+                $bold = $fontDir.DIRECTORY_SEPARATOR.'NotoSansBengali-Bold.ttf';
+                if (is_file($reg) && is_file($bold)) {
+                    $defaultConfig = (new \Mpdf\Config\ConfigVariables())->getDefaults();
+                    $fontDirs = $defaultConfig['fontDir'];
+                    $defaultFontConfig = (new \Mpdf\Config\FontVariables())->getDefaults();
+                    $fontData = $defaultFontConfig['fontdata'];
+                    $mpdf = new \Mpdf\Mpdf([
+                        'mode' => 'utf-8',
+                        'format' => 'A4',
+                        'margin_top' => 10,
+                        'margin_right' => 10,
+                        'margin_bottom' => 10,
+                        'margin_left' => 10,
+                        'fontDir' => array_merge($fontDirs, [$fontDir]),
+                        'fontdata' => $fontData + [
+                            'notosansbengali' => [
+                                'R' => 'NotoSansBengali-Regular.ttf',
+                                'B' => 'NotoSansBengali-Bold.ttf',
+                            ],
+                        ],
+                        'default_font' => 'notosansbengali',
+                    ]);
+                    $mpdf->autoScriptToLang = true;
+                    $mpdf->autoLangToFont = true;
+                    if (property_exists($mpdf, 'useOTL')) { $mpdf->useOTL = 0xFF; }
+                }
+                $mpdf->WriteHTML($html);
+                return response($mpdf->Output($fileName, \Mpdf\Output\Destination::STRING_RETURN), 200, [
+                    'Content-Type' => 'application/pdf',
+                    'Content-Disposition' => 'attachment; filename="'.$fileName.'"'
+                ]);
+            } catch (\Throwable $e) {
+                // fall back below
+            }
+        }
+
         if (class_exists('Barryvdh\\DomPDF\\Facade\\Pdf')) {
             $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadHTML($html)->setPaper('a4','portrait');
             return $pdf->download($fileName);
@@ -636,6 +710,79 @@ class ReportController extends Controller
         ))->render();
 
         $fileName = 'bank-transactions-' . preg_replace('/[^A-Za-z0-9_\-]/','_', substr($accountName,0,40)) . '-' . $start->toDateString() . '.pdf';
+
+        // Prefer Browsershot (Chromium/Chrome) for full Unicode/Indic shaping if enabled
+        if (env('PDF_ENGINE') === 'browsershot' && class_exists('Spatie\\Browsershot\\Browsershot')) {
+            try {
+                $bs = \Spatie\Browsershot\Browsershot::html($html)
+                    ->showBackground()
+                    ->format('A4')
+                    ->margins(10, 10, 10, 10)
+                    ->timeout(120);
+                if ($chromePath = env('CHROME_PATH')) {
+                    $bs->setChromePath($chromePath);
+                }
+                $binary = $bs->pdf();
+                return response($binary, 200, [
+                    'Content-Type' => 'application/pdf',
+                    'Content-Disposition' => 'attachment; filename="'.$fileName.'"'
+                ]);
+            } catch (\Throwable $e) {
+                // fall back to DomPDF below
+            }
+        }
+
+        // mPDF engine with OpenType layout support for Indic shaping
+        if (env('PDF_ENGINE') === 'mpdf' && class_exists('Mpdf\\Mpdf')) {
+            try {
+                $mpdf = new \Mpdf\Mpdf([
+                    'mode' => 'utf-8',
+                    'format' => 'A4',
+                    'margin_top' => 10,
+                    'margin_right' => 10,
+                    'margin_bottom' => 10,
+                    'margin_left' => 10,
+                ]);
+                $mpdf->autoScriptToLang = true;
+                $mpdf->autoLangToFont = true;
+                if (property_exists($mpdf, 'useOTL')) { $mpdf->useOTL = 0xFF; }
+                $fontDir = public_path('fonts');
+                $reg = $fontDir.DIRECTORY_SEPARATOR.'NotoSansBengali-Regular.ttf';
+                $bold = $fontDir.DIRECTORY_SEPARATOR.'NotoSansBengali-Bold.ttf';
+                if (is_file($reg) && is_file($bold)) {
+                    $defaultConfig = (new \Mpdf\Config\ConfigVariables())->getDefaults();
+                    $fontDirs = $defaultConfig['fontDir'];
+                    $defaultFontConfig = (new \Mpdf\Config\FontVariables())->getDefaults();
+                    $fontData = $defaultFontConfig['fontdata'];
+                    $mpdf = new \Mpdf\Mpdf([
+                        'mode' => 'utf-8',
+                        'format' => 'A4',
+                        'margin_top' => 10,
+                        'margin_right' => 10,
+                        'margin_bottom' => 10,
+                        'margin_left' => 10,
+                        'fontDir' => array_merge($fontDirs, [$fontDir]),
+                        'fontdata' => $fontData + [
+                            'notosansbengali' => [
+                                'R' => 'NotoSansBengali-Regular.ttf',
+                                'B' => 'NotoSansBengali-Bold.ttf',
+                            ],
+                        ],
+                        'default_font' => 'notosansbengali',
+                    ]);
+                    $mpdf->autoScriptToLang = true;
+                    $mpdf->autoLangToFont = true;
+                    if (property_exists($mpdf, 'useOTL')) { $mpdf->useOTL = 0xFF; }
+                }
+                $mpdf->WriteHTML($html);
+                return response($mpdf->Output($fileName, \Mpdf\Output\Destination::STRING_RETURN), 200, [
+                    'Content-Type' => 'application/pdf',
+                    'Content-Disposition' => 'attachment; filename="'.$fileName.'"'
+                ]);
+            } catch (\Throwable $e) {
+                // fall back below
+            }
+        }
 
         if (class_exists('Barryvdh\\DomPDF\\Facade\\Pdf')) {
             $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadHTML($html)->setPaper('a4','portrait');

@@ -3,8 +3,25 @@
 <head>
   <meta charset="utf-8">
   <title>Client Transactions</title>
+  <!-- Bengali web font for proper glyph coverage in Chrome-based PDF engines -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;700&display=swap" rel="stylesheet">
   <style>
-    body { font-family: DejaVu Sans, sans-serif; font-size: 12px; }
+    /* Local TTF for mPDF (filesystem path), plus web font for Chrome */
+    @font-face {
+      font-family: 'NotoSansBengaliLocal';
+      font-style: normal;
+      font-weight: 400;
+      src: url('{{ public_path('fonts/NotoSansBengali-Regular.ttf') }}') format('truetype');
+    }
+    @font-face {
+      font-family: 'NotoSansBengaliLocal';
+      font-style: normal;
+      font-weight: 700;
+      src: url('{{ public_path('fonts/NotoSansBengali-Bold.ttf') }}') format('truetype');
+    }
+    body { font-family: 'Noto Sans Bengali','NotoSansBengaliLocal', DejaVu Sans, sans-serif; font-size: 12px; }
     h3 { margin: 0 0 8px; }
     table { width: 100%; border-collapse: collapse; }
     th, td { border: 1px solid #999; padding: 6px 8px; }
