@@ -8,21 +8,8 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;700&display=swap" rel="stylesheet">
   <style>
-    /* Local TTF for mPDF (filesystem path), plus web font for Chrome */
-    @font-face {
-      font-family: 'NotoSansBengaliLocal';
-      font-style: normal;
-      font-weight: 400;
-      src: url('{{ public_path('fonts/NotoSansBengali-Regular.ttf') }}') format('truetype');
-    }
-    @font-face {
-      font-family: 'NotoSansBengaliLocal';
-      font-style: normal;
-      font-weight: 700;
-      src: url('{{ public_path('fonts/NotoSansBengali-Bold.ttf') }}') format('truetype');
-    }
-    /* Put mPDF font key first so mPDF prefers it; Chrome will fall back to web font */
-    body { font-family: notosansbengali, 'Noto Sans Bengali','NotoSansBengaliLocal', DejaVu Sans, sans-serif; font-size: 12px; }
+    /* Use mPDF default font key (notosansbengali); Chrome uses web font link above */
+    body { font-family: notosansbengali, 'Noto Sans Bengali', DejaVu Sans, sans-serif; font-size: 12px; }
     h3 { margin: 0 0 8px; }
     table { width: 100%; border-collapse: collapse; }
     th, td { border: 1px solid #999; padding: 6px 8px; }

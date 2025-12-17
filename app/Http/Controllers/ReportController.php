@@ -235,8 +235,8 @@ class ReportController extends Controller
         // mPDF engine with OpenType layout support for Indic shaping
         if (env('PDF_ENGINE') === 'mpdf' && class_exists('Mpdf\\Mpdf')) {
             try {
-                // Ensure writable temp directory for font cache/metrics
-                $tmp = storage_path('fonts');
+                // Ensure writable temp directory for font cache/metrics (use framework cache)
+                $tmp = storage_path('framework/cache/mpdf');
                 if (!is_dir($tmp)) { @mkdir($tmp, 0775, true); }
                 $tt = $tmp . DIRECTORY_SEPARATOR . 'ttfontdata';
                 if (!is_dir($tt)) { @mkdir($tt, 0775, true); }
@@ -750,7 +750,7 @@ class ReportController extends Controller
         // mPDF engine with OpenType layout support for Indic shaping
         if (env('PDF_ENGINE') === 'mpdf' && class_exists('Mpdf\\Mpdf')) {
             try {
-                $tmp = storage_path('fonts');
+                $tmp = storage_path('framework/cache/mpdf');
                 if (!is_dir($tmp)) { @mkdir($tmp, 0775, true); }
                 $tt = $tmp . DIRECTORY_SEPARATOR . 'ttfontdata';
                 if (!is_dir($tt)) { @mkdir($tt, 0775, true); }
