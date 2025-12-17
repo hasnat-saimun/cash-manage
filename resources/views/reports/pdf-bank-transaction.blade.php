@@ -3,10 +3,12 @@
 <head>
   <meta charset="utf-8">
   <title>Bank Transactions</title>
-  <!-- Bengali web font for proper glyph coverage in Chrome-based PDF engines -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;700&display=swap" rel="stylesheet">
+  @unless(isset($isMpdf) && $isMpdf)
+    <!-- Bengali web font for proper glyph coverage in Chrome-based PDF engines -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;700&display=swap" rel="stylesheet">
+  @endunless
   <style>
     /* Use mPDF default font key (notosansbengali); Chrome uses web font link above */
     body { font-family: notosansbengali, 'Noto Sans Bengali', DejaVu Sans, sans-serif; font-size: 12px; }

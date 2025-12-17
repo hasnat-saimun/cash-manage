@@ -205,8 +205,9 @@ class ReportController extends Controller
         $generatedAt = Carbon::now()->format('Y-m-d H:i');
 
         $useBanglaDigits = true; // keep mPDF with Bengali numerals
+        $isMpdf = (env('PDF_ENGINE') === 'mpdf');
         $html = view('reports.pdf-client-transaction', compact(
-            'client','clientName','rangeLabel','openingBalance','rows','closingBalance','totalDebit','totalCredit','grandTotal','isDaily','colCount','colsBeforeBalance','bizName','generatedAt','useBanglaDigits'
+            'client','clientName','rangeLabel','openingBalance','rows','closingBalance','totalDebit','totalCredit','grandTotal','isDaily','colCount','colsBeforeBalance','bizName','generatedAt','useBanglaDigits','isMpdf'
         ))->render();
 
         $fileName = 'client-transactions-' . preg_replace('/[^A-Za-z0-9_\-]/','_', substr($clientName,0,40)) . '-' . $start->toDateString() . '.pdf';
@@ -240,6 +241,9 @@ class ReportController extends Controller
                 if (!is_dir($tmp)) { @mkdir($tmp, 0775, true); }
                 $tt = $tmp . DIRECTORY_SEPARATOR . 'ttfontdata';
                 if (!is_dir($tt)) { @mkdir($tt, 0775, true); }
+                if (!extension_loaded('mbstring')) {
+                    throw new \RuntimeException('PHP mbstring extension is required by mPDF.');
+                }
 
                 $mpdf = new \Mpdf\Mpdf([
                     'mode' => 'utf-8',
@@ -294,6 +298,7 @@ class ReportController extends Controller
                     'Content-Disposition' => 'attachment; filename="'.$fileName.'"'
                 ]);
             } catch (\Throwable $e) {
+                \Log::error('mPDF client PDF generation failed: '.$e->getMessage());
                 // fall back below
             }
         }
@@ -720,8 +725,9 @@ class ReportController extends Controller
         $generatedAt = Carbon::now()->format('Y-m-d H:i');
 
         $useBanglaDigits = true;
+        $isMpdf = (env('PDF_ENGINE') === 'mpdf');
         $html = view('reports.pdf-bank-transaction', compact(
-            'account','accountName','rangeLabel','openingBalance','rows','closingBalance','totalDebit','totalCredit','grandTotal','isDaily','colCount','colsBeforeBalance','bizName','generatedAt','useBanglaDigits'
+            'account','accountName','rangeLabel','openingBalance','rows','closingBalance','totalDebit','totalCredit','grandTotal','isDaily','colCount','colsBeforeBalance','bizName','generatedAt','useBanglaDigits','isMpdf'
         ))->render();
 
         $fileName = 'bank-transactions-' . preg_replace('/[^A-Za-z0-9_\-]/','_', substr($accountName,0,40)) . '-' . $start->toDateString() . '.pdf';
@@ -754,6 +760,9 @@ class ReportController extends Controller
                 if (!is_dir($tmp)) { @mkdir($tmp, 0775, true); }
                 $tt = $tmp . DIRECTORY_SEPARATOR . 'ttfontdata';
                 if (!is_dir($tt)) { @mkdir($tt, 0775, true); }
+                if (!extension_loaded('mbstring')) {
+                    throw new \RuntimeException('PHP mbstring extension is required by mPDF.');
+                }
 
                 $mpdf = new \Mpdf\Mpdf([
                     'mode' => 'utf-8',
@@ -806,6 +815,7 @@ class ReportController extends Controller
                     'Content-Disposition' => 'attachment; filename="'.$fileName.'"'
                 ]);
             } catch (\Throwable $e) {
+                \Log::error('mPDF bank PDF generation failed: '.$e->getMessage());
                 // fall back below
             }
         }
