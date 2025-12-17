@@ -241,7 +241,7 @@ class ReportController extends Controller
                 $tt = $tmp . DIRECTORY_SEPARATOR . 'ttfontdata';
                 if (!is_dir($tt)) { @mkdir($tt, 0775, true); }
 
-                $mpdf = new \\Mpdf\\Mpdf([
+                $mpdf = new \Mpdf\Mpdf([
                     'mode' => 'utf-8',
                     'format' => 'A4',
                     'margin_top' => 10,
@@ -265,7 +265,7 @@ class ReportController extends Controller
                     $fontDirs = $defaultConfig['fontDir'];
                     $defaultFontConfig = (new \Mpdf\Config\FontVariables())->getDefaults();
                     $fontData = $defaultFontConfig['fontdata'];
-                    $mpdf = new \\Mpdf\\Mpdf([
+                    $mpdf = new \Mpdf\Mpdf([
                         'mode' => 'utf-8',
                         'format' => 'A4',
                         'margin_top' => 10,
@@ -755,7 +755,7 @@ class ReportController extends Controller
                 $tt = $tmp . DIRECTORY_SEPARATOR . 'ttfontdata';
                 if (!is_dir($tt)) { @mkdir($tt, 0775, true); }
 
-                $mpdf = new \\Mpdf\\Mpdf([
+                $mpdf = new \Mpdf\Mpdf([
                     'mode' => 'utf-8',
                     'format' => 'A4',
                     'margin_top' => 10,
@@ -778,7 +778,7 @@ class ReportController extends Controller
                     $fontDirs = $defaultConfig['fontDir'];
                     $defaultFontConfig = (new \Mpdf\Config\FontVariables())->getDefaults();
                     $fontData = $defaultFontConfig['fontdata'];
-                    $mpdf = new \\Mpdf\\Mpdf([
+                    $mpdf = new \Mpdf\Mpdf([
                         'mode' => 'utf-8',
                         'format' => 'A4',
                         'margin_top' => 10,
