@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html>
+<html lang="bn">
 <head>
   <meta charset="utf-8">
   <title>Client Transactions</title>
@@ -21,7 +21,8 @@
       font-weight: 700;
       src: url('{{ public_path('fonts/NotoSansBengali-Bold.ttf') }}') format('truetype');
     }
-    body { font-family: 'Noto Sans Bengali','NotoSansBengaliLocal', DejaVu Sans, sans-serif; font-size: 12px; }
+    /* Put mPDF font key first so mPDF prefers it; Chrome will fall back to web font */
+    body { font-family: notosansbengali, 'Noto Sans Bengali','NotoSansBengaliLocal', DejaVu Sans, sans-serif; font-size: 12px; }
     h3 { margin: 0 0 8px; }
     table { width: 100%; border-collapse: collapse; }
     th, td { border: 1px solid #999; padding: 6px 8px; }
@@ -35,7 +36,7 @@
     .pagenum:before { content: counter(page) " / " counter(pages); }
   </style>
 </head>
-<body>
+<body style="font-family: notosansbengali;">
   <div class="header">
     <div class="row">
       <div><strong>{{ $bizName }}</strong></div>

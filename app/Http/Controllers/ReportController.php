@@ -204,8 +204,9 @@ class ReportController extends Controller
         $bizName = DB::table('businesses')->where('id', $bizId)->value('name') ?? config('app.name');
         $generatedAt = Carbon::now()->format('Y-m-d H:i');
 
+        $useBanglaDigits = true; // keep mPDF with Bengali numerals
         $html = view('reports.pdf-client-transaction', compact(
-            'client','clientName','rangeLabel','openingBalance','rows','closingBalance','totalDebit','totalCredit','grandTotal','isDaily','colCount','colsBeforeBalance','bizName','generatedAt'
+            'client','clientName','rangeLabel','openingBalance','rows','closingBalance','totalDebit','totalCredit','grandTotal','isDaily','colCount','colsBeforeBalance','bizName','generatedAt','useBanglaDigits'
         ))->render();
 
         $fileName = 'client-transactions-' . preg_replace('/[^A-Za-z0-9_\-]/','_', substr($clientName,0,40)) . '-' . $start->toDateString() . '.pdf';
@@ -245,6 +246,9 @@ class ReportController extends Controller
                 $mpdf->autoScriptToLang = true;
                 $mpdf->autoLangToFont = true;
                 if (property_exists($mpdf, 'useOTL')) { $mpdf->useOTL = 0xFF; }
+                if (property_exists($mpdf, 'useKerning')) { $mpdf->useKerning = true; }
+                if (property_exists($mpdf, 'useSubstitutions')) { $mpdf->useSubstitutions = 1; }
+                if (method_exists($mpdf, 'SetDefaultFont')) { $mpdf->SetDefaultFont('notosansbengali'); }
                 // If local NotoSansBengali fonts exist under public/fonts, prefer them
                 $fontDir = public_path('fonts');
                 $reg = $fontDir.DIRECTORY_SEPARATOR.'NotoSansBengali-Regular.ttf';
@@ -273,6 +277,9 @@ class ReportController extends Controller
                     $mpdf->autoScriptToLang = true;
                     $mpdf->autoLangToFont = true;
                     if (property_exists($mpdf, 'useOTL')) { $mpdf->useOTL = 0xFF; }
+                    if (property_exists($mpdf, 'useKerning')) { $mpdf->useKerning = true; }
+                    if (property_exists($mpdf, 'useSubstitutions')) { $mpdf->useSubstitutions = 1; }
+                    if (method_exists($mpdf, 'SetDefaultFont')) { $mpdf->SetDefaultFont('notosansbengali'); }
                 }
                 $mpdf->WriteHTML($html);
                 return response($mpdf->Output($fileName, \Mpdf\Output\Destination::STRING_RETURN), 200, [
@@ -705,8 +712,9 @@ class ReportController extends Controller
         $bizName = DB::table('businesses')->where('id', $bizId)->value('name') ?? config('app.name');
         $generatedAt = Carbon::now()->format('Y-m-d H:i');
 
+        $useBanglaDigits = true;
         $html = view('reports.pdf-bank-transaction', compact(
-            'account','accountName','rangeLabel','openingBalance','rows','closingBalance','totalDebit','totalCredit','grandTotal','isDaily','colCount','colsBeforeBalance','bizName','generatedAt'
+            'account','accountName','rangeLabel','openingBalance','rows','closingBalance','totalDebit','totalCredit','grandTotal','isDaily','colCount','colsBeforeBalance','bizName','generatedAt','useBanglaDigits'
         ))->render();
 
         $fileName = 'bank-transactions-' . preg_replace('/[^A-Za-z0-9_\-]/','_', substr($accountName,0,40)) . '-' . $start->toDateString() . '.pdf';
@@ -746,6 +754,9 @@ class ReportController extends Controller
                 $mpdf->autoScriptToLang = true;
                 $mpdf->autoLangToFont = true;
                 if (property_exists($mpdf, 'useOTL')) { $mpdf->useOTL = 0xFF; }
+                if (property_exists($mpdf, 'useKerning')) { $mpdf->useKerning = true; }
+                if (property_exists($mpdf, 'useSubstitutions')) { $mpdf->useSubstitutions = 1; }
+                if (method_exists($mpdf, 'SetDefaultFont')) { $mpdf->SetDefaultFont('notosansbengali'); }
                 $fontDir = public_path('fonts');
                 $reg = $fontDir.DIRECTORY_SEPARATOR.'NotoSansBengali-Regular.ttf';
                 $bold = $fontDir.DIRECTORY_SEPARATOR.'NotoSansBengali-Bold.ttf';
@@ -773,6 +784,9 @@ class ReportController extends Controller
                     $mpdf->autoScriptToLang = true;
                     $mpdf->autoLangToFont = true;
                     if (property_exists($mpdf, 'useOTL')) { $mpdf->useOTL = 0xFF; }
+                    if (property_exists($mpdf, 'useKerning')) { $mpdf->useKerning = true; }
+                    if (property_exists($mpdf, 'useSubstitutions')) { $mpdf->useSubstitutions = 1; }
+                    if (method_exists($mpdf, 'SetDefaultFont')) { $mpdf->SetDefaultFont('notosansbengali'); }
                 }
                 $mpdf->WriteHTML($html);
                 return response($mpdf->Output($fileName, \Mpdf\Output\Destination::STRING_RETURN), 200, [
