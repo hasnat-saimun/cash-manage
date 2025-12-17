@@ -2,6 +2,8 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\clintController;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\transactionController;
 use App\Http\Controllers\frontController;
 use App\Http\Controllers\bankManageController;
@@ -19,6 +21,52 @@ Route::get('/', function () {
   }
   return redirect()->route('login');
 });
+
+// UTF diagnostics: check encoding of a Bengali sample and a DB value
+Route::get('/debug/utf', function (Request $request) {
+  $sample = $request->query('sample', 'বাংলা পাঠ্য পরীক্ষা – সংখ্যা ১২৩৪৫');
+  $table = $request->query('table');
+  $id = $request->query('id');
+  $column = $request->query('column');
+
+  $hasMb = extension_loaded('mbstring');
+
+  $detect = function($str) use ($hasMb) {
+    $str = (string) $str;
+    $enc = $hasMb ? mb_detect_encoding($str, 'UTF-8, UTF-16, ISO-8859-1, WINDOWS-1252, ASCII', true) : null;
+    $validUtf8 = (bool) preg_match('//u', $str);
+    $hex = strtoupper(implode(' ', array_map(fn($c) => str_pad(dechex(ord($c)), 2, '0', STR_PAD_LEFT), str_split(substr($str, 0, 32)))));
+    return [
+      'value' => $str,
+      'encoding' => $enc,
+      'valid_utf8' => $validUtf8,
+      'preview_hex' => $hex,
+    ];
+  };
+
+  $db = null;
+  if ($table && $column && $id !== null) {
+    try {
+      $dbVal = DB::table($table)->where('id', $id)->value($column);
+      $db = $detect($dbVal);
+    } catch (\Throwable $e) {
+      $db = [
+        'error' => $e->getMessage(),
+      ];
+    }
+  }
+
+  return response()->json([
+    'php_mbstring_loaded' => $hasMb,
+    'sample' => $detect($sample),
+    'db_probe' => [
+      'table' => $table,
+      'id' => $id,
+      'column' => $column,
+      'result' => $db,
+    ],
+  ]);
+})->name('debug.utf');
 
 //dashboard route
 Route::get('/dashboard', [
