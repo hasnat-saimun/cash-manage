@@ -4,14 +4,23 @@
   <meta charset="utf-8">
   <title>Bank Transactions</title>
   @unless(isset($isMpdf) && $isMpdf)
-    <!-- Bengali web font for proper glyph coverage in Chrome-based PDF engines -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+Bengali:wght@400;700&display=swap" rel="stylesheet">
+    @php
+      $bnReg = null; $bnBold = null;
+      try {
+        $regPath = public_path('fonts/NotoSansBengali-Regular.ttf');
+        $boldPath = public_path('fonts/NotoSansBengali-Bold.ttf');
+        if (is_file($regPath)) { $bnReg = base64_encode(file_get_contents($regPath)); }
+        if (is_file($boldPath)) { $bnBold = base64_encode(file_get_contents($boldPath)); }
+      } catch (\Throwable $e) { /* ignore */ }
+    @endphp
+    <style>
+      @font-face { font-family: 'BanglaLocal'; font-style: normal; font-weight: 400; src: url('data:font/ttf;base64,{{ $bnReg }}') format('truetype'); }
+      @font-face { font-family: 'BanglaLocal'; font-style: normal; font-weight: 700; src: url('data:font/ttf;base64,{{ $bnBold }}') format('truetype'); }
+    </style>
   @endunless
   <style>
-    /* Use mPDF default font key (notosansbengali); Chrome uses web font link above */
-    body { font-family: notosansbengali, 'Noto Sans Bengali', DejaVu Sans, sans-serif; font-size: 12px; }
+    /* mPDF uses 'notosansbengali'; Dompdf/browser will use embedded 'BanglaLocal' */
+    body { font-family: {{ (isset($isMpdf) && $isMpdf) ? 'notosansbengali, DejaVu Sans, sans-serif' : "'BanglaLocal', DejaVu Sans, sans-serif" }}; font-size: 12px; }
     h3 { margin: 0 0 8px; }
     table { width: 100%; border-collapse: collapse; }
     th, td { border: 1px solid #999; padding: 6px 8px; }
@@ -25,7 +34,7 @@
     .pagenum:before { content: counter(page) " / " counter(pages); }
   </style>
 </head>
-<body style="font-family: notosansbengali;">
+<body>
   <div class="header">
     <div class="row">
       <div><strong>{{ $bizName }}</strong></div>

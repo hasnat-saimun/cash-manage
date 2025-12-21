@@ -241,6 +241,7 @@ class transactionController extends Controller
         $transactions = transaction::join('client_creations', 'transactions.transaction_client_name', '=', 'client_creations.id')
             ->where('transactions.business_id', $bizId)
             ->select('client_creations.client_name','transactions.*')
+            ->orderBy('transactions.created_at', 'asc')
             ->get();
 
         // Top calculations based on client transaction history

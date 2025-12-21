@@ -305,10 +305,13 @@ class ReportController extends Controller
 
         if (class_exists('Barryvdh\\DomPDF\\Facade\\Pdf')) {
             $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadHTML($html)->setPaper('a4','portrait');
+            if (method_exists($pdf, 'setOption')) { $pdf->setOption('isRemoteEnabled', true); }
             return $pdf->download($fileName);
         }
         if (class_exists('Dompdf\\Dompdf')) {
-            $dompdf = new \Dompdf\Dompdf();
+            $options = class_exists('Dompdf\\Options') ? new \Dompdf\Options() : null;
+            if ($options && method_exists($options,'set')) { $options->set('isRemoteEnabled', true); }
+            $dompdf = $options ? new \Dompdf\Dompdf($options) : new \Dompdf\Dompdf();
             $dompdf->loadHtml($html);
             $dompdf->setPaper('A4', 'portrait');
             $dompdf->render();
@@ -822,10 +825,13 @@ class ReportController extends Controller
 
         if (class_exists('Barryvdh\\DomPDF\\Facade\\Pdf')) {
             $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadHTML($html)->setPaper('a4','portrait');
+            if (method_exists($pdf, 'setOption')) { $pdf->setOption('isRemoteEnabled', true); }
             return $pdf->download($fileName);
         }
         if (class_exists('Dompdf\\Dompdf')) {
-            $dompdf = new \Dompdf\Dompdf();
+            $options = class_exists('Dompdf\\Options') ? new \Dompdf\Options() : null;
+            if ($options && method_exists($options,'set')) { $options->set('isRemoteEnabled', true); }
+            $dompdf = $options ? new \Dompdf\Dompdf($options) : new \Dompdf\Dompdf();
             $dompdf->loadHtml($html);
             $dompdf->setPaper('A4', 'portrait');
             $dompdf->render();
