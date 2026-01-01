@@ -15,6 +15,7 @@
         <link href="{{asset('/public/projectFile/home')}}/assets/css/bootstrap.min.css" rel="stylesheet" type="text/css" />
         <link href="{{asset('/public/projectFile/home')}}/assets/css/icons.min.css" rel="stylesheet" type="text/css" />
         <link href="{{asset('/public/projectFile/home')}}/assets/css/app.min.css" rel="stylesheet" type="text/css" />
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/simple-datatables@9.0.0/dist/style.css" />
 
         <!-- page-specific styles -->
         @stack('styles')
@@ -868,11 +869,140 @@
         </div>
         <!-- end page-wrapper -->
 
+        <!-- Global delete confirmation modal -->
+        <div class="modal fade" id="confirmDeleteModal" tabindex="-1" aria-labelledby="confirmDeleteLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="confirmDeleteLabel">Confirm Deletion</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p class="mb-0" data-confirm-message>Are you sure you want to delete this record?</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-danger" data-confirm-yes>Delete</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Javascript  -->
         <!-- vendor js -->
 
         <script src="{{asset('/public/projectFile/home')}}/assets/libs/bootstrap/js/bootstrap.bundle.min.js"></script>
         <script src="{{asset('/public/projectFile/home')}}/assets/libs/simplebar/simplebar.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/simple-datatables@9.0.0/dist/umd/simple-datatables.js"></script>
+
+        <!-- Centralized delete confirmation for all DELETE forms -->
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                var modalEl = document.getElementById('confirmDeleteModal');
+                if (!modalEl || !window.bootstrap) return;
+
+                var modal = new bootstrap.Modal(modalEl);
+                var messageEl = modalEl.querySelector('[data-confirm-message]');
+                var confirmBtn = modalEl.querySelector('[data-confirm-yes]');
+                var pendingForm = null;
+                var pendingAction = null;
+
+                document.addEventListener('submit', function(e) {
+                    var form = e.target;
+                    if (!(form instanceof HTMLFormElement)) return;
+
+                    var methodInput = form.querySelector('input[name="_method"]');
+                    var isDeleteMethod = methodInput && methodInput.value && methodInput.value.toUpperCase() === 'DELETE';
+                    var hasExplicitFlag = form.dataset.confirmDelete !== undefined;
+                    if (!isDeleteMethod && !hasExplicitFlag) return;
+
+                    if (form.dataset.confirming === 'yes') return; // already confirmed
+
+                    e.preventDefault();
+                    pendingForm = form;
+                    pendingAction = function() {
+                        var formToSubmit = pendingForm;
+                        pendingForm = null;
+                        pendingAction = null;
+                        delete formToSubmit.dataset.confirming;
+                        formToSubmit.submit();
+                    };
+                    form.dataset.confirming = 'yes';
+                    var customMsg = form.dataset.confirmMessage;
+                    if (customMsg && messageEl) messageEl.textContent = customMsg;
+                    else if (messageEl) messageEl.textContent = 'Are you sure you want to delete this record?';
+                    modal.show();
+                });
+
+                document.addEventListener('click', function(e) {
+                    var trigger = e.target.closest('[data-confirm-delete]');
+                    if (!trigger) return;
+                    if (trigger.tagName === 'FORM') return; // submit handler covers forms
+                    e.preventDefault();
+                    var customMsg = trigger.dataset.confirmMessage;
+                    if (customMsg && messageEl) messageEl.textContent = customMsg;
+                    else if (messageEl) messageEl.textContent = 'Are you sure you want to delete this record?';
+                    pendingForm = null;
+                    pendingAction = function() {
+                        pendingAction = null;
+                        var href = trigger.getAttribute('href');
+                        if (href) window.location.href = href;
+                    };
+                    modal.show();
+                });
+
+                if (confirmBtn) {
+                    confirmBtn.addEventListener('click', function() {
+                        modal.hide();
+                        if (pendingAction) {
+                            var action = pendingAction;
+                            pendingAction = null;
+                            action();
+                        } else if (pendingForm) {
+                            var formToSubmit = pendingForm;
+                            pendingForm = null;
+                            delete formToSubmit.dataset.confirming;
+                            formToSubmit.submit();
+                        }
+                    });
+                }
+
+                modalEl.addEventListener('hidden.bs.modal', function() {
+                    if (pendingForm) {
+                        delete pendingForm.dataset.confirming;
+                        pendingForm = null;
+                    }
+                    pendingAction = null;
+                });
+            });
+        </script>
+
+        <!-- Auto-enable simple data tables on every table (unless opted-out) -->
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                if (!window.simpleDatatables || !window.simpleDatatables.DataTable) return;
+                var tables = document.querySelectorAll('table.table:not([data-no-datatable])');
+                tables.forEach(function(tbl) {
+                    if (tbl.dataset.datatableInit === 'yes') return;
+                    tbl.dataset.datatableInit = 'yes';
+                    try {
+                        new simpleDatatables.DataTable(tbl, {
+                            perPage: 10,
+                            perPageSelect: [10, 25, 50, 100],
+                            searchable: true,
+                            labels: {
+                                placeholder: 'Search...',
+                                perPage: 'rows per page',
+                                noRows: 'No matching records',
+                                info: 'Showing {start} to {end} of {rows} entries'
+                            }
+                        });
+                    } catch (err) {
+                        console.error('DataTable init failed:', err);
+                    }
+                });
+            });
+        </script>
 
         <!-- Auto-dismiss alerts after a few seconds -->
         <script>

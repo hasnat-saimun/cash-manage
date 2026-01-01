@@ -13,7 +13,7 @@ class bankManageController extends Controller
     //bank manage route
     public function bankManageView()
     {
-        $bnakManages = bankManage::all();
+        $bnakManages = bankManage::orderBy('id','asc')->get();
         return view('bank.bankManage', ['bankManages' => $bnakManages]);
     }
 
@@ -79,7 +79,8 @@ class bankManageController extends Controller
             $bankAccounts = bankAccount::join('bank_manages', 'bank_accounts.bank_manage_id', '=', 'bank_manages.id')
                             ->select('bank_manages.bank_name','bank_manages.branch_name','bank_manages.routing_number','bank_accounts.*')
                             ->where('bank_accounts.business_id', $bizId)
-                            ->orderByDesc('bank_accounts.id')
+                            ->orderBy('bank_accounts.entry_date','asc')
+                            ->orderBy('bank_accounts.id','asc')
                             ->paginate(12);
         return view('bank.bankAccountCreation', ['bankAccounts' => $bankAccounts]);   
     }

@@ -47,4 +47,26 @@ class BusinessController extends Controller
         $request->session()->put('business_id', $bizId);
         return redirect()->route('dashboard')->with('success','Switched business');
     }
+
+    public function update(Request $request)
+    {
+        $data = $request->validate([
+            'business_id' => 'required|integer',
+            'name' => 'required|string|max:255',
+        ]);
+
+        $business = Auth::user()->businesses()
+            ->where('business_user.business_id', $data['business_id'])
+            ->first();
+
+        if (!$business) {
+            return back()->withErrors(['business_id' => 'Not authorized for this business'])->withInput();
+        }
+
+        $business->name = $data['name'];
+        $business->slug = Str::slug($data['name']).'-'.Str::random(6);
+        $business->save();
+
+        return back()->with('success', 'Business updated');
+    }
 }

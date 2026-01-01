@@ -117,7 +117,7 @@ class transactionController extends Controller
                     // no change to balance
                     $newBalance = (float) DB::table('client_balances')
                         ->where('client_id', $clientId)
-                        ->where('transactions.business_id', request()->session()->get('business_id'))
+                        ->where('client_balances.business_id', request()->session()->get('business_id'))
                         ->value('balance');
                 }
 
@@ -148,7 +148,7 @@ class transactionController extends Controller
             }
 
             DB::commit();
-            return redirect()->route('transactionList')->with('success','Transaction saved.');
+            return redirect()->back()->with('success','Transaction saved.');
         } catch (\Throwable $e) {
             DB::rollBack();
             // optionally log $e->getMessage()
@@ -241,7 +241,8 @@ class transactionController extends Controller
         $transactions = transaction::join('client_creations', 'transactions.transaction_client_name', '=', 'client_creations.id')
             ->where('transactions.business_id', $bizId)
             ->select('client_creations.client_name','transactions.*')
-            ->orderBy('transactions.created_at', 'asc')
+            ->orderBy('transactions.date', 'asc')
+            ->orderBy('transactions.id', 'asc')
             ->get();
 
         // Top calculations based on client transaction history
@@ -482,7 +483,8 @@ class transactionController extends Controller
             ->join('bank_accounts', 'bank_transactions.bank_account_id', '=', 'bank_accounts.id')
             ->select('bank_transactions.*', 'bank_accounts.account_name', 'bank_accounts.account_number')
             ->where('bank_transactions.business_id', $bizId)
-            ->orderByDesc('bank_transactions.id')
+            ->orderBy($dateCol, 'asc')
+            ->orderBy('bank_transactions.id', 'asc')
             ->get();
 
         return view('transaction.bankTransactionList', compact('txns','typeCol','amtCol','dateCol'));

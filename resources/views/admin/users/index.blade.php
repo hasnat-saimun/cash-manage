@@ -25,7 +25,7 @@
                             <td>{{ $user->role }}</td>
                             <td>
                                 <a href="{{ route('admin.users.edit',$user) }}" class="btn btn-sm btn-secondary">Edit</a>
-                                <form method="POST" action="{{ route('admin.users.destroy',$user) }}" class="d-inline" onsubmit="return confirm('Delete this user?')">
+                                <form method="POST" action="{{ route('admin.users.destroy',$user) }}" class="d-inline" data-confirm-delete data-confirm-message="Delete this user?">
                                     @csrf @method('DELETE')
                                     <button class="btn btn-sm btn-danger">Delete</button>
                                 </form>

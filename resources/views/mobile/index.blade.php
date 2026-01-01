@@ -66,7 +66,7 @@
                 <td class="text-end">{{ number_format($r->balance,2) }}</td>
                 <td class="text-end">
                   <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editEntryModal{{ $r->id }}">Edit</button>
-                  <form method="POST" action="{{ route('mobile.entries.delete', $r->id) }}" onsubmit="return confirm('Delete this entry?');" class="d-inline ms-1">
+                  <form method="POST" action="{{ route('mobile.entries.delete', $r->id) }}" class="d-inline ms-1" data-confirm-delete data-confirm-message="Delete this entry?">
                     @csrf
                     @method('DELETE')
                     <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
@@ -148,7 +148,7 @@
                 <td>{{ $a->number }}</td>
                 <td class="text-end">
                   <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editAccountModal{{ $a->id }}">Edit</button>
-                  <form method="POST" action="{{ route('mobile.accounts.delete', $a->id) }}" onsubmit="return confirm('Delete this number?');" class="d-inline">
+                  <form method="POST" action="{{ route('mobile.accounts.delete', $a->id) }}" class="d-inline" data-confirm-delete data-confirm-message="Delete this number?">
                     @csrf
                     @method('DELETE')
                     <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>

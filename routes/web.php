@@ -160,6 +160,7 @@ Route::middleware(['auth', \App\Http\Middleware\SetBusiness::class])->group(func
     // Business management
     Route::get('businesses', [\App\Http\Controllers\BusinessController::class, 'index'])->name('business.index');
     Route::post('businesses', [\App\Http\Controllers\BusinessController::class, 'store'])->name('business.store');
+    Route::patch('businesses', [\App\Http\Controllers\BusinessController::class, 'update'])->name('business.update');
     Route::post('businesses/switch', [\App\Http\Controllers\BusinessController::class, 'switch'])->name('business.switch');
 
     //bank-wise transaction report

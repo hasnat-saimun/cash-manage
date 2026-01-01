@@ -44,7 +44,7 @@
               <tr>
                 <td>{{ $p->name }}</td>
                 <td class="text-end">
-                  <form method="POST" action="{{ route('mobile.providers.delete', $p->id) }}" onsubmit="return confirm('Delete this provider?');" class="d-inline">
+                  <form method="POST" action="{{ route('mobile.providers.delete', $p->id) }}" class="d-inline" data-confirm-delete data-confirm-message="Delete this provider?">
                     @csrf
                     @method('DELETE')
                     <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>

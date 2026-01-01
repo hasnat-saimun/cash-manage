@@ -46,6 +46,24 @@ Manage businesses
           <button type="submit" class="btn btn-primary">Switch</button>
         </div>
       </form>
+
+      <form class="row g-2 mt-3" method="POST" action="{{ route('business.update') }}">
+        @csrf
+        @method('PATCH')
+        <div class="col-12 col-md-4">
+          <select name="business_id" class="form-select">
+            @foreach($businesses as $biz)
+              <option value="{{ $biz->id }}">{{ $biz->name }} (ID: {{ $biz->id }})</option>
+            @endforeach
+          </select>
+        </div>
+        <div class="col-12 col-md-5">
+          <input type="text" name="name" class="form-control" placeholder="New business name" required />
+        </div>
+        <div class="col">
+          <button type="submit" class="btn btn-warning">Rename</button>
+        </div>
+      </form>
     </div>
   </div>
 

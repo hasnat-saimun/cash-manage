@@ -175,29 +175,6 @@ Client Transaction List
                     <div class="col">
                         <h4 class="card-title">All Transactions</h4>
                     </div>
-                    <!--end col-->
-                    <div class="col-auto">
-                        <div class="dropdown">
-                            <a
-                                href="#"
-                                class="btn bt btn-light dropdown-toggle"
-                                data-bs-toggle="dropdown"
-                                aria-haspopup="true"
-                                aria-expanded="false"
-                            >
-                                <i class="icofont-calendar fs-5 me-1"></i> This Month<i
-                                    class="las la-angle-down ms-1"
-                                ></i>
-                            </a>
-                            <div class="dropdown-menu dropdown-menu-end">
-                                <a class="dropdown-item" href="#">Today</a>
-                                <a class="dropdown-item" href="#">Last Week</a>
-                                <a class="dropdown-item" href="#">Last Month</a>
-                                <a class="dropdown-item" href="#">This Year</a>
-                            </div>
-                        </div>
-                    </div>
-                    <!--end col-->
                 </div>
                 <!--end row-->
             </div>
@@ -286,7 +263,9 @@ Client Transaction List
                                 <td>
                                     <a href="#"><i class="las la-print text-secondary fs-18"></i></a>
                                     <a href="{{ route('transactionEdit',['id'=>$transaction->id]) }}"><i class="las la-pen text-secondary fs-18"></i></a>
-                                    <a href="{{ route('deleteTransaction',['id'=>$transaction->id]) }}"><i class="las la-trash-alt text-secondary fs-18"></i></a>
+                                    <a href="{{ route('deleteTransaction',['id'=>$transaction->id]) }}" data-confirm-delete data-confirm-message="Delete this transaction?">
+                                        <i class="las la-trash-alt text-secondary fs-18"></i>
+                                    </a>
                                 </td>
                             </tr>
                             @endforeach
@@ -316,22 +295,6 @@ Client Transaction List
                 <div class="d-lg-flex justify-content-lg-between mt-2">
                     <div class="mb-2 mb-lg-0">
                         <a href="{{route('transactionCreation')}}" type="button" class="btn btn-primary px-4">Add Transaction</a>
-                    </div>
-                    <div>
-                        <ul class="pagination">
-                            <li class="page-item disabled">
-                                <a class="page-link" href="#" tabindex="-1">Previous</a>
-                            </li>
-                            <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                            <li class="page-item">
-                                <a class="page-link" href="#">2</a>
-                            </li>
-                            <li class="page-item"><a class="page-link" href="#">3</a></li>
-                            <li class="page-item">
-                                <a class="page-link" href="#">Next</a>
-                            </li>
-                        </ul>
-                        <!--end pagination-->
                     </div>
                 </div>
             </div>
