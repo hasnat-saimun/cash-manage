@@ -2,7 +2,28 @@
 <html lang="en" dir="ltr" data-startbar="dark" data-bs-theme="light">
     <head>
         <meta charset="utf-8" />
-        <title>Dashboard | @yield('backTitle')</title>
+        @php
+            $user = auth()->user();
+            $businesses = $user ? ($user->businesses ?? collect()) : collect();
+            $currentBizId = session('business_id');
+            $businessName = optional($businesses->firstWhere('id', $currentBizId))->name
+                ?? optional($businesses->first())->name
+                ?? config('app.name');
+
+            $sectionTitle = trim((string) $__env->yieldContent('backTitle'));
+            $routeTitle = \Illuminate\Support\Facades\Route::currentRouteName();
+            if ($routeTitle) {
+                $routeTitle = str_replace(['.', '-'], [' ', ' '], $routeTitle);
+                $routeTitle = preg_replace('/(?<!^)([A-Z])/', ' $1', $routeTitle);
+                $routeTitle = trim(preg_replace('/\s+/', ' ', $routeTitle));
+                $routeTitle = ucwords($routeTitle);
+            }
+            $pageTitle = trim(
+                ($businessName ? $businessName.' | ' : '') .
+                ($routeTitle ?: ($sectionTitle ?: 'Dashboard'))
+            );
+        @endphp
+        <title>{{ $pageTitle }}</title>
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
         <meta content="Premium Multipurpose Admin & Dashboard Template" name="description" />
         <meta content="" name="author" />

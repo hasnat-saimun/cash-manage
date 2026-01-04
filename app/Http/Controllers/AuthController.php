@@ -5,17 +5,17 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
+use App\Models\Business;
 
 class AuthController extends Controller
 {
     public function showLogin()
     {
-        // If no users exist yet, send the visitor to the registration page to create the first admin.
-        if (User::count() === 0) {
-            return redirect()->route('auth.register');
-        }
+        $hasUsers = User::count() > 0;
+        $hasBusinesses = Business::count() > 0;
+        $setupMode = !$hasUsers && !$hasBusinesses; // only allow bootstrap when both tables are empty
 
-        return view('login.userLogin');
+        return view('login.userLogin', compact('setupMode', 'hasUsers', 'hasBusinesses'));
     }
 
     public function login(Request $request)

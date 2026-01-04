@@ -3,7 +3,18 @@
     <!-- Mirrored from mannatthemes.com/approx/default/auth-login.html by HTTrack Website Copier/3.x [XR&CO'2014], Mon, 17 Nov 2025 09:06:57 GMT -->
     <head>
         <meta charset="utf-8" />
-        <title>Login | Approx - Admin & Dashboard Template</title>
+        @php
+            $appName = config('app.name', 'Cash Manage');
+            $routeTitle = \Illuminate\Support\Facades\Route::currentRouteName();
+            if ($routeTitle) {
+                $routeTitle = str_replace(['.', '-'], [' ', ' '], $routeTitle);
+                $routeTitle = preg_replace('/(?<!^)([A-Z])/', ' $1', $routeTitle);
+                $routeTitle = trim(preg_replace('/\s+/', ' ', $routeTitle));
+                $routeTitle = ucwords($routeTitle);
+            }
+            $routeTitle = $routeTitle ?: 'Login';
+        @endphp
+        <title>{{ $appName }} | {{ $routeTitle }}</title>
         <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
         <meta content="Premium Multipurpose Admin & Dashboard Template" name="description" />
         <meta content="" name="author" />
@@ -38,12 +49,46 @@
                                                 />
                                             </a>
                                             <h4 class="mt-3 mb-1 fw-semibold text-white fs-18">
-                                                Let's Get Started Approx
+                                                Welcome Back
                                             </h4>
-                                            <p class="text-muted fw-medium mb-0">Sign in to continue to Approx.</p>
+                                            <p class="text-muted fw-medium mb-0">Sign in to continue.</p>
                                         </div>
                                     </div>
                                     <div class="card-body pt-0">
+                                        @if(!empty($setupMode))
+                                            <div class="alert alert-info">
+                                                No users or businesses exist yet. Create the first admin and business to get started.
+                                            </div>
+                                            <form class="my-3" method="POST" action="{{ route('auth.register.post') }}">
+                                                @csrf
+                                                <input type="hidden" name="role" value="superAdmin" />
+                                                <div class="form-group mb-2">
+                                                    <label class="form-label" for="setup_name">Admin Name</label>
+                                                    <input type="text" class="form-control" id="setup_name" name="name" value="{{ old('name') }}" required placeholder="Enter name" />
+                                                </div>
+                                                <div class="form-group mb-2">
+                                                    <label class="form-label" for="setup_email">Admin Email</label>
+                                                    <input type="email" class="form-control" id="setup_email" name="email" value="{{ old('email') }}" required placeholder="Enter email" />
+                                                </div>
+                                                <div class="form-group mb-2">
+                                                    <label class="form-label" for="setup_password">Password</label>
+                                                    <input type="password" class="form-control" id="setup_password" name="password" required placeholder="Enter password" />
+                                                </div>
+                                                <div class="form-group mb-2">
+                                                    <label class="form-label" for="setup_password_confirmation">Confirm Password</label>
+                                                    <input type="password" class="form-control" id="setup_password_confirmation" name="password_confirmation" required placeholder="Confirm password" />
+                                                </div>
+                                                <div class="form-group mb-3">
+                                                    <label class="form-label" for="setup_business_name">Business Name</label>
+                                                    <input type="text" class="form-control" id="setup_business_name" name="business_name" value="{{ old('business_name', 'My Business') }}" required placeholder="Enter business name" />
+                                                </div>
+                                                <div class="d-grid mb-4">
+                                                    <button class="btn btn-success" type="submit">Create Admin & Business</button>
+                                                </div>
+                                            </form>
+                                            <hr class="my-4" />
+                                        @endif
+
                                         <form class="my-4" method="POST" action="{{ route('auth.login') }}">
                                             @csrf
                                             <div class="form-group mb-2">
@@ -113,43 +158,8 @@
                                         </form>
                                         <!--end form-->
 
-                                        @php $userCount = \App\Models\User::count(); @endphp
                                         <div class="text-center mb-2">
-                                            <p class="text-muted">
-                                                @if($userCount == 0)
-                                                    No users found. <a href="{{ route('auth.register') }}" class="text-primary ms-2">Create first admin account</a>
-                                                @else
-                                                    Don't have an account ? <a href="#" class="text-primary ms-2">Contact admin</a>
-                                                @endif
-                                            </p>
-                                        </div>
-                                        <!--end text-center-->
-                                        <div class="text-center mb-2">
-                                            <p class="text-muted">
-                                                Don't have an account ?
-                                                <a href="auth-register.html" class="text-primary ms-2">Free Resister</a>
-                                            </p>
-                                            <h6 class="px-3 d-inline-block">Or Login With</h6>
-                                        </div>
-                                        <div class="d-flex justify-content-center">
-                                            <a
-                                                href="#"
-                                                class="d-flex justify-content-center align-items-center thumb-md bg-blue-subtle text-blue rounded-circle me-2"
-                                            >
-                                                <i class="fab fa-facebook align-self-center"></i>
-                                            </a>
-                                            <a
-                                                href="#"
-                                                class="d-flex justify-content-center align-items-center thumb-md bg-info-subtle text-info rounded-circle me-2"
-                                            >
-                                                <i class="fab fa-twitter align-self-center"></i>
-                                            </a>
-                                            <a
-                                                href="#"
-                                                class="d-flex justify-content-center align-items-center thumb-md bg-danger-subtle text-danger rounded-circle"
-                                            >
-                                                <i class="fab fa-google align-self-center"></i>
-                                            </a>
+                                            <p class="text-muted">Need an account? Contact your administrator.</p>
                                         </div>
                                     </div>
                                     <!--end card-body-->
