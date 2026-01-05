@@ -44,6 +44,7 @@
               <tr>
                 <td>{{ $p->name }}</td>
                 <td class="text-end">
+                  <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editProviderModal{{ $p->id }}">Edit</button>
                   <form method="POST" action="{{ route('mobile.providers.delete', $p->id) }}" class="d-inline" data-confirm-delete data-confirm-message="Delete this provider?">
                     @csrf
                     @method('DELETE')
@@ -51,6 +52,32 @@
                   </form>
                 </td>
               </tr>
+
+              <!-- Edit Provider Modal -->
+              <div class="modal fade" id="editProviderModal{{ $p->id }}" tabindex="-1" aria-labelledby="editProviderLabel{{ $p->id }}" aria-hidden="true">
+                <div class="modal-dialog">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <h5 class="modal-title" id="editProviderLabel{{ $p->id }}">Edit Provider</h5>
+                      <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <form method="POST" action="{{ route('mobile.providers.update') }}">
+                      @csrf
+                      <input type="hidden" name="id" value="{{ $p->id }}">
+                      <div class="modal-body">
+                        <div class="mb-3">
+                          <label class="form-label">Provider Name</label>
+                          <input type="text" name="name" class="form-control" value="{{ $p->name }}" placeholder="e.g., bKash, Nagad" required>
+                        </div>
+                      </div>
+                      <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Save changes</button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              </div>
             @empty
               <tr><td colspan="2" class="text-center text-muted">No providers yet.</td></tr>
             @endforelse

@@ -4,6 +4,16 @@
 @section('bodyTitleEnd') @endsection
 @section('bodyContent')
 <div class="col-12">
+  <!-- Quick Navigation -->
+  <div class="mb-3">
+    <a href="{{ route('mobile.cashCalculator') }}" class="btn btn-outline-primary">
+      <i class="bx bx-calculator me-1"></i> Cash Calculator
+    </a>
+    <a href="{{ route('mobile.providers.index') }}" class="btn btn-outline-secondary">
+      <i class="bx bx-cog me-1"></i> Manage Providers
+    </a>
+  </div>
+
   <div class="card">
     <div class="card-body">
       @if(session('success'))

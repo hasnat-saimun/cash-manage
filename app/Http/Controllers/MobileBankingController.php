@@ -152,4 +152,105 @@ class MobileBankingController extends Controller
         ]);
         return back()->with('success','Mobile banking entry updated.');
     }
+
+    public function cashCalculator()
+    {
+        $bizId = request()->session()->get('business_id');
+        $today = now()->toDateString();
+        
+        // Get all mobile accounts
+        $accounts = DB::table('mobile_accounts')
+            ->where('business_id', $bizId)
+            ->orderBy('provider')
+            ->orderBy('number')
+            ->get();
+        
+        // Get today's mobile entries
+        $todayEntries = DB::table('mobile_entries')
+            ->join('mobile_accounts','mobile_entries.mobile_account_id','=','mobile_accounts.id')
+            ->where('mobile_accounts.business_id', $bizId)
+            ->where('mobile_entries.date', $today)
+            ->select('mobile_entries.*','mobile_accounts.number','mobile_accounts.provider')
+            ->get();
+        
+        // Get yesterday's total balance for comparison
+        $yesterday = now()->subDay()->toDateString();
+        $yesterdayBalance = DB::table('mobile_entries')
+            ->join('mobile_accounts','mobile_entries.mobile_account_id','=','mobile_accounts.id')
+            ->where('mobile_accounts.business_id', $bizId)
+            ->where('mobile_entries.date', $yesterday)
+            ->sum('mobile_entries.balance') ?? 0;
+        
+        // Calculate today's total balance
+        $todayTotalBalance = $todayEntries->sum('balance') ?? 0;
+        
+        // Calculate cash difference (debit/credit)
+        $cashDifference = $todayTotalBalance - $yesterdayBalance;
+        
+        // Get today's debit/credit records
+        $cashRecords = DB::table('daily_cash_records')
+            ->where('business_id', $bizId)
+            ->where('date', $today)
+            ->orderBy('created_at', 'asc')
+            ->get();
+        
+        // Calculate totals
+        $totalDebit = $cashRecords->where('type', 'debit')->sum('amount') ?? 0;
+        $totalCredit = $cashRecords->where('type', 'credit')->sum('amount') ?? 0;
+        
+        return view('mobile.cashCalculator', compact('accounts', 'todayEntries', 'todayTotalBalance', 'yesterdayBalance', 'cashDifference', 'today', 'cashRecords', 'totalDebit', 'totalCredit'));
+    }
+
+    public function addCashRecord(Request $request)
+    {
+        $validated = $request->validate([
+            'date' => 'required|date',
+            'type' => 'required|in:debit,credit',
+            'amount' => 'required|numeric|min:0.01',
+            'description' => 'nullable|string|max:255',
+            'reference_no' => 'nullable|string|max:100',
+        ]);
+        
+        $bizId = $request->session()->get('business_id');
+        
+        DB::table('daily_cash_records')->insert([
+            'business_id' => $bizId,
+            'date' => $validated['date'],
+            'type' => $validated['type'],
+            'amount' => $validated['amount'],
+            'description' => $validated['description'],
+            'reference_no' => $validated['reference_no'],
+            'created_at' => now(),
+            'updated_at' => now(),
+        ]);
+        
+        return back()->with('success', ucfirst($validated['type']) . ' record added successfully.');
+    }
+
+    public function updateCashRecord(Request $request)
+    {
+        $validated = $request->validate([
+            'id' => 'required|integer|exists:daily_cash_records,id',
+            'type' => 'required|in:debit,credit',
+            'amount' => 'required|numeric|min:0.01',
+            'description' => 'nullable|string|max:255',
+            'reference_no' => 'nullable|string|max:100',
+        ]);
+        
+        DB::table('daily_cash_records')->where('id', $validated['id'])->update([
+            'type' => $validated['type'],
+            'amount' => $validated['amount'],
+            'description' => $validated['description'],
+            'reference_no' => $validated['reference_no'],
+            'updated_at' => now(),
+        ]);
+        
+        return back()->with('success', 'Record updated successfully.');
+    }
+
+    public function deleteCashRecord($id)
+    {
+        DB::table('daily_cash_records')->where('id', $id)->delete();
+        return back()->with('success', 'Record deleted successfully.');
+    }
 }

@@ -185,10 +185,15 @@ Route::middleware(['auth', \App\Http\Middleware\SetBusiness::class])->group(func
     Route::delete('mobile-banking/accounts/{id}', [MobileBankingController::class, 'deleteAccount'])->name('mobile.accounts.delete');
     Route::delete('mobile-banking/entries/{id}', [MobileBankingController::class, 'deleteEntry'])->name('mobile.entries.delete');
     Route::post('mobile-banking/entries/update', [MobileBankingController::class, 'updateEntry'])->name('mobile.entries.update');
+    Route::get('mobile-banking/cash-calculator', [MobileBankingController::class, 'cashCalculator'])->name('mobile.cashCalculator');
+    Route::post('mobile-banking/cash-records', [MobileBankingController::class, 'addCashRecord'])->name('mobile.cashRecords.add');
+    Route::post('mobile-banking/cash-records/update', [MobileBankingController::class, 'updateCashRecord'])->name('mobile.cashRecords.update');
+    Route::delete('mobile-banking/cash-records/{id}', [MobileBankingController::class, 'deleteCashRecord'])->name('mobile.cashRecords.delete');
     
       // Mobile Providers management
       Route::get('/mobile-banking/providers', [\App\Http\Controllers\MobileProviderController::class, 'index'])->name('mobile.providers.index');
       Route::post('/mobile-banking/providers', [\App\Http\Controllers\MobileProviderController::class, 'store'])->name('mobile.providers.store');
+      Route::post('/mobile-banking/providers/update', [\App\Http\Controllers\MobileProviderController::class, 'update'])->name('mobile.providers.update');
       Route::delete('/mobile-banking/providers/{id}', [\App\Http\Controllers\MobileProviderController::class, 'delete'])->name('mobile.providers.delete');
 });
 

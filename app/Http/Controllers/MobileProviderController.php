@@ -38,6 +38,28 @@ class MobileProviderController extends Controller
         return back()->with('success','Provider added.');
     }
 
+    public function update(Request $request)
+    {
+        $validated = $request->validate([
+            'id' => 'required|integer|exists:mobile_providers,id',
+            'name' => 'required|string|max:50',
+        ]);
+        $bizId = $request->session()->get('business_id');
+        $exists = DB::table('mobile_providers')
+            ->where('business_id', $bizId)
+            ->where('name', $validated['name'])
+            ->where('id', '!=', $validated['id'])
+            ->exists();
+        if ($exists) {
+            return back()->withErrors(['name' => 'Provider name already exists.'])->withInput();
+        }
+        DB::table('mobile_providers')->where('id', $validated['id'])->update([
+            'name' => $validated['name'],
+            'updated_at' => now(),
+        ]);
+        return back()->with('success','Provider updated.');
+    }
+
     public function delete($id)
     {
         DB::table('mobile_providers')->where('id',$id)->delete();
