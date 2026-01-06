@@ -59,46 +59,57 @@ New Source
             </div>
             <!--end card-header-->
             <div class="card-body pt-0">
-                <div class="table-responsive">
-                    <table class="table mb-0" id="datatable_1">
-                        <thead class="table-light">
-                            <tr>
-                                <th>SL</th>
-                                <th>Source Name</th>
-                                <th class="text-end">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>   
-                            @php
-                                $x = 1;
-                            @endphp
-                            @if(isset($sources))
-                                @foreach($sources as $key => $source)
-                                    <tr>
-                                        <td>{{ $x }}</td>
-                                        <td>{{ $source->source_name }}</td>
-                                        <td class="text-end">
-                                            <a href="{{ route('sourceEdit',['id'=>$source->id]) }}"><i class="las la-pen text-secondary fs-18"></i></a>
-                                            <a href="{{ route('deleteSource',['id'=>$source->id]) }}"><i class="las la-trash-alt text-secondary fs-18"></i></a>
-                                        </td>
-                                    </tr>
-                                    @php
-                                        $x++;
-                                    @endphp
-                                @endforeach
-                            @else
-                            <tr>
-                                <td>01</td>
-                                <td>Salary</td>
-                                <td class="text-end">
-                                    <a href="#"><i class="las la-pen text-secondary fs-18"></i></a>
-                                    <a href="#"><i class="las la-trash-alt text-secondary fs-18"></i></a>
-                                </td>
-                            </tr>
-                            @endif
-                        </tbody>
-                    </table>
-                </div>
+                <form id="source-bulk-form" method="POST" action="{{ route('sources.bulkDelete') }}">
+                    @csrf
+                    <div class="table-responsive">
+                        <table class="table mb-0" id="datatable_1">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="width: 40px;"><input type="checkbox" id="source-select-all" class="form-check-input"></th>
+                                    <th>SL</th>
+                                    <th>Source Name</th>
+                                    <th class="text-end">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>   
+                                @php
+                                    $x = 1;
+                                @endphp
+                                @if(isset($sources))
+                                    @foreach($sources as $key => $source)
+                                        <tr>
+                                            <td><input type="checkbox" name="ids[]" value="{{ $source->id }}" class="form-check-input source-checkbox"></td>
+                                            <td>{{ $x }}</td>
+                                            <td>{{ $source->source_name }}</td>
+                                            <td class="text-end">
+                                                <a href="{{ route('sourceEdit',['id'=>$source->id]) }}"><i class="las la-pen text-secondary fs-18"></i></a>
+                                                <a href="{{ route('deleteSource',['id'=>$source->id]) }}"><i class="las la-trash-alt text-secondary fs-18"></i></a>
+                                            </td>
+                                        </tr>
+                                        @php
+                                            $x++;
+                                        @endphp
+                                    @endforeach
+                                @else
+                                <tr>
+                                    <td></td>
+                                    <td>01</td>
+                                    <td>Salary</td>
+                                    <td class="text-end">
+                                        <a href="#"><i class="las la-pen text-secondary fs-18"></i></a>
+                                        <a href="#"><i class="las la-trash-alt text-secondary fs-18"></i></a>
+                                    </td>
+                                </tr>
+                                @endif
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="mt-3">
+                        <button type="submit" id="source-bulk-delete-btn" class="btn btn-danger" disabled>
+                            <i class="fas fa-trash me-1"></i> Delete Selected
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
@@ -144,6 +155,49 @@ New Source
     </div>
 </div>
 @endif
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const selectAllCheckbox = document.getElementById('source-select-all');
+    const sourceCheckboxes = document.querySelectorAll('.source-checkbox');
+    const deleteBtn = document.getElementById('source-bulk-delete-btn');
+    const bulkForm = document.getElementById('source-bulk-form');
+
+    // Toggle all checkboxes
+    selectAllCheckbox.addEventListener('change', function() {
+        sourceCheckboxes.forEach(checkbox => {
+            checkbox.checked = this.checked;
+        });
+        updateDeleteButtonState();
+    });
+
+    // Update delete button state when any checkbox changes
+    sourceCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            updateDeleteButtonState();
+            // Uncheck select-all if any individual checkbox is unchecked
+            if (!this.checked) {
+                selectAllCheckbox.checked = false;
+            }
+        });
+    });
+
+    function updateDeleteButtonState() {
+        const anyChecked = Array.from(sourceCheckboxes).some(cb => cb.checked);
+        deleteBtn.disabled = !anyChecked;
+    }
+
+    // Handle form submission with confirmation
+    bulkForm.addEventListener('submit', function(e) {
+        const checkedCount = Array.from(sourceCheckboxes).filter(cb => cb.checked).length;
+        if (!confirm(`Are you sure you want to delete ${checkedCount} source(s)? This action cannot be undone.`)) {
+            e.preventDefault();
+        }
+    });
+});
+</script>
+@endpush
 
 <!-- end page-wrapper -->
 <div class="modal fade" id="addRate" tabindex="-1" aria-labelledby="addRateLabel" aria-hidden="true">

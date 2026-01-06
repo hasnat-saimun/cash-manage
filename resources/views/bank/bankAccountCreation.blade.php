@@ -210,44 +210,54 @@ Bank
                 </div>
             </div>
             <div class="card-body pt-0">
-                <div class="table-responsive">
-                    <table class="table mb-0">
-                        <thead class="table-light">
-                            <tr>
-                                <th class="border-top-0">Entry Date</th>
-                                <th class="border-top-0">Account Name</th>
-                                <th class="border-top-0">Account Number</th>                                                
-                                <th class="border-top-0">Branch</th>
-                                <th class="border-top-0">Current Balance</th>
-                                <th class="border-top-0">Action</th>
-                            </tr><!--end tr-->
-                        </thead>
-                        <tbody>
-                            @if(isset($bankAccounts) && count($bankAccounts) > 0)
-                                @foreach($bankAccounts as $bankAccount)
-                                    @php
-                                        $balanceRow = \DB::table('bank_balances')->where('bank_account_id', $bankAccount->id)->first();
-                                        $currentBalance = $balanceRow ? $balanceRow->balance : 0;
-                                    @endphp
-                            <tr>   
-                                <td>{{ $bankAccount->entry_date }}</td>
-                                <td>{{ $bankAccount->account_name }}</td>
-                                <td>{{ $bankAccount->account_number }}</td>
-                                <td>{{ $bankAccount->bank_name }} - {{ $bankAccount->branch_name }} - {{ $bankAccount->routing_number }}</td>
-                                <td>{{ number_format($currentBalance,2) }}</td>
-                                <td>
-                                    <a href="#"><i class="las la-print text-secondary fs-18"></i></a>
-                                    <a href="{{ route('bankAccountEdit',['id'=>$bankAccount->id]) }}"><i class="las la-pen text-secondary fs-18"></i></a>
-                                    <a href="{{ route('deleteBankAccount',['id'=>$bankAccount->id]) }}"><i class="las la-trash-alt text-secondary fs-18"></i></a>
-                                </td>
-                            </tr><!--end tr-->    
-                                @endforeach
-                            @else 
-                            <tr>             
-                                <td>15 July 2024</td> 
-                                <td>Card Payment</td>
-                                <td>UI/UX Project</td>                                                                                 
-                                <td>$700</td>
+                <form id="bankaccount-bulk-form" method="POST" action="{{ route('bankAccounts.bulkDelete') }}">
+                    @csrf
+                    <div class="table-responsive">
+                        <table class="table mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="width: 40px;"><input type="checkbox" id="bankaccount-select-all" class="form-check-input"></th>
+                                    <th class="border-top-0">SL</th>
+                                    <th class="border-top-0">Entry Date</th>
+                                    <th class="border-top-0">Account Name</th>
+                                    <th class="border-top-0">Account Number</th>                                                
+                                    <th class="border-top-0">Branch</th>
+                                    <th class="border-top-0">Current Balance</th>
+                                    <th class="border-top-0">Action</th>
+                                </tr><!--end tr-->
+                            </thead>
+                            <tbody>
+                                @if(isset($bankAccounts) && count($bankAccounts) > 0)
+                                    @php $x = 1; @endphp
+                                    @foreach($bankAccounts as $bankAccount)
+                                        @php
+                                            $balanceRow = \DB::table('bank_balances')->where('bank_account_id', $bankAccount->id)->first();
+                                            $currentBalance = $balanceRow ? $balanceRow->balance : 0;
+                                        @endphp
+                                <tr>   
+                                    <td><input type="checkbox" name="ids[]" value="{{ $bankAccount->id }}" class="form-check-input bankaccount-checkbox"></td>
+                                    <td>{{ $x }}</td>
+                                    <td>{{ $bankAccount->entry_date }}</td>
+                                    <td>{{ $bankAccount->account_name }}</td>
+                                    <td>{{ $bankAccount->account_number }}</td>
+                                    <td>{{ $bankAccount->bank_name }} - {{ $bankAccount->branch_name }} - {{ $bankAccount->routing_number }}</td>
+                                    <td>{{ number_format($currentBalance,2) }}</td>
+                                    <td>
+                                        <a href="#"><i class="las la-print text-secondary fs-18"></i></a>
+                                        <a href="{{ route('bankAccountEdit',['id'=>$bankAccount->id]) }}"><i class="las la-pen text-secondary fs-18"></i></a>
+                                        <a href="{{ route('deleteBankAccount',['id'=>$bankAccount->id]) }}"><i class="las la-trash-alt text-secondary fs-18"></i></a>
+                                    </td>
+                                </tr><!--end tr-->    
+                                    @php $x++; @endphp
+                                    @endforeach
+                                @else 
+                                <tr>             
+                                    <td></td>
+                                    <td></td>
+                                    <td>15 July 2024</td> 
+                                    <td>Card Payment</td>
+                                    <td>UI/UX Project</td>                                                                                 
+                                    <td>$700</td>
                                 <td><span class="badge bg-danger-subtle text-danger fs-11 fw-medium px-2">Debit</span></td>
                                 <td>                                                       
                                     <a href="#"><i class="las la-print text-secondary fs-18"></i></a>
@@ -256,9 +266,15 @@ Bank
                                 </td>
                             </tr><!--end tr--> 
                             @endif          
-                        </tbody>
-                    </table> <!--end table-->                                               
-                </div><!--end /div-->
+                            </tbody>
+                        </table> <!--end table-->                                               
+                    </div><!--end /div-->
+                    <div class="mt-3">
+                        <button type="submit" id="bankaccount-bulk-delete-btn" class="btn btn-danger" disabled>
+                            <i class="fas fa-trash me-1"></i> Delete Selected
+                        </button>
+                    </div>
+                </form>
                 <div class="d-lg-flex justify-content-end mt-2">
                     {{ $bankAccounts->links() }}
                 </div>
@@ -354,6 +370,42 @@ document.addEventListener('DOMContentLoaded', function() {
             var modal = new bootstrap.Modal(el);
             modal.show();
         }
+    }
+
+    // Bank Account Bulk Delete
+    const selectAllCheckbox = document.getElementById('bankaccount-select-all');
+    const bankaccountCheckboxes = document.querySelectorAll('.bankaccount-checkbox');
+    const deleteBtn = document.getElementById('bankaccount-bulk-delete-btn');
+    const bulkForm = document.getElementById('bankaccount-bulk-form');
+
+    if (selectAllCheckbox && bankaccountCheckboxes.length > 0) {
+        selectAllCheckbox.addEventListener('change', function() {
+            bankaccountCheckboxes.forEach(checkbox => {
+                checkbox.checked = this.checked;
+            });
+            updateDeleteButtonState();
+        });
+
+        bankaccountCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                updateDeleteButtonState();
+                if (!this.checked) {
+                    selectAllCheckbox.checked = false;
+                }
+            });
+        });
+
+        function updateDeleteButtonState() {
+            const anyChecked = Array.from(bankaccountCheckboxes).some(cb => cb.checked);
+            deleteBtn.disabled = !anyChecked;
+        }
+
+        bulkForm.addEventListener('submit', function(e) {
+            const checkedCount = Array.from(bankaccountCheckboxes).filter(cb => cb.checked).length;
+            if (!confirm(`Are you sure you want to delete ${checkedCount} bank account(s)? This action cannot be undone.`)) {
+                e.preventDefault();
+            }
+        });
     }
 });
 </script>

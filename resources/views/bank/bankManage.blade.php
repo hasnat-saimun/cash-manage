@@ -65,52 +65,63 @@ Bank Manage
             </div>
             <!--end card-header-->
             <div class="card-body pt-0">
-                <div class="table-responsive">
-                    <table class="table mb-0" id="datatable_1">
-                        <thead class="table-light">
-                            <tr>
-                                <th>SL</th>
-                                <th>Bank Name</th>
-                                <th>Branch</th>
-                                <th>routing Nmuber</th>
-                                <th class="text-end">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>   
-                            @php
-                                $x = 1;
-                            @endphp
-                            @if(isset($bankManages) && count($bankManages) > 0)
-                                @foreach($bankManages as $bankManage)
-                                    <tr>
-                                        <td>{{ $x }}</td>
-                                        <td>{{$bankManage->bank_name}}</td>
-                                        <td>{{$bankManage->branch_name}}</td>
-                                        <td>{{$bankManage->routing_number}}</td>
-                                        <td class="text-end">
-                                            <a href="{{ route('bankManageEdit',['id'=>$bankManage->id]) }}"><i class="las la-pen text-secondary fs-18"></i></a>
-                                            <a href="{{ route('deleteBankManage',['id'=>$bankManage->id]) }}"><i class="las la-trash-alt text-secondary fs-18"></i></a>
-                                        </td>
-                                    </tr>
-                                    @php
-                                        $x++;
-                                    @endphp
-                                @endforeach
-                            @else
-                            <tr>
-                                <td>01</td>
-                                <td>Empty</td>
-                                <td>Empty</td>
-                                <td>Empty</td>
-                                <td class="text-end">
-                                    <a href="#"><i class="las la-pen text-secondary fs-18"></i></a>
-                                    <a href="#"><i class="las la-trash-alt text-secondary fs-18"></i></a>
-                                </td>
-                            </tr>
-                            @endif
-                        </tbody>
-                    </table>
-                </div>
+                <form id="bankmanage-bulk-form" method="POST" action="{{ route('bankManages.bulkDelete') }}">
+                    @csrf
+                    <div class="table-responsive">
+                        <table class="table mb-0" id="datatable_1">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="width: 40px;"><input type="checkbox" id="bankmanage-select-all" class="form-check-input"></th>
+                                    <th>SL</th>
+                                    <th>Bank Name</th>
+                                    <th>Branch</th>
+                                    <th>routing Nmuber</th>
+                                    <th class="text-end">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>   
+                                @php
+                                    $x = 1;
+                                @endphp
+                                @if(isset($bankManages) && count($bankManages) > 0)
+                                    @foreach($bankManages as $bankManage)
+                                        <tr>
+                                            <td><input type="checkbox" name="ids[]" value="{{ $bankManage->id }}" class="form-check-input bankmanage-checkbox"></td>
+                                            <td>{{ $x }}</td>
+                                            <td>{{$bankManage->bank_name}}</td>
+                                            <td>{{$bankManage->branch_name}}</td>
+                                            <td>{{$bankManage->routing_number}}</td>
+                                            <td class="text-end">
+                                                <a href="{{ route('bankManageEdit',['id'=>$bankManage->id]) }}"><i class="las la-pen text-secondary fs-18"></i></a>
+                                                <a href="{{ route('deleteBankManage',['id'=>$bankManage->id]) }}"><i class="las la-trash-alt text-secondary fs-18"></i></a>
+                                            </td>
+                                        </tr>
+                                        @php
+                                            $x++;
+                                        @endphp
+                                    @endforeach
+                                @else
+                                <tr>
+                                    <td></td>
+                                    <td>01</td>
+                                    <td>Empty</td>
+                                    <td>Empty</td>
+                                    <td>Empty</td>
+                                    <td class="text-end">
+                                        <a href="#"><i class="las la-pen text-secondary fs-18"></i></a>
+                                        <a href="#"><i class="las la-trash-alt text-secondary fs-18"></i></a>
+                                    </td>
+                                </tr>
+                                @endif
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="mt-3">
+                        <button type="submit" id="bankmanage-bulk-delete-btn" class="btn btn-danger" disabled>
+                            <i class="fas fa-trash me-1"></i> Delete Selected
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
@@ -206,5 +217,46 @@ Bank Manage
           </div>
         </div>
       </div>
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const selectAllCheckbox = document.getElementById('bankmanage-select-all');
+    const bankmanageCheckboxes = document.querySelectorAll('.bankmanage-checkbox');
+    const deleteBtn = document.getElementById('bankmanage-bulk-delete-btn');
+    const bulkForm = document.getElementById('bankmanage-bulk-form');
+
+    if (selectAllCheckbox && bankmanageCheckboxes.length > 0) {
+        selectAllCheckbox.addEventListener('change', function() {
+            bankmanageCheckboxes.forEach(checkbox => {
+                checkbox.checked = this.checked;
+            });
+            updateDeleteButtonState();
+        });
+
+        bankmanageCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                updateDeleteButtonState();
+                if (!this.checked) {
+                    selectAllCheckbox.checked = false;
+                }
+            });
+        });
+
+        function updateDeleteButtonState() {
+            const anyChecked = Array.from(bankmanageCheckboxes).some(cb => cb.checked);
+            deleteBtn.disabled = !anyChecked;
+        }
+
+        bulkForm.addEventListener('submit', function(e) {
+            const checkedCount = Array.from(bankmanageCheckboxes).filter(cb => cb.checked).length;
+            if (!confirm(`Are you sure you want to delete ${checkedCount} bank manager(s)? This action cannot be undone.`)) {
+                e.preventDefault();
+            }
+        });
+    }
+});
+</script>
+@endpush
 
 @endsection

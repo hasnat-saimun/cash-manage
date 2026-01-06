@@ -199,4 +199,36 @@ class bankManageController extends Controller
             return back()->with('error', 'Opps! Bank Account deletion failed. Please try later');
         endif;
     }
+
+    //bulk delete bank accounts
+    public function bulkDeleteBankAccounts(Request $request)
+    {
+        $data = $request->validate([
+            'ids' => 'required|array|min:1',
+            'ids.*' => 'integer'
+        ]);
+        
+        try {
+            bankAccount::whereIn('id', $data['ids'])->delete();
+            return redirect()->route('bankAccountCreationView')->with('success','Selected bank accounts deleted.');
+        } catch (\Throwable $e) {
+            return redirect()->route('bankAccountCreationView')->with('error','Failed to delete selected bank accounts.');
+        }
+    }
+
+    //bulk delete bank manages
+    public function bulkDeleteBankManages(Request $request)
+    {
+        $data = $request->validate([
+            'ids' => 'required|array|min:1',
+            'ids.*' => 'integer'
+        ]);
+        
+        try {
+            bankManage::whereIn('id', $data['ids'])->delete();
+            return redirect()->route('bankManageView')->with('success','Selected bank managers deleted.');
+        } catch (\Throwable $e) {
+            return redirect()->route('bankManageView')->with('error','Failed to delete selected bank managers.');
+        }
+    }
 }

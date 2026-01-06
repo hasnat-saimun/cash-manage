@@ -66,6 +66,23 @@ class frontController extends Controller
             return back()->with('error', 'Opps! Source deletion failed. Please try later');
         endif;
     }
+
+    // Bulk delete sources
+    public function bulkDeleteSources(Request $request)
+    {
+        $data = $request->validate([
+            'ids' => 'required|array|min:1',
+            'ids.*' => 'integer'
+        ]);
+
+        try {
+            source::whereIn('id', $data['ids'])->delete();
+            return redirect()->route('sourceView')->with('success','Selected sources deleted.');
+        } catch (\Throwable $e) {
+            return redirect()->route('sourceView')->with('error','Failed to delete selected sources.');
+        }
+    }
+
     //dashboard view loading
     public function dashboardView()
     {

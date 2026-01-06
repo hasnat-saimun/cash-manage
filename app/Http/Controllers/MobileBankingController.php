@@ -253,4 +253,34 @@ class MobileBankingController extends Controller
         DB::table('daily_cash_records')->where('id', $id)->delete();
         return back()->with('success', 'Record deleted successfully.');
     }
+
+    public function bulkDeleteAccounts(Request $request)
+    {
+        $data = $request->validate([
+            'ids' => 'required|array|min:1',
+            'ids.*' => 'integer'
+        ]);
+        
+        try {
+            DB::table('mobile_accounts')->whereIn('id', $data['ids'])->delete();
+            return redirect()->route('mobile.index')->with('success','Selected mobile accounts deleted.');
+        } catch (\Throwable $e) {
+            return redirect()->route('mobile.index')->with('error','Failed to delete selected mobile accounts.');
+        }
+    }
+
+    public function bulkDeleteEntries(Request $request)
+    {
+        $data = $request->validate([
+            'ids' => 'required|array|min:1',
+            'ids.*' => 'integer'
+        ]);
+        
+        try {
+            DB::table('mobile_entries')->whereIn('id', $data['ids'])->delete();
+            return redirect()->route('mobile.index')->with('success','Selected mobile entries deleted.');
+        } catch (\Throwable $e) {
+            return redirect()->route('mobile.index')->with('error','Failed to delete selected mobile entries.');
+        }
+    }
 }

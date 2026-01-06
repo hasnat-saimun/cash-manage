@@ -83,85 +83,96 @@ if (!empty($itemId)) {
             </div>
             <!--end card-header-->
             <div class="card-body pt-0">
-                <div class="table-responsive">
-                    <table class="table mb-0" id="datatable_1">
-                        <thead class="table-light">
-                            <tr>
-                                <th>SL</th>
-                                <th>Name</th>
-                                <th>Balance</th>
-                                <th>Registered</th>
-                                <th>Email</th>
-                                <th>Phone Number</th>
-                                <th>Status</th>
-                                <th class="text-end">Action</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @php $x = 1; @endphp
+                <form id="client-bulk-form" method="POST" action="{{ route('clients.bulkDelete') }}">
+                    @csrf
+                    <div class="table-responsive">
+                        <table class="table mb-0" id="datatable_1">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="width: 40px;"><input type="checkbox" id="client-select-all" class="form-check-input"></th>
+                                    <th>SL</th>
+                                    <th>Name</th>
+                                    <th>Balance</th>
+                                    <th>Registered</th>
+                                    <th>Email</th>
+                                    <th>Phone Number</th>
+                                    <th>Status</th>
+                                    <th class="text-end">Action</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @php $x = 1; @endphp
 
-                            @if(!empty($allClient) && $allClient->count()>0)
-                                @foreach($allClient as $client)
-                                    @php
-                                        // prefer client_balances
-                                        $bal = \Illuminate\Support\Facades\DB::table('client_balances')
-                                                ->where('client_id', $client->id)
-                                                ->value('balance');
+                                @if(!empty($allClient) && $allClient->count()>0)
+                                    @foreach($allClient as $client)
+                                        @php
+                                            // prefer client_balances
+                                            $bal = \Illuminate\Support\Facades\DB::table('client_balances')
+                                                    ->where('client_id', $client->id)
+                                                    ->value('balance');
 
-                                        if ($bal === null) {
-                                            // fallback: compute from transactions
-                                            $tot = \Illuminate\Support\Facades\DB::table('transactions')
-                                                    ->where('transaction_client_name', $client->id)
-                                                    ->selectRaw("
-                                                        COALESCE(SUM(CASE WHEN LOWER(type) = 'credit' THEN amount ELSE 0 END),0) as total_credit,
-                                                        COALESCE(SUM(CASE WHEN LOWER(type) = 'debit' THEN amount ELSE 0 END),0) as total_debit
-                                                    ")->first();
-                                            $bal = (float)($tot->total_credit ?? 0) - (float)($tot->total_debit ?? 0);
-                                        } else {
-                                            $bal = (float) $bal;
-                                        }
-                                    @endphp
+                                            if ($bal === null) {
+                                                // fallback: compute from transactions
+                                                $tot = \Illuminate\Support\Facades\DB::table('transactions')
+                                                        ->where('transaction_client_name', $client->id)
+                                                        ->selectRaw("
+                                                            COALESCE(SUM(CASE WHEN LOWER(type) = 'credit' THEN amount ELSE 0 END),0) as total_credit,
+                                                            COALESCE(SUM(CASE WHEN LOWER(type) = 'debit' THEN amount ELSE 0 END),0) as total_debit
+                                                        ")->first();
+                                                $bal = (float)($tot->total_credit ?? 0) - (float)($tot->total_debit ?? 0);
+                                            } else {
+                                                $bal = (float) $bal;
+                                            }
+                                        @endphp
+                                        <tr>
+                                            <td><input type="checkbox" name="ids[]" value="{{ $client->id }}" class="form-check-input client-checkbox"></td>
+                                            <td>{{ $x }}</td>
+                                            <td>
+                                                <div class="flex-grow-1 text-truncate">
+                                                    <h6 class="m-0">{{ $client->client_name }}</h6>
+                                                </div>
+                                            </td>
+                                            <td>{{ number_format($bal,2) }}</td>
+                                            <td>{{ $client->client_regDate }}</td>
+                                            <td>{{ $client->client_email }}</td>
+                                            <td>{{ $client->client_phone }}</td>
+                                            <td><span class="badge rounded text-success bg-success-subtle">Active</span></td>
+                                            <td class="text-end">
+                                                <a href="{{ route('clientEdit',['id'=>$client->id]) }}"><i class="las la-pen text-secondary fs-18"></i></a>
+                                                <a href="{{ route('deleteClient',['id'=>$client->id]) }}"><i class="las la-trash-alt text-secondary fs-18"></i></a>
+                                            </td>
+                                        </tr>
+                                        @php $x++; @endphp
+                                    @endforeach
+                                @else
                                     <tr>
+                                        <td></td>
                                         <td>{{ $x }}</td>
-                                        <td>
+                                        <td class="d-flex align-items-center">
                                             <div class="flex-grow-1 text-truncate">
-                                                <h6 class="m-0">{{ $client->client_name }}</h6>
+                                                <h6 class="m-0">Virtual It Professional</h6>
                                             </div>
                                         </td>
-                                        <td>{{ number_format($bal,2) }}</td>
-                                        <td>{{ $client->client_regDate }}</td>
-                                        <td>{{ $client->client_email }}</td>
-                                        <td>{{ $client->client_phone }}</td>
+                                        <td>+1 234 567 890</td>
+                                        <td>9000</td>
+                                        <td>22 August 2024</td>
+                                        <td><a href="#" class="text-body text-decoration-underline">dummy@gmail.com</a></td>
                                         <td><span class="badge rounded text-success bg-success-subtle">Active</span></td>
                                         <td class="text-end">
-                                            <a href="{{ route('clientEdit',['id'=>$client->id]) }}"><i class="las la-pen text-secondary fs-18"></i></a>
-                                            <a href="{{ route('deleteClient',['id'=>$client->id]) }}"><i class="las la-trash-alt text-secondary fs-18"></i></a>
+                                            <a href="#"><i class="las la-pen text-secondary fs-18"></i></a>
+                                            <a href="#"><i class="las la-trash-alt text-secondary fs-18"></i></a>
                                         </td>
                                     </tr>
-                                    @php $x++; @endphp
-                                @endforeach
-                            @else
-                                <tr>
-                                    <td>{{ $x }}</td>
-                                    <td class="d-flex align-items-center">
-                                        <div class="flex-grow-1 text-truncate">
-                                            <h6 class="m-0">Virtual It Professional</h6>
-                                        </div>
-                                    </td>
-                                    <td>+1 234 567 890</td>
-                                    <td>9000</td>
-                                    <td>22 August 2024</td>
-                                    <td><a href="#" class="text-body text-decoration-underline">dummy@gmail.com</a></td>
-                                    <td><span class="badge rounded text-success bg-success-subtle">Active</span></td>
-                                    <td class="text-end">
-                                        <a href="#"><i class="las la-pen text-secondary fs-18"></i></a>
-                                        <a href="#"><i class="las la-trash-alt text-secondary fs-18"></i></a>
-                                    </td>
-                                </tr>
-                            @endif
-                        </tbody>
-                    </table>
-                </div>
+                                @endif
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="mt-3">
+                        <button type="submit" id="client-bulk-delete-btn" class="btn btn-danger" disabled>
+                            <i class="fas fa-trash me-1"></i> Delete Selected
+                        </button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
@@ -342,5 +353,48 @@ if (!empty($itemId)) {
         </div>
     </div>
 </div>
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const selectAllCheckbox = document.getElementById('client-select-all');
+    const clientCheckboxes = document.querySelectorAll('.client-checkbox');
+    const deleteBtn = document.getElementById('client-bulk-delete-btn');
+    const bulkForm = document.getElementById('client-bulk-form');
+
+    // Toggle all checkboxes
+    selectAllCheckbox.addEventListener('change', function() {
+        clientCheckboxes.forEach(checkbox => {
+            checkbox.checked = this.checked;
+        });
+        updateDeleteButtonState();
+    });
+
+    // Update delete button state when any checkbox changes
+    clientCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            updateDeleteButtonState();
+            // Uncheck select-all if any individual checkbox is unchecked
+            if (!this.checked) {
+                selectAllCheckbox.checked = false;
+            }
+        });
+    });
+
+    function updateDeleteButtonState() {
+        const anyChecked = Array.from(clientCheckboxes).some(cb => cb.checked);
+        deleteBtn.disabled = !anyChecked;
+    }
+
+    // Handle form submission with confirmation
+    bulkForm.addEventListener('submit', function(e) {
+        const checkedCount = Array.from(clientCheckboxes).filter(cb => cb.checked).length;
+        if (!confirm(`Are you sure you want to delete ${checkedCount} client(s)? This action cannot be undone.`)) {
+            e.preventDefault();
+        }
+    });
+});
+</script>
+@endpush
 
 @endsection

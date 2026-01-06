@@ -46,6 +46,7 @@
   <table>
     <thead>
       <tr>
+        <th style="width:50px;">SL</th>
         @if(!$isDaily)
           <th style="width:100px;">Date</th>
         @endif
@@ -65,6 +66,7 @@
       @endif
       @forelse($rows as $r)
         <tr>
+          <td>{{ $loop->iteration }}</td>
           @unless($isDaily)
             <td>{{ $r['date'] }}</td>
           @endunless

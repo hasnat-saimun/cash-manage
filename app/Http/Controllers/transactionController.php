@@ -241,8 +241,8 @@ class transactionController extends Controller
         $transactions = transaction::join('client_creations', 'transactions.transaction_client_name', '=', 'client_creations.id')
             ->where('transactions.business_id', $bizId)
             ->select('client_creations.client_name','transactions.*')
-            ->orderBy('transactions.date', 'asc')
-            ->orderBy('transactions.id', 'asc')
+            ->orderBy('transactions.date', 'desc')
+            ->orderBy('transactions.id', 'desc')
             ->get();
 
         // Top calculations based on client transaction history
@@ -321,6 +321,60 @@ class transactionController extends Controller
         } catch (\Throwable $e) {
             DB::rollBack();
             return redirect()->route('transactionList')->with('error','Failed to delete transaction.');
+        }
+    }
+
+    // Bulk delete transactions and reverse their effects
+    public function bulkDeleteTransactions(Request $request)
+    {
+        $data = $request->validate([
+            'ids' => 'required|array|min:1',
+            'ids.*' => 'integer'
+        ]);
+
+        $bizId = $request->session()->get('business_id');
+
+        DB::beginTransaction();
+        try {
+            $ids = $data['ids'];
+
+            // Fetch transactions with lock to avoid race conditions
+            $txns = transaction::whereIn('id', $ids)
+                ->where('business_id', $bizId)
+                ->lockForUpdate()
+                ->get();
+
+            if ($txns->isEmpty()) {
+                DB::rollBack();
+                return redirect()->route('transactionList')->with('error','No transactions found to delete.');
+            }
+
+            // Group deltas by client so we can apply balance updates once per client
+            $deltasByClient = [];
+            foreach ($txns as $txn) {
+                $clientId = (int) $txn->transaction_client_name;
+                $amount = (float) $txn->amount;
+                $type = strtolower((string) $txn->type);
+                $reverse = ($type === 'credit') ? -$amount : $amount;
+                if (!isset($deltasByClient[$clientId])) {
+                    $deltasByClient[$clientId] = 0.0;
+                }
+                $deltasByClient[$clientId] += $reverse;
+            }
+
+            // Delete transactions
+            transaction::whereIn('id', $txns->pluck('id'))->delete();
+
+            // Apply balance deltas per client
+            foreach ($deltasByClient as $clientId => $delta) {
+                $this->applyClientBalanceDelta($clientId, $delta);
+            }
+
+            DB::commit();
+            return redirect()->route('transactionList')->with('success','Selected transactions deleted.');
+        } catch (\Throwable $e) {
+            DB::rollBack();
+            return redirect()->route('transactionList')->with('error','Failed to delete selected transactions.');
         }
     }
 
@@ -469,6 +523,60 @@ class transactionController extends Controller
             return redirect()->route('bankTransactionList')->with('error', 'Failed to delete transaction.');
         }
         return redirect()->route('bankTransactionList')->with('success', 'Bank transaction deleted.');
+    }
+
+    // Bulk delete bank transactions and adjust balances
+    public function bulkDeleteBankTransactions(Request $request)
+    {
+        $data = $request->validate([
+            'ids' => 'required|array|min:1',
+            'ids.*' => 'integer'
+        ]);
+
+        $typeCol = $this->detectBankTransactionTypeColumn();
+        $amtCol = $this->detectBankTransactionAmountColumn();
+
+        $bizId = $request->session()->get('business_id');
+
+        \DB::beginTransaction();
+        try {
+            $ids = $data['ids'];
+
+            $txns = \DB::table('bank_transactions')
+                ->whereIn('id', $ids)
+                ->where('business_id', $bizId)
+                ->lockForUpdate()
+                ->get();
+
+            if ($txns->isEmpty()) {
+                \DB::rollBack();
+                return redirect()->route('bankTransactionList')->with('error', 'No bank transactions found to delete.');
+            }
+
+            $deltasByAccount = [];
+            foreach ($txns as $txn) {
+                $accountId = (int)$txn->bank_account_id;
+                $type = strtolower((string)$txn->{$typeCol});
+                $amount = (float)$txn->{$amtCol};
+                $reverse = $type === 'credit' ? -$amount : $amount;
+                if (!isset($deltasByAccount[$accountId])) {
+                    $deltasByAccount[$accountId] = 0.0;
+                }
+                $deltasByAccount[$accountId] += $reverse;
+            }
+
+            \DB::table('bank_transactions')->whereIn('id', $txns->pluck('id'))->delete();
+
+            foreach ($deltasByAccount as $accountId => $delta) {
+                $this->applyBankBalanceDelta($accountId, $delta);
+            }
+
+            \DB::commit();
+            return redirect()->route('bankTransactionList')->with('success', 'Selected bank transactions deleted.');
+        } catch (\Throwable $e) {
+            \DB::rollBack();
+            return redirect()->route('bankTransactionList')->with('error', 'Failed to delete selected bank transactions.');
+        }
     }
 
     // List bank transactions

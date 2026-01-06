@@ -65,4 +65,19 @@ class MobileProviderController extends Controller
         DB::table('mobile_providers')->where('id',$id)->delete();
         return back()->with('success','Provider deleted.');
     }
+
+    public function bulkDelete(Request $request)
+    {
+        $data = $request->validate([
+            'ids' => 'required|array|min:1',
+            'ids.*' => 'integer'
+        ]);
+        
+        try {
+            DB::table('mobile_providers')->whereIn('id', $data['ids'])->delete();
+            return redirect()->route('mobile.providers.index')->with('success','Selected mobile providers deleted.');
+        } catch (\Throwable $e) {
+            return redirect()->route('mobile.providers.index')->with('error','Failed to delete selected mobile providers.');
+        }
+    }
 }

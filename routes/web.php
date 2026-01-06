@@ -86,6 +86,7 @@ Route::middleware(['auth', \App\Http\Middleware\SetBusiness::class])->group(func
   Route::post('/update-source', [frontController::class,'updateSource'])->name('updateSource');
   //source delete route
   Route::get('/delete-source/{id}', [frontController::class,'deleteSource'])->name('deleteSource');
+  Route::post('/sources/bulk-delete', [frontController::class,'bulkDeleteSources'])->name('sources.bulkDelete');
 
   // Client Creation Routes
   Route::get('/client-creation', [clintController::class,'clientCreation'])->name('clientCreation');
@@ -96,6 +97,7 @@ Route::middleware(['auth', \App\Http\Middleware\SetBusiness::class])->group(func
   Route::post('/update-client', [clintController::class,'updateClient'])->name('updateClient');
   // route for delete client
   Route::get('/delete-client/{id}', [clintController::class,'deleteClient'])->name('deleteClient');
+  Route::post('/clients/bulk-delete', [clintController::class,'bulkDeleteClients'])->name('clients.bulkDelete');
 
   // Transactions
   Route::get('/transaction-creation', [transactionController::class,'transactionCreation'])->name('transactionCreation');
@@ -103,6 +105,7 @@ Route::middleware(['auth', \App\Http\Middleware\SetBusiness::class])->group(func
   Route::get('/transaction-list', [transactionController::class,'transactionList'])->name('transactionList');
   Route::get('/transaction-edit/{id}', [transactionController::class,'transactionEdit'])->name('transactionEdit');
   Route::get('/delete-transaction/{id}', [transactionController::class,'deleteTransaction'])->name('deleteTransaction');
+  Route::post('/transactions/bulk-delete', [transactionController::class,'bulkDeleteTransactions'])->name('transactions.bulkDelete');
 
   // Bank Manage
   Route::get('/bank-manage', [bankManageController::class,'bankManageView'])->name('bankManageView');
@@ -117,6 +120,9 @@ Route::middleware(['auth', \App\Http\Middleware\SetBusiness::class])->group(func
   Route::get('/bank-account-edit/{id}', [bankManageController::class,'bankAccountEdit'])->name('bankAccountEdit');
   Route::post('/update-bank-account', [bankManageController::class,'updateBankAccount'])->name('updateBankAccount');
   Route::get('/delete-bank-account/{id}', [bankManageController::class,'deleteBankAccount'])->name('deleteBankAccount');
+  Route::post('/bank-accounts/bulk-delete', [bankManageController::class,'bulkDeleteBankAccounts'])->name('bankAccounts.bulkDelete');
+
+  Route::post('/bank-manages/bulk-delete', [bankManageController::class,'bulkDeleteBankManages'])->name('bankManages.bulkDelete');
 
   // Bank Transactions
   Route::get('/bank-transaction', [transactionController::class,'bankTransactionCreation'])->name('bankTransactionCreation');
@@ -124,6 +130,7 @@ Route::middleware(['auth', \App\Http\Middleware\SetBusiness::class])->group(func
   Route::get('/bank-transaction-list', [transactionController::class,'bankTransactionList'])->name('bankTransactionList');
   Route::get('/bank-transaction-edit/{id}', [transactionController::class,'bankTransactionEdit'])->name('bankTransactionEdit');
   Route::get('/delete-bank-transaction/{id}', [transactionController::class,'deleteBankTransaction'])->name('deleteBankTransaction');
+  Route::post('/bank-transactions/bulk-delete', [transactionController::class,'bulkDeleteBankTransactions'])->name('bankTransactions.bulkDelete');
 });
 
 
@@ -185,6 +192,8 @@ Route::middleware(['auth', \App\Http\Middleware\SetBusiness::class])->group(func
     Route::delete('mobile-banking/accounts/{id}', [MobileBankingController::class, 'deleteAccount'])->name('mobile.accounts.delete');
     Route::delete('mobile-banking/entries/{id}', [MobileBankingController::class, 'deleteEntry'])->name('mobile.entries.delete');
     Route::post('mobile-banking/entries/update', [MobileBankingController::class, 'updateEntry'])->name('mobile.entries.update');
+    Route::post('mobile-banking/accounts/bulk-delete', [MobileBankingController::class, 'bulkDeleteAccounts'])->name('mobile.accounts.bulkDelete');
+    Route::post('mobile-banking/entries/bulk-delete', [MobileBankingController::class, 'bulkDeleteEntries'])->name('mobile.entries.bulkDelete');
     Route::get('mobile-banking/cash-calculator', [MobileBankingController::class, 'cashCalculator'])->name('mobile.cashCalculator');
     Route::post('mobile-banking/cash-records', [MobileBankingController::class, 'addCashRecord'])->name('mobile.cashRecords.add');
     Route::post('mobile-banking/cash-records/update', [MobileBankingController::class, 'updateCashRecord'])->name('mobile.cashRecords.update');
@@ -195,6 +204,7 @@ Route::middleware(['auth', \App\Http\Middleware\SetBusiness::class])->group(func
       Route::post('/mobile-banking/providers', [\App\Http\Controllers\MobileProviderController::class, 'store'])->name('mobile.providers.store');
       Route::post('/mobile-banking/providers/update', [\App\Http\Controllers\MobileProviderController::class, 'update'])->name('mobile.providers.update');
       Route::delete('/mobile-banking/providers/{id}', [\App\Http\Controllers\MobileProviderController::class, 'delete'])->name('mobile.providers.delete');
+      Route::post('/mobile-banking/providers/bulk-delete', [\App\Http\Controllers\MobileProviderController::class, 'bulkDelete'])->name('mobile.providers.bulkDelete');
 });
 
 // Super Admin / Admin users management

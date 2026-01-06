@@ -58,29 +58,35 @@
   <div class="card mt-3">
     <div class="card-header"><h5 class="card-title mb-0">Recent Entries</h5></div>
     <div class="card-body">
-      <div class="table-responsive">
-        <table class="table table-bordered align-middle">
-          <thead class="table-light">
-            <tr>
-              <th>Date</th>
-              <th>Account</th>
-              <th class="text-end">Balance</th>
-              <th class="text-end">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            @forelse($recent as $r)
+      <form id="entries-bulk-form" method="POST" action="{{ route('mobile.entries.bulkDelete') }}">
+        @csrf
+        <div class="table-responsive">
+          <table class="table table-bordered align-middle">
+            <thead class="table-light">
               <tr>
-                <td>{{ $r->date }}</td>
-                <td>{{ $r->provider ? $r->provider.' - ' : '' }}{{ $r->number }}</td>
-                <td class="text-end">{{ number_format($r->balance,2) }}</td>
-                <td class="text-end">
-                  <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editEntryModal{{ $r->id }}">Edit</button>
-                  <form method="POST" action="{{ route('mobile.entries.delete', $r->id) }}" class="d-inline ms-1" data-confirm-delete data-confirm-message="Delete this entry?">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
-                  </form>
+                <th style="width: 40px;"><input type="checkbox" id="entries-select-all" class="form-check-input"></th>
+                <th>SL</th>
+                <th>Date</th>
+                <th>Account</th>
+                <th class="text-end">Balance</th>
+                <th class="text-end">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              @forelse($recent as $r)
+                <tr>
+                  <td><input type="checkbox" name="ids[]" value="{{ $r->id }}" class="form-check-input entries-checkbox"></td>
+                  <td>{{ $loop->iteration }}</td>
+                  <td>{{ $r->date }}</td>
+                  <td>{{ $r->provider ? $r->provider.' - ' : '' }}{{ $r->number }}</td>
+                  <td class="text-end">{{ number_format($r->balance,2) }}</td>
+                  <td class="text-end">
+                    <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editEntryModal{{ $r->id }}">Edit</button>
+                    <form method="POST" action="{{ route('mobile.entries.delete', $r->id) }}" class="d-inline ms-1" data-confirm-delete data-confirm-message="Delete this entry?">
+                      @csrf
+                      @method('DELETE')
+                      <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                    </form>
 
                   <!-- Edit Entry Modal -->
                   <div class="modal fade" id="editEntryModal{{ $r->id }}" tabindex="-1" aria-labelledby="editEntryLabel{{ $r->id }}" aria-hidden="true">
@@ -112,9 +118,15 @@
             @empty
               <tr><td colspan="6" class="text-center text-muted">No entries yet.</td></tr>
             @endforelse
-          </tbody>
-        </table>
-      </div>
+            </tbody>
+          </table>
+        </div>
+        <div class="mt-3">
+          <button type="submit" id="entries-bulk-delete-btn" class="btn btn-danger" disabled>
+            <i class="fas fa-trash me-1"></i> Delete Selected
+          </button>
+        </div>
+      </form>
     </div>
   </div>
 
@@ -143,26 +155,32 @@
       </form>
 
       <div class="table-responsive mt-3">
-        <table class="table table-bordered align-middle">
-          <thead class="table-light">
-            <tr>
-              <th>Provider</th>
-              <th>Number</th>
-              <th class="text-end">Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            @forelse(($accounts ?? []) as $a)
+        <form id="accounts-bulk-form" method="POST" action="{{ route('mobile.accounts.bulkDelete') }}">
+          @csrf
+          <table class="table table-bordered align-middle">
+            <thead class="table-light">
               <tr>
-                <td>{{ $a->provider }}</td>
-                <td>{{ $a->number }}</td>
-                <td class="text-end">
-                  <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editAccountModal{{ $a->id }}">Edit</button>
-                  <form method="POST" action="{{ route('mobile.accounts.delete', $a->id) }}" class="d-inline" data-confirm-delete data-confirm-message="Delete this number?">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
-                  </form>
+                <th style="width: 40px;"><input type="checkbox" id="accounts-select-all" class="form-check-input"></th>
+                <th>SL</th>
+                <th>Provider</th>
+                <th>Number</th>
+                <th class="text-end">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              @forelse(($accounts ?? []) as $a)
+                <tr>
+                  <td><input type="checkbox" name="ids[]" value="{{ $a->id }}" class="form-check-input accounts-checkbox"></td>
+                  <td>{{ $loop->iteration }}</td>
+                  <td>{{ $a->provider }}</td>
+                  <td>{{ $a->number }}</td>
+                  <td class="text-end">
+                    <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editAccountModal{{ $a->id }}">Edit</button>
+                    <form method="POST" action="{{ route('mobile.accounts.delete', $a->id) }}" class="d-inline" data-confirm-delete data-confirm-message="Delete this number?">
+                      @csrf
+                      @method('DELETE')
+                      <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                    </form>
 
                   <!-- Edit Account Modal -->
                   <div class="modal fade" id="editAccountModal{{ $a->id }}" tabindex="-1" aria-labelledby="editAccountLabel{{ $a->id }}" aria-hidden="true">
@@ -200,12 +218,97 @@
                 </td>
               </tr>
             @empty
-              <tr><td colspan="3" class="text-center text-muted">No numbers added yet.</td></tr>
+              <tr><td colspan="5" class="text-center text-muted">No numbers added yet.</td></tr>
             @endforelse
-          </tbody>
-        </table>
+            </tbody>
+          </table>
+          <div class="mt-3">
+            <button type="submit" id="accounts-bulk-delete-btn" class="btn btn-danger" disabled>
+              <i class="fas fa-trash me-1"></i> Delete Selected
+            </button>
+          </div>
+        </form>
       </div>
     </div>
   </div>
 </div>
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Entries bulk delete
+    const entriesSelectAll = document.getElementById('entries-select-all');
+    const entriesCheckboxes = document.querySelectorAll('.entries-checkbox');
+    const entriesDeleteBtn = document.getElementById('entries-bulk-delete-btn');
+    const entriesForm = document.getElementById('entries-bulk-form');
+
+    if (entriesSelectAll && entriesCheckboxes.length > 0) {
+        entriesSelectAll.addEventListener('change', function() {
+            entriesCheckboxes.forEach(checkbox => {
+                checkbox.checked = this.checked;
+            });
+            updateEntriesButtonState();
+        });
+
+        entriesCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                updateEntriesButtonState();
+                if (!this.checked) {
+                    entriesSelectAll.checked = false;
+                }
+            });
+        });
+
+        function updateEntriesButtonState() {
+            const anyChecked = Array.from(entriesCheckboxes).some(cb => cb.checked);
+            entriesDeleteBtn.disabled = !anyChecked;
+        }
+
+        entriesForm.addEventListener('submit', function(e) {
+            const checkedCount = Array.from(entriesCheckboxes).filter(cb => cb.checked).length;
+            if (!confirm(`Are you sure you want to delete ${checkedCount} entry(ies)? This action cannot be undone.`)) {
+                e.preventDefault();
+            }
+        });
+    }
+
+    // Accounts bulk delete
+    const accountsSelectAll = document.getElementById('accounts-select-all');
+    const accountsCheckboxes = document.querySelectorAll('.accounts-checkbox');
+    const accountsDeleteBtn = document.getElementById('accounts-bulk-delete-btn');
+    const accountsForm = document.getElementById('accounts-bulk-form');
+
+    if (accountsSelectAll && accountsCheckboxes.length > 0) {
+        accountsSelectAll.addEventListener('change', function() {
+            accountsCheckboxes.forEach(checkbox => {
+                checkbox.checked = this.checked;
+            });
+            updateAccountsButtonState();
+        });
+
+        accountsCheckboxes.forEach(checkbox => {
+            checkbox.addEventListener('change', function() {
+                updateAccountsButtonState();
+                if (!this.checked) {
+                    accountsSelectAll.checked = false;
+                }
+            });
+        });
+
+        function updateAccountsButtonState() {
+            const anyChecked = Array.from(accountsCheckboxes).some(cb => cb.checked);
+            accountsDeleteBtn.disabled = !anyChecked;
+        }
+
+        accountsForm.addEventListener('submit', function(e) {
+            const checkedCount = Array.from(accountsCheckboxes).filter(cb => cb.checked).length;
+            if (!confirm(`Are you sure you want to delete ${checkedCount} mobile account(s)? This action cannot be undone.`)) {
+                e.preventDefault();
+            }
+        });
+    }
+});
+</script>
+@endpush
+
 @endsection

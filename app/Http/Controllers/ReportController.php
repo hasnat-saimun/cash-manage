@@ -76,7 +76,8 @@ class ReportController extends Controller
             // fetch transactions inside the requested range
             $txns = transaction::where('transaction_client_name', $clientId)
                 ->whereBetween('date', [$start->toDateString(), $end->toDateString()])
-                ->orderBy('date')
+                ->orderByDesc('date')
+                ->orderByDesc('id')
                 ->get();
             $txnCount = $txns->count();
 
@@ -167,7 +168,8 @@ class ReportController extends Controller
         // Build rows and totals exactly like the screen report
         $txns = transaction::where('transaction_client_name', $clientId)
             ->whereBetween('date', [$start->toDateString(), $end->toDateString()])
-            ->orderBy('date')
+            ->orderByDesc('date')
+            ->orderByDesc('id')
             ->get();
         $rows = [];
         $totalDebit = 0.0; $totalCredit = 0.0; $running = $openingBalance;
@@ -195,7 +197,7 @@ class ReportController extends Controller
         $closingBalance = $running;
         $grandTotal = $totalCredit - $totalDebit;
         $isDaily = ($reportType === 'daily');
-        $colCount = $isDaily ? 5 : 6; // same as view: daily excludes Date
+        $colCount = $isDaily ? 6 : 7; // SL + (Date for custom) + Description + Source + Debit + Credit + Balance
         $colsBeforeBalance = $colCount - 1;
 
         $client = clientCreation::find($clientId);
@@ -370,7 +372,8 @@ class ReportController extends Controller
 
         $txns = transaction::where('transaction_client_name', $clientId)
             ->whereBetween('date', [$start->toDateString(), $end->toDateString()])
-            ->orderBy('date')
+            ->orderByDesc('date')
+            ->orderByDesc('id')
             ->get();
 
         $client = clientCreation::find($clientId);
@@ -504,7 +507,7 @@ class ReportController extends Controller
             $txns = \DB::table('bank_transactions')
                 ->where('bank_account_id', $accountId)
                 ->whereBetween($dateCol, [$start->toDateString(), $end->toDateString()])
-                ->orderBy($dateCol)
+                ->orderByDesc('created_at')
                 ->get();
 
             $running = $openingBalance;
@@ -596,7 +599,7 @@ class ReportController extends Controller
         $txns = \DB::table('bank_transactions')
             ->where('bank_account_id', $accountId)
             ->whereBetween($dateCol, [$start->toDateString(), $end->toDateString()])
-            ->orderBy($dateCol)
+            ->orderByDesc('created_at')
             ->get();
 
         $response = new \Symfony\Component\HttpFoundation\StreamedResponse(function() use ($txns, $openingBalance, $typeCol, $amtCol, $dateCol) {
@@ -695,7 +698,7 @@ class ReportController extends Controller
         $txns = \DB::table('bank_transactions')
             ->where('bank_account_id', $accountId)
             ->whereBetween($dateCol, [$start->toDateString(), $end->toDateString()])
-            ->orderBy($dateCol)
+            ->orderByDesc('created_at')
             ->get();
 
         // Build rows and totals to mirror the screen report

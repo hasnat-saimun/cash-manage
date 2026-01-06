@@ -111,4 +111,23 @@ class clintController extends Controller
 		return redirect()->route('clientCreation')->with('success','Client deleted.');
 	}
 
+	// Bulk delete clients
+	public function bulkDeleteClients(Request $request)
+	{
+		$data = $request->validate([
+			'ids' => 'required|array|min:1',
+			'ids.*' => 'integer'
+		]);
+
+		try {
+			$ids = $data['ids'];
+			$clients = clientCreation::whereIn('id', $ids)->get();
+			clientCreation::whereIn('id', $ids)->delete();
+			DB::table('client_balances')->whereIn('client_id', $ids)->delete();
+			return redirect()->route('clientCreation')->with('success','Selected clients deleted.');
+		} catch (\Throwable $e) {
+			return redirect()->route('clientCreation')->with('error','Failed to delete selected clients.');
+		}
+	}
+
 }

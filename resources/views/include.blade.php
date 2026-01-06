@@ -866,16 +866,15 @@
                                 <div class="card mb-0 rounded-bottom-0">
                                     <div class="card-body">
                                         <p class="text-muted mb-0">
-                                            ©
+                                            © 
                                             <script>
                                                 document.write(new Date().getFullYear());
                                             </script>
-                                            Approx
+                                            {{ session('business_name', 'Virtual IT Professional') }}
                                             <span class="text-muted d-none d-sm-inline-block float-end">
-                                                Design with
-                                                <i class="iconoir-heart-solid text-danger align-middle"></i>
-                                                by Mannatthemes</span
-                                            >
+                                                Developed by
+                                                <a href="https://www.virtualitprofessional.com" target="_blank" class="text-primary text-decoration-none">Virtual IT Professional</a>
+                                            </span>
                                         </p>
                                     </div>
                                 </div>

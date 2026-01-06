@@ -44,7 +44,9 @@ class BusinessController extends Controller
         if (!$owns) {
             return back()->withErrors(['business_id'=>'Not authorized for this business']);
         }
+        $business = Auth::user()->businesses()->where('business_user.business_id',$bizId)->first();
         $request->session()->put('business_id', $bizId);
+        $request->session()->put('business_name', $business->name);
         return redirect()->route('dashboard')->with('success','Switched business');
     }
 

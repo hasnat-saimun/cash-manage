@@ -114,7 +114,7 @@
                     $clientObj = $clients->firstWhere('id', $clientId);
                 }
                 // number of visible columns in table (used for colspan adjustments)
-                $colCount = $isDaily ? 5 : 6; // daily: Description,Source,Debit,Credit,Balance (5) ; custom: Date + those (6)
+                $colCount = $isDaily ? 6 : 7; // add SL column; daily excludes Date
                 $colsBeforeBalance = $colCount - 1;
             @endphp
 
@@ -182,6 +182,7 @@
                     <table class="table table-bordered align-middle">
                         <thead class="table-light">
                             <tr>
+                                <th style="width:70px">SL</th>
                                 @unless($isDaily)
                                     <th style="width:130px">Date</th>
                                 @endunless
@@ -203,6 +204,7 @@
 
                             @forelse($rows as $r)
                                 <tr>
+                                    <td>{{ $loop->iteration }}</td>
                                     @unless($isDaily)
                                         <td>{{ $r['date'] }}</td>
                                     @endunless
