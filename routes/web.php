@@ -168,6 +168,7 @@ Route::middleware(['auth', \App\Http\Middleware\SetBusiness::class])->group(func
     Route::get('businesses', [\App\Http\Controllers\BusinessController::class, 'index'])->name('business.index');
     Route::post('businesses', [\App\Http\Controllers\BusinessController::class, 'store'])->name('business.store');
     Route::patch('businesses', [\App\Http\Controllers\BusinessController::class, 'update'])->name('business.update');
+    Route::delete('businesses', [\App\Http\Controllers\BusinessController::class, 'destroy'])->name('business.destroy');
     Route::post('businesses/switch', [\App\Http\Controllers\BusinessController::class, 'switch'])->name('business.switch');
 
     //bank-wise transaction report

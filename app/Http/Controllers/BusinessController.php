@@ -71,4 +71,70 @@ class BusinessController extends Controller
 
         return back()->with('success', 'Business updated');
     }
+
+    public function destroy(Request $request)
+    {
+        $data = $request->validate([
+            'business_id' => 'required|integer',
+            'delete_type' => 'required|in:full,business_only',
+        ]);
+
+        $business = Auth::user()->businesses()
+            ->where('business_user.business_id', $data['business_id'])
+            ->first();
+
+        if (!$business) {
+            return back()->withErrors(['business_id' => 'Not authorized for this business']);
+        }
+
+        // Check if user is owner
+        $pivot = Auth::user()->businesses()
+            ->where('business_user.business_id', $data['business_id'])
+            ->first()
+            ->pivot;
+        
+        if ($pivot->role !== 'owner') {
+            return back()->withErrors(['error' => 'Only owner can delete the business']);
+        }
+
+        if ($data['delete_type'] === 'full') {
+            // Delete all related data
+            // The cascadeOnDelete foreign keys will handle most of the cleanup
+            // But we need to manually delete records in tables without cascade
+            \DB::table('daily_cash_records')->where('business_id', $data['business_id'])->delete();
+            \DB::table('mobile_balances')->where('business_id', $data['business_id'])->delete();
+            \DB::table('mobile_providers')->where('business_id', $data['business_id'])->delete();
+            \DB::table('mobile_accounts')->where('business_id', $data['business_id'])->delete();
+            
+            // Delete the business (cascade will handle business_user, client_creations, transactions, etc.)
+            $business->delete();
+        } else {
+            // Only delete business record but keep other data
+            // First, we need to remove the business_id association from related tables
+            \DB::table('client_creations')->where('business_id', $data['business_id'])->update(['business_id' => null]);
+            \DB::table('transactions')->where('business_id', $data['business_id'])->update(['business_id' => null]);
+            \DB::table('sources')->where('business_id', $data['business_id'])->update(['business_id' => null]);
+            \DB::table('bank_manages')->where('business_id', $data['business_id'])->update(['business_id' => null]);
+            \DB::table('bank_accounts')->where('business_id', $data['business_id'])->update(['business_id' => null]);
+            \DB::table('bank_transactions')->where('business_id', $data['business_id'])->update(['business_id' => null]);
+            \DB::table('client_balances')->where('business_id', $data['business_id'])->update(['business_id' => null]);
+            \DB::table('bank_balances')->where('business_id', $data['business_id'])->update(['business_id' => null]);
+            \DB::table('daily_cash_records')->where('business_id', $data['business_id'])->update(['business_id' => null]);
+            \DB::table('mobile_balances')->where('business_id', $data['business_id'])->update(['business_id' => null]);
+            \DB::table('mobile_providers')->where('business_id', $data['business_id'])->update(['business_id' => null]);
+            \DB::table('mobile_accounts')->where('business_id', $data['business_id'])->update(['business_id' => null]);
+            \DB::table('configs')->where('business_id', $data['business_id'])->update(['business_id' => null]);
+            
+            // Delete the business and business_user pivot records
+            $business->delete();
+        }
+
+        // Clear session if the deleted business was active
+        if ($request->session()->get('business_id') == $data['business_id']) {
+            $request->session()->forget('business_id');
+            $request->session()->forget('business_name');
+        }
+
+        return redirect()->route('business.index')->with('success', 'Business deleted successfully');
+    }
 }

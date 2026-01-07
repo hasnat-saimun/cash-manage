@@ -37,6 +37,7 @@
         <link href="{{asset('/public/projectFile/home')}}/assets/css/icons.min.css" rel="stylesheet" type="text/css" />
         <link href="{{asset('/public/projectFile/home')}}/assets/css/app.min.css" rel="stylesheet" type="text/css" />
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/simple-datatables@9.0.0/dist/style.css" />
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" />
 
         <!-- page-specific styles -->
         @stack('styles')
@@ -1053,6 +1054,7 @@
 
         <script src="{{asset('/public/projectFile/home')}}/assets/libs/apexcharts/apexcharts.min.js"></script>
         <script src="{{asset('/public/projectFile')}}/apexcharts.com/samples/assets/stock-prices.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
         <!-- page-specific scripts (push index.init.js only on pages that include chart placeholders) -->
         @stack('pageScripts')
         <script src="{{asset('/public/projectFile/home')}}/assets/js/DynamicSelect.js"></script>
