@@ -65,7 +65,7 @@ Bank Manage
             </div>
             <!--end card-header-->
             <div class="card-body pt-0">
-                <form id="bankmanage-bulk-form" method="POST" action="{{ route('bankManages.bulkDelete') }}">
+                <form id="bankmanage-bulk-form" method="POST" action="{{ route('bankManages.bulkDelete') }}" data-confirm-delete data-confirm-message="Delete the selected bank entries?">
                     @csrf
                     <div class="table-responsive">
                         <table class="table mb-0" id="datatable_1">
@@ -86,14 +86,18 @@ Bank Manage
                                 @if(isset($bankManages) && count($bankManages) > 0)
                                     @foreach($bankManages as $bankManage)
                                         <tr>
-                                            <td><input type="checkbox" name="ids[]" value="{{ $bankManage->id }}" class="form-check-input bankmanage-checkbox"></td>
+                                            <td><input type="checkbox" name="ids[]" value="{{ $bankManage->id }}" class="form-check-input bankmanage-checkbox" form="bankmanage-bulk-form"></td>
                                             <td>{{ $x }}</td>
                                             <td>{{$bankManage->bank_name}}</td>
                                             <td>{{$bankManage->branch_name}}</td>
                                             <td>{{$bankManage->routing_number}}</td>
                                             <td class="text-end">
                                                 <a href="{{ route('bankManageEdit',['id'=>$bankManage->id]) }}"><i class="las la-pen text-secondary fs-18"></i></a>
-                                                <a href="{{ route('deleteBankManage',['id'=>$bankManage->id]) }}"><i class="las la-trash-alt text-secondary fs-18"></i></a>
+                                                <form method="POST" action="{{ route('deleteBankManage',['id'=>$bankManage->id]) }}" class="d-inline" data-confirm-delete data-confirm-message="Delete this bank entry?">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="btn btn-link p-0"><i class="las la-trash-alt text-secondary fs-18"></i></button>
+                                                </form>
                                             </td>
                                         </tr>
                                         @php
@@ -117,7 +121,7 @@ Bank Manage
                         </table>
                     </div>
                     <div class="mt-3">
-                        <button type="submit" id="bankmanage-bulk-delete-btn" class="btn btn-danger" disabled>
+                        <button type="submit" form="bankmanage-bulk-form" id="bankmanage-bulk-delete-btn" class="btn btn-danger" disabled>
                             <i class="fas fa-trash me-1"></i> Delete Selected
                         </button>
                     </div>

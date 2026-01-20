@@ -158,7 +158,11 @@ Bank
                             </div>
                             <div class="mt-2 d-flex justify-content-between">
                                 <a href="{{ route('bankAccountEdit',['id'=>$acct->id]) }}" class="btn btn-sm btn-outline-light">Edit</a>
-                                <a href="{{ route('deleteBankAccount',['id'=>$acct->id]) }}" class="btn btn-sm btn-outline-danger">Delete</a>
+                                <form method="POST" action="{{ route('deleteBankAccount',['id'=>$acct->id]) }}" class="d-inline" data-confirm-delete data-confirm-message="Delete this bank account?">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                                </form>
                             </div>
                         </div>
                     </div>
@@ -210,7 +214,7 @@ Bank
                 </div>
             </div>
             <div class="card-body pt-0">
-                <form id="bankaccount-bulk-form" method="POST" action="{{ route('bankAccounts.bulkDelete') }}">
+                <form id="bankaccount-bulk-form" method="POST" action="{{ route('bankAccounts.bulkDelete') }}" data-confirm-delete data-confirm-message="Delete the selected bank accounts?">
                     @csrf
                     <div class="table-responsive">
                         <table class="table mb-0">
@@ -235,7 +239,7 @@ Bank
                                             $currentBalance = $balanceRow ? $balanceRow->balance : 0;
                                         @endphp
                                 <tr>   
-                                    <td><input type="checkbox" name="ids[]" value="{{ $bankAccount->id }}" class="form-check-input bankaccount-checkbox"></td>
+                                    <td><input type="checkbox" name="ids[]" value="{{ $bankAccount->id }}" class="form-check-input bankaccount-checkbox" form="bankaccount-bulk-form"></td>
                                     <td>{{ $x }}</td>
                                     <td>{{ $bankAccount->entry_date }}</td>
                                     <td>{{ $bankAccount->account_name }}</td>
@@ -245,7 +249,11 @@ Bank
                                     <td>
                                         <a href="#"><i class="las la-print text-secondary fs-18"></i></a>
                                         <a href="{{ route('bankAccountEdit',['id'=>$bankAccount->id]) }}"><i class="las la-pen text-secondary fs-18"></i></a>
-                                        <a href="{{ route('deleteBankAccount',['id'=>$bankAccount->id]) }}"><i class="las la-trash-alt text-secondary fs-18"></i></a>
+                                        <form method="POST" action="{{ route('deleteBankAccount',['id'=>$bankAccount->id]) }}" class="d-inline" data-confirm-delete data-confirm-message="Delete this bank account?">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-link p-0"><i class="las la-trash-alt text-secondary fs-18"></i></button>
+                                        </form>
                                     </td>
                                 </tr><!--end tr-->    
                                     @php $x++; @endphp
@@ -270,7 +278,7 @@ Bank
                         </table> <!--end table-->                                               
                     </div><!--end /div-->
                     <div class="mt-3">
-                        <button type="submit" id="bankaccount-bulk-delete-btn" class="btn btn-danger" disabled>
+                        <button type="submit" form="bankaccount-bulk-form" id="bankaccount-bulk-delete-btn" class="btn btn-danger" disabled>
                             <i class="fas fa-trash me-1"></i> Delete Selected
                         </button>
                     </div>

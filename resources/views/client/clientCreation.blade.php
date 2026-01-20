@@ -83,7 +83,7 @@ if (!empty($itemId)) {
             </div>
             <!--end card-header-->
             <div class="card-body pt-0">
-                <form id="client-bulk-form" method="POST" action="{{ route('clients.bulkDelete') }}">
+                <form id="client-bulk-form" method="POST" action="{{ route('clients.bulkDelete') }}" data-confirm-delete data-confirm-message="Delete the selected clients? This cannot be undone.">
                     @csrf
                     <div class="table-responsive">
                         <table class="table mb-0" id="datatable_1">
@@ -125,7 +125,7 @@ if (!empty($itemId)) {
                                             }
                                         @endphp
                                         <tr>
-                                            <td><input type="checkbox" name="ids[]" value="{{ $client->id }}" class="form-check-input client-checkbox"></td>
+                                            <td><input type="checkbox" name="ids[]" value="{{ $client->id }}" class="form-check-input client-checkbox" form="client-bulk-form"></td>
                                             <td>{{ $x }}</td>
                                             <td>
                                                 <div class="flex-grow-1 text-truncate">
@@ -139,7 +139,11 @@ if (!empty($itemId)) {
                                             <td><span class="badge rounded text-success bg-success-subtle">Active</span></td>
                                             <td class="text-end">
                                                 <a href="{{ route('clientEdit',['id'=>$client->id]) }}"><i class="las la-pen text-secondary fs-18"></i></a>
-                                                <a href="{{ route('deleteClient',['id'=>$client->id]) }}"><i class="las la-trash-alt text-secondary fs-18"></i></a>
+                                                <form method="POST" action="{{ route('deleteClient',['id'=>$client->id]) }}" class="d-inline" data-confirm-delete data-confirm-message="Delete this client?">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="btn btn-link p-0"><i class="las la-trash-alt text-secondary fs-18"></i></button>
+                                                </form>
                                             </td>
                                         </tr>
                                         @php $x++; @endphp
@@ -168,7 +172,7 @@ if (!empty($itemId)) {
                         </table>
                     </div>
                     <div class="mt-3">
-                        <button type="submit" id="client-bulk-delete-btn" class="btn btn-danger" disabled>
+                        <button type="submit" form="client-bulk-form" id="client-bulk-delete-btn" class="btn btn-danger" disabled>
                             <i class="fas fa-trash me-1"></i> Delete Selected
                         </button>
                     </div>
@@ -388,8 +392,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Handle form submission with confirmation
     bulkForm.addEventListener('submit', function(e) {
-        const checkedCount = Array.from(clientCheckboxes).filter(cb => cb.checked).length;
-        if (!confirm(`Are you sure you want to delete ${checkedCount} client(s)? This action cannot be undone.`)) {
+        const anyChecked = Array.from(clientCheckboxes).some(cb => cb.checked);
+        if (!anyChecked) {
             e.preventDefault();
         }
     });

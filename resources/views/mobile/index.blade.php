@@ -58,75 +58,75 @@
   <div class="card mt-3">
     <div class="card-header"><h5 class="card-title mb-0">Recent Entries</h5></div>
     <div class="card-body">
-      <form id="entries-bulk-form" method="POST" action="{{ route('mobile.entries.bulkDelete') }}">
+      <form id="entries-bulk-form" method="POST" action="{{ route('mobile.entries.bulkDelete') }}" data-confirm-delete data-confirm-message="Delete the selected entries? This cannot be undone.">
         @csrf
-        <div class="table-responsive">
-          <table class="table table-bordered align-middle">
-            <thead class="table-light">
+      </form>
+      <div class="table-responsive">
+        <table class="table table-bordered align-middle">
+          <thead class="table-light">
+            <tr>
+              <th style="width: 40px;"><input type="checkbox" id="entries-select-all" class="form-check-input"></th>
+              <th>SL</th>
+              <th>Date</th>
+              <th>Account</th>
+              <th class="text-end">Balance</th>
+              <th class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @forelse($recent as $r)
               <tr>
-                <th style="width: 40px;"><input type="checkbox" id="entries-select-all" class="form-check-input"></th>
-                <th>SL</th>
-                <th>Date</th>
-                <th>Account</th>
-                <th class="text-end">Balance</th>
-                <th class="text-end">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              @forelse($recent as $r)
-                <tr>
-                  <td><input type="checkbox" name="ids[]" value="{{ $r->id }}" class="form-check-input entries-checkbox"></td>
-                  <td>{{ $loop->iteration }}</td>
-                  <td>{{ $r->date }}</td>
-                  <td>{{ $r->provider ? $r->provider.' - ' : '' }}{{ $r->number }}</td>
-                  <td class="text-end">{{ number_format($r->balance,2) }}</td>
-                  <td class="text-end">
-                    <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editEntryModal{{ $r->id }}">Edit</button>
-                    <form method="POST" action="{{ route('mobile.entries.delete', $r->id) }}" class="d-inline ms-1" data-confirm-delete data-confirm-message="Delete this entry?">
-                      @csrf
-                      @method('DELETE')
-                      <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
-                    </form>
+                <td><input type="checkbox" name="ids[]" value="{{ $r->id }}" class="form-check-input entries-checkbox" form="entries-bulk-form"></td>
+                <td>{{ $loop->iteration }}</td>
+                <td>{{ $r->date }}</td>
+                <td>{{ $r->provider ? $r->provider.' - ' : '' }}{{ $r->number }}</td>
+                <td class="text-end">{{ number_format($r->balance,2) }}</td>
+                <td class="text-end">
+                  <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editEntryModal{{ $r->id }}">Edit</button>
+                  <form method="POST" action="{{ route('mobile.entries.delete', $r->id) }}" class="d-inline ms-1" data-confirm-delete data-confirm-message="Delete this entry?">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                  </form>
 
-                  <!-- Edit Entry Modal -->
-                  <div class="modal fade" id="editEntryModal{{ $r->id }}" tabindex="-1" aria-labelledby="editEntryLabel{{ $r->id }}" aria-hidden="true">
-                    <div class="modal-dialog">
-                      <div class="modal-content">
-                        <div class="modal-header">
-                          <h5 class="modal-title" id="editEntryLabel{{ $r->id }}">Edit Entry</h5>
-                          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <form method="POST" action="{{ route('mobile.entries.update') }}">
-                          @csrf
-                          <div class="modal-body">
-                            <input type="hidden" name="id" value="{{ $r->id }}">
-                            <div class="mb-3">
-                              <label class="form-label">Balance</label>
-                              <input type="number" step="0.01" name="balance" value="{{ $r->balance }}" class="form-control" required>
-                            </div>
-                          </div>
-                          <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                            <button type="submit" class="btn btn-primary">Save changes</button>
-                          </div>
-                        </form>
+                <!-- Edit Entry Modal -->
+                <div class="modal fade" id="editEntryModal{{ $r->id }}" tabindex="-1" aria-labelledby="editEntryLabel{{ $r->id }}" aria-hidden="true">
+                  <div class="modal-dialog">
+                    <div class="modal-content">
+                      <div class="modal-header">
+                        <h5 class="modal-title" id="editEntryLabel{{ $r->id }}">Edit Entry</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                       </div>
+                      <form method="POST" action="{{ route('mobile.entries.update') }}">
+                        @csrf
+                        <div class="modal-body">
+                          <input type="hidden" name="id" value="{{ $r->id }}">
+                          <div class="mb-3">
+                            <label class="form-label">Balance</label>
+                            <input type="number" step="0.01" name="balance" value="{{ $r->balance }}" class="form-control" required>
+                          </div>
+                        </div>
+                        <div class="modal-footer">
+                          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                          <button type="submit" class="btn btn-primary">Save changes</button>
+                        </div>
+                      </form>
                     </div>
                   </div>
-                </td>
-              </tr>
-            @empty
-              <tr><td colspan="6" class="text-center text-muted">No entries yet.</td></tr>
-            @endforelse
-            </tbody>
-          </table>
-        </div>
-        <div class="mt-3">
-          <button type="submit" id="entries-bulk-delete-btn" class="btn btn-danger" disabled>
-            <i class="fas fa-trash me-1"></i> Delete Selected
-          </button>
-        </div>
-      </form>
+                </div>
+              </td>
+            </tr>
+          @empty
+            <tr><td colspan="6" class="text-center text-muted">No entries yet.</td></tr>
+          @endforelse
+          </tbody>
+        </table>
+      </div>
+      <div class="mt-3">
+        <button type="submit" form="entries-bulk-form" id="entries-bulk-delete-btn" class="btn btn-danger" disabled>
+          <i class="fas fa-trash me-1"></i> Delete Selected
+        </button>
+      </div>
     </div>
   </div>
 
@@ -155,79 +155,79 @@
       </form>
 
       <div class="table-responsive mt-3">
-        <form id="accounts-bulk-form" method="POST" action="{{ route('mobile.accounts.bulkDelete') }}">
+        <form id="accounts-bulk-form" method="POST" action="{{ route('mobile.accounts.bulkDelete') }}" data-confirm-delete data-confirm-message="Delete the selected mobile numbers? This cannot be undone.">
           @csrf
-          <table class="table table-bordered align-middle">
-            <thead class="table-light">
+        </form>
+        <table class="table table-bordered align-middle">
+          <thead class="table-light">
+            <tr>
+              <th style="width: 40px;"><input type="checkbox" id="accounts-select-all" class="form-check-input"></th>
+              <th>SL</th>
+              <th>Provider</th>
+              <th>Number</th>
+              <th class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @forelse(($accounts ?? []) as $a)
               <tr>
-                <th style="width: 40px;"><input type="checkbox" id="accounts-select-all" class="form-check-input"></th>
-                <th>SL</th>
-                <th>Provider</th>
-                <th>Number</th>
-                <th class="text-end">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              @forelse(($accounts ?? []) as $a)
-                <tr>
-                  <td><input type="checkbox" name="ids[]" value="{{ $a->id }}" class="form-check-input accounts-checkbox"></td>
-                  <td>{{ $loop->iteration }}</td>
-                  <td>{{ $a->provider }}</td>
-                  <td>{{ $a->number }}</td>
-                  <td class="text-end">
-                    <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editAccountModal{{ $a->id }}">Edit</button>
-                    <form method="POST" action="{{ route('mobile.accounts.delete', $a->id) }}" class="d-inline" data-confirm-delete data-confirm-message="Delete this number?">
-                      @csrf
-                      @method('DELETE')
-                      <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
-                    </form>
+                <td><input type="checkbox" name="ids[]" value="{{ $a->id }}" class="form-check-input accounts-checkbox" form="accounts-bulk-form"></td>
+                <td>{{ $loop->iteration }}</td>
+                <td>{{ $a->provider }}</td>
+                <td>{{ $a->number }}</td>
+                <td class="text-end">
+                  <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editAccountModal{{ $a->id }}">Edit</button>
+                  <form method="POST" action="{{ route('mobile.accounts.delete', $a->id) }}" class="d-inline" data-confirm-delete data-confirm-message="Delete this number?">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                  </form>
 
-                  <!-- Edit Account Modal -->
-                  <div class="modal fade" id="editAccountModal{{ $a->id }}" tabindex="-1" aria-labelledby="editAccountLabel{{ $a->id }}" aria-hidden="true">
-                    <div class="modal-dialog">
-                      <div class="modal-content">
-                        <div class="modal-header">
-                          <h5 class="modal-title" id="editAccountLabel{{ $a->id }}">Edit Mobile Number</h5>
-                          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <form method="POST" action="{{ route('mobile.accounts.update') }}">
-                          @csrf
-                          <div class="modal-body">
-                            <input type="hidden" name="id" value="{{ $a->id }}">
-                            <div class="mb-3">
-                              <label class="form-label">Provider</label>
-                              <select name="provider_id" class="form-select">
-                                @foreach(($providers ?? []) as $p)
-                                  <option value="{{ $p->id }}" @if($a->provider === $p->name) selected @endif>{{ $p->name }}</option>
-                                @endforeach
-                              </select>
-                            </div>
-                            <div class="mb-3">
-                              <label class="form-label">Number</label>
-                              <input type="text" name="number" value="{{ $a->number }}" class="form-control" placeholder="e.g., 01XXXXXXXXX" required>
-                            </div>
-                          </div>
-                          <div class="modal-footer">
-                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                            <button type="submit" class="btn btn-primary">Save changes</button>
-                          </div>
-                        </form>
+                <!-- Edit Account Modal -->
+                <div class="modal fade" id="editAccountModal{{ $a->id }}" tabindex="-1" aria-labelledby="editAccountLabel{{ $a->id }}" aria-hidden="true">
+                  <div class="modal-dialog">
+                    <div class="modal-content">
+                      <div class="modal-header">
+                        <h5 class="modal-title" id="editAccountLabel{{ $a->id }}">Edit Mobile Number</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                       </div>
+                      <form method="POST" action="{{ route('mobile.accounts.update') }}">
+                        @csrf
+                        <div class="modal-body">
+                          <input type="hidden" name="id" value="{{ $a->id }}">
+                          <div class="mb-3">
+                            <label class="form-label">Provider</label>
+                            <select name="provider_id" class="form-select">
+                              @foreach(($providers ?? []) as $p)
+                                <option value="{{ $p->id }}" @if($a->provider === $p->name) selected @endif>{{ $p->name }}</option>
+                              @endforeach
+                            </select>
+                          </div>
+                          <div class="mb-3">
+                            <label class="form-label">Number</label>
+                            <input type="text" name="number" value="{{ $a->number }}" class="form-control" placeholder="e.g., 01XXXXXXXXX" required>
+                          </div>
+                        </div>
+                        <div class="modal-footer">
+                          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                          <button type="submit" class="btn btn-primary">Save changes</button>
+                        </div>
+                      </form>
                     </div>
                   </div>
-                </td>
-              </tr>
-            @empty
-              <tr><td colspan="5" class="text-center text-muted">No numbers added yet.</td></tr>
-            @endforelse
-            </tbody>
-          </table>
-          <div class="mt-3">
-            <button type="submit" id="accounts-bulk-delete-btn" class="btn btn-danger" disabled>
-              <i class="fas fa-trash me-1"></i> Delete Selected
-            </button>
-          </div>
-        </form>
+                </div>
+              </td>
+            </tr>
+          @empty
+            <tr><td colspan="5" class="text-center text-muted">No numbers added yet.</td></tr>
+          @endforelse
+          </tbody>
+        </table>
+        <div class="mt-3">
+          <button type="submit" form="accounts-bulk-form" id="accounts-bulk-delete-btn" class="btn btn-danger" disabled>
+            <i class="fas fa-trash me-1"></i> Delete Selected
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -265,10 +265,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         entriesForm.addEventListener('submit', function(e) {
-            const checkedCount = Array.from(entriesCheckboxes).filter(cb => cb.checked).length;
-            if (!confirm(`Are you sure you want to delete ${checkedCount} entry(ies)? This action cannot be undone.`)) {
-                e.preventDefault();
-            }
+          const anyChecked = Array.from(entriesCheckboxes).some(cb => cb.checked);
+          if (!anyChecked) {
+            e.preventDefault();
+          }
         });
     }
 
@@ -301,10 +301,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         accountsForm.addEventListener('submit', function(e) {
-            const checkedCount = Array.from(accountsCheckboxes).filter(cb => cb.checked).length;
-            if (!confirm(`Are you sure you want to delete ${checkedCount} mobile account(s)? This action cannot be undone.`)) {
-                e.preventDefault();
-            }
+          const anyChecked = Array.from(accountsCheckboxes).some(cb => cb.checked);
+          if (!anyChecked) {
+            e.preventDefault();
+          }
         });
     }
 });

@@ -75,8 +75,10 @@ document.addEventListener('DOMContentLoaded', function () {
                         e.preventDefault();
                         return;
                     }
-                    const confirmed = confirm('Delete selected transactions? Balances will be adjusted.');
-                    if (!confirmed) e.preventDefault();
+                    const anyChecked = checkboxes.some(cb => cb.checked);
+                    if (!anyChecked) {
+                        e.preventDefault();
+                    }
                 });
             }
         });
@@ -283,7 +285,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             </div>
                         </div>
                         <div class="table-responsive">
-                            <form id="bulk-delete-form" method="POST" action="{{ route('transactions.bulkDelete') }}">
+                            <form id="bulk-delete-form" method="POST" action="{{ route('transactions.bulkDelete') }}" data-confirm-delete data-confirm-message="Delete the selected transactions? Balances will be adjusted.">
                                 @csrf
                                 <div class="d-flex align-items-center gap-2 mb-2">
                                     <button type="submit" class="btn btn-danger btn-sm" id="bulk-delete-btn" disabled>Delete Selected</button>
@@ -309,7 +311,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                         @if(!$transactions->isEmpty())
                                         @foreach ($transactions as $transaction)
                                         <tr>
-                                            <td><input type="checkbox" name="ids[]" value="{{ $transaction->id }}" class="txn-checkbox"></td>
+                                            <td><input type="checkbox" name="ids[]" value="{{ $transaction->id }}" class="txn-checkbox" form="bulk-delete-form"></td>
                                             <td>{{ $loop->iteration }}</td>
                                             <td>{{ $transaction->client_name }}</td>               
                                             @php
@@ -348,9 +350,11 @@ document.addEventListener('DOMContentLoaded', function () {
                                             <td>{{ $transaction->description }}</td>
                                             <td>
                                                 <a href="{{ route('transactionEdit',['id'=>$transaction->id]) }}"><i class="las la-pen text-secondary fs-18"></i></a>
-                                                <a href="{{ route('deleteTransaction',['id'=>$transaction->id]) }}" data-confirm-delete data-confirm-message="Delete this transaction?">
-                                                    <i class="las la-trash-alt text-secondary fs-18"></i>
-                                                </a>
+                                                <form method="POST" action="{{ route('deleteTransaction',['id'=>$transaction->id]) }}" class="d-inline" data-confirm-delete data-confirm-message="Delete this transaction?">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="btn btn-link p-0"><i class="las la-trash-alt text-secondary fs-18"></i></button>
+                                                </form>
                                             </td>
                                         </tr>
                                         @endforeach

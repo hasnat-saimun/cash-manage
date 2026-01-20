@@ -59,7 +59,7 @@ New Source
             </div>
             <!--end card-header-->
             <div class="card-body pt-0">
-                <form id="source-bulk-form" method="POST" action="{{ route('sources.bulkDelete') }}">
+                <form id="source-bulk-form" method="POST" action="{{ route('sources.bulkDelete') }}" data-confirm-delete data-confirm-message="Delete the selected sources? This cannot be undone.">
                     @csrf
                     <div class="table-responsive">
                         <table class="table mb-0" id="datatable_1">
@@ -78,12 +78,16 @@ New Source
                                 @if(isset($sources))
                                     @foreach($sources as $key => $source)
                                         <tr>
-                                            <td><input type="checkbox" name="ids[]" value="{{ $source->id }}" class="form-check-input source-checkbox"></td>
+                                            <td><input type="checkbox" name="ids[]" value="{{ $source->id }}" class="form-check-input source-checkbox" form="source-bulk-form"></td>
                                             <td>{{ $x }}</td>
                                             <td>{{ $source->source_name }}</td>
                                             <td class="text-end">
                                                 <a href="{{ route('sourceEdit',['id'=>$source->id]) }}"><i class="las la-pen text-secondary fs-18"></i></a>
-                                                <a href="{{ route('deleteSource',['id'=>$source->id]) }}"><i class="las la-trash-alt text-secondary fs-18"></i></a>
+                                                <form method="POST" action="{{ route('deleteSource',['id'=>$source->id]) }}" class="d-inline" data-confirm-delete data-confirm-message="Delete this source?">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="btn btn-link p-0"><i class="las la-trash-alt text-secondary fs-18"></i></button>
+                                                </form>
                                             </td>
                                         </tr>
                                         @php
@@ -105,7 +109,7 @@ New Source
                         </table>
                     </div>
                     <div class="mt-3">
-                        <button type="submit" id="source-bulk-delete-btn" class="btn btn-danger" disabled>
+                        <button type="submit" form="source-bulk-form" id="source-bulk-delete-btn" class="btn btn-danger" disabled>
                             <i class="fas fa-trash me-1"></i> Delete Selected
                         </button>
                     </div>
@@ -190,8 +194,8 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Handle form submission with confirmation
     bulkForm.addEventListener('submit', function(e) {
-        const checkedCount = Array.from(sourceCheckboxes).filter(cb => cb.checked).length;
-        if (!confirm(`Are you sure you want to delete ${checkedCount} source(s)? This action cannot be undone.`)) {
+        const anyChecked = Array.from(sourceCheckboxes).some(cb => cb.checked);
+        if (!anyChecked) {
             e.preventDefault();
         }
     });

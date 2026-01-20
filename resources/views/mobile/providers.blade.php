@@ -32,43 +32,43 @@
       </form>
 
       <div class="table-responsive mt-3">
-        <form id="providers-bulk-form" method="POST" action="{{ route('mobile.providers.bulkDelete') }}">
+        <form id="providers-bulk-form" method="POST" action="{{ route('mobile.providers.bulkDelete') }}" data-confirm-delete data-confirm-message="Delete the selected providers? This cannot be undone.">
           @csrf
-          <table class="table table-bordered align-middle">
-            <thead class="table-light">
-              <tr>
-                <th style="width: 40px;"><input type="checkbox" id="providers-select-all" class="form-check-input"></th>
-                <th>SL</th>
-                <th>Name</th>
-                <th class="text-end">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              @forelse($providers as $p)
-                <tr>
-                  <td><input type="checkbox" name="ids[]" value="{{ $p->id }}" class="form-check-input providers-checkbox"></td>
-                  <td>{{ $loop->iteration }}</td>
-                  <td>{{ $p->name }}</td>
-                  <td class="text-end">
-                    <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editProviderModal{{ $p->id }}">Edit</button>
-                    <form method="POST" action="{{ route('mobile.providers.delete', $p->id) }}" class="d-inline" data-confirm-delete data-confirm-message="Delete this provider?">
-                      @csrf
-                      @method('DELETE')
-                      <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
-                    </form>
-                  </td>
-                </tr>
-              @empty
-                <tr><td colspan="4" class="text-center text-muted">No providers yet.</td></tr>
-              @endforelse
-            </tbody>
-          </table>
-          <div class="mt-3">
-            <button type="submit" id="providers-bulk-delete-btn" class="btn btn-danger" disabled>
-              <i class="fas fa-trash me-1"></i> Delete Selected
-            </button>
-          </div>
         </form>
+        <table class="table table-bordered align-middle">
+          <thead class="table-light">
+            <tr>
+              <th style="width: 40px;"><input type="checkbox" id="providers-select-all" class="form-check-input"></th>
+              <th>SL</th>
+              <th>Name</th>
+              <th class="text-end">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @forelse($providers as $p)
+              <tr>
+                <td><input type="checkbox" name="ids[]" value="{{ $p->id }}" class="form-check-input providers-checkbox" form="providers-bulk-form"></td>
+                <td>{{ $loop->iteration }}</td>
+                <td>{{ $p->name }}</td>
+                <td class="text-end">
+                  <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editProviderModal{{ $p->id }}">Edit</button>
+                  <form method="POST" action="{{ route('mobile.providers.delete', $p->id) }}" class="d-inline" data-confirm-delete data-confirm-message="Delete this provider?">
+                    @csrf
+                    @method('DELETE')
+                    <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                  </form>
+                </td>
+              </tr>
+            @empty
+              <tr><td colspan="4" class="text-center text-muted">No providers yet.</td></tr>
+            @endforelse
+          </tbody>
+        </table>
+        <div class="mt-3">
+          <button type="submit" form="providers-bulk-form" id="providers-bulk-delete-btn" class="btn btn-danger" disabled>
+            <i class="fas fa-trash me-1"></i> Delete Selected
+          </button>
+        </div>
       </div>
     </div>
   </div>
@@ -135,10 +135,10 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         bulkForm.addEventListener('submit', function(e) {
-            const checkedCount = Array.from(providersCheckboxes).filter(cb => cb.checked).length;
-            if (!confirm(`Are you sure you want to delete ${checkedCount} provider(s)? This action cannot be undone.`)) {
-                e.preventDefault();
-            }
+          const anyChecked = Array.from(providersCheckboxes).some(cb => cb.checked);
+          if (!anyChecked) {
+            e.preventDefault();
+          }
         });
     }
 });

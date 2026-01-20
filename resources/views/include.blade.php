@@ -995,6 +995,15 @@
                     }
                     pendingAction = null;
                 });
+
+                // Handle cancel/close buttons to properly dismiss modal
+                var dismissButtons = modalEl.querySelectorAll('[data-bs-dismiss="modal"]');
+                dismissButtons.forEach(function(btn) {
+                    btn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        modal.hide();
+                    });
+                });
             });
         </script>
 

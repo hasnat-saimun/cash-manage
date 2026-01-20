@@ -27,6 +27,10 @@
       @endif
 
       <div class="row mb-4">
+        @php
+          $netCashFlow = ($totalCredit ?? 0) - ($totalDebit ?? 0);
+          $currentAsset = ($todayTotalBalance ?? 0) + $netCashFlow;
+        @endphp
         <div class="col-md-3">
           <div class="card bg-light">
             <div class="card-body">
@@ -58,6 +62,15 @@
             <div class="card-body">
               <h6 class="text-muted mb-2">Total Accounts</h6>
               <h3 class="text-dark">{{ $todayEntries->count() }}/{{ $accounts->count() }}</h3>
+            </div>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="card border-success">
+            <div class="card-body">
+              <h6 class="text-success mb-2">Current Mobile Asset</h6>
+              <h3 class="text-success mb-1">{{ number_format($currentAsset, 2) }}</h3>
+              <small class="text-muted d-block">Formula: Today's Mobile Total + (Credit - Debit)</small>
             </div>
           </div>
         </div>
@@ -395,6 +408,14 @@
                     <td class="text-danger">Less: Total Debits</td>
                     <td class="text-end text-danger fw-bold">- ৳ <span id="detailDebit">0.00</span></td>
                   </tr>
+                  <tr class="border-bottom">
+                    <td class="text-primary">Net Cash Flow (Credit - Debit)</td>
+                    <td class="text-end text-primary fw-bold">৳ <span id="detailNetCash">0.00</span></td>
+                  </tr>
+                  <tr class="border-bottom">
+                    <td class="fw-bold text-success">Current Mobile Asset</td>
+                    <td class="text-end fw-bold text-success fs-5">৳ <span id="detailCurrentAsset">0.00</span></td>
+                  </tr>
                   <tr class="bg-light">
                     <td class="fw-bold">Closing Balance</td>
                     <td class="text-end fw-bold text-success fs-5">৳ <span id="detailClosing">0.00</span></td>
@@ -502,6 +523,7 @@ function formatDateTime(date) {
 
 (function() {
   function initCalculator() {
+    const calculateBtn = document.getElementById('calculateBtn');
     
     if (!calculateBtn) {
       console.log('Calculate button not found');
@@ -527,13 +549,10 @@ function formatDateTime(date) {
 
       console.log('Values:', {openingCapital, debit, credit});
 
-      if (openingCapital === 0) {
-        alert('Please enter opening capital');
-        return;
-      }
-
-      const closingCapital = openingCapital + credit - debit;
+      const mobileBankingTotal = parseFloat(document.getElementById('mobileBankingTotal').value) || 0;
       const netChange = credit - debit;
+      const currentAsset = mobileBankingTotal + netChange;
+      const closingCapital = openingCapital + currentAsset;
 
       console.log('Results:', {closingCapital, netChange});
 
@@ -547,6 +566,8 @@ function formatDateTime(date) {
         detailMobileTotal: document.getElementById('detailMobileTotal'),
         detailCredit: document.getElementById('detailCredit'),
         detailDebit: document.getElementById('detailDebit'),
+        detailNetCash: document.getElementById('detailNetCash'),
+        detailCurrentAsset: document.getElementById('detailCurrentAsset'),
         detailClosing: document.getElementById('detailClosing'),
         netChangeValue: document.getElementById('netChangeValue'),
         alertEl: document.getElementById('netChangeAlert'),
@@ -569,12 +590,14 @@ function formatDateTime(date) {
       if (resultElements.resultClosing) resultElements.resultClosing.textContent = closingCapital.toFixed(2);
       
       // Get mobile banking total
-      const mobileBankingTotal = parseFloat(document.getElementById('mobileBankingTotal').value) || 0;
+      const netCashFlow = netChange;
       
       if (resultElements.detailOpening) resultElements.detailOpening.textContent = openingCapital.toFixed(2);
       if (resultElements.detailMobileTotal) resultElements.detailMobileTotal.textContent = mobileBankingTotal.toFixed(2);
       if (resultElements.detailCredit) resultElements.detailCredit.textContent = credit.toFixed(2);
       if (resultElements.detailDebit) resultElements.detailDebit.textContent = debit.toFixed(2);
+      if (resultElements.detailNetCash) resultElements.detailNetCash.textContent = netCashFlow.toFixed(2);
+      if (resultElements.detailCurrentAsset) resultElements.detailCurrentAsset.textContent = currentAsset.toFixed(2);
       if (resultElements.detailClosing) resultElements.detailClosing.textContent = closingCapital.toFixed(2);
       
       const netChangeText = netChange >= 0 ? '+৳ ' + netChange.toFixed(2) : '-৳ ' + Math.abs(netChange).toFixed(2);

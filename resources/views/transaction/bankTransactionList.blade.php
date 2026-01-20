@@ -63,7 +63,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 <h4 class="card-title">Bank Transactions</h4>
             </div>
             <div class="card-body">
-                <form method="POST" action="{{ route('bankTransactions.bulkDelete') }}" id="bank-bulk-form">
+                <form method="POST" action="{{ route('bankTransactions.bulkDelete') }}" id="bank-bulk-form" data-confirm-delete data-confirm-message="Delete the selected bank transactions?">
                     @csrf
                     <div class="d-flex align-items-center gap-2 mb-2">
                         <a href="{{ route('bankTransactionCreation') }}" class="btn btn-primary">Add Transaction</a>
@@ -86,7 +86,7 @@ document.addEventListener('DOMContentLoaded', function () {
                             <tbody>
                                 @forelse($txns as $i => $txn)
                                     <tr>
-                                        <td><input type="checkbox" name="ids[]" value="{{ $txn->id }}" class="bank-txn-checkbox"></td>
+                                        <td><input type="checkbox" name="ids[]" value="{{ $txn->id }}" class="bank-txn-checkbox" form="bank-bulk-form"></td>
                                         <td>{{ $i+1 }}</td>
                                         <td>{{ $txn->account_name ?? $txn->account_number ?? 'Account '.$txn->bank_account_id }}</td>
                                         <td>{{ ucfirst($txn->{$typeCol} ?? '') }}</td>
@@ -95,7 +95,11 @@ document.addEventListener('DOMContentLoaded', function () {
                                         <td>{{ $txn->description ?? '' }}</td>
                                         <td>
                                             <a href="{{ route('bankTransactionEdit', ['id'=>$txn->id]) }}" class="btn btn-sm btn-info">Edit</a>
-                                            <a href="{{ route('deleteBankTransaction', ['id'=>$txn->id]) }}" class="btn btn-sm btn-danger" onclick="return confirm('Delete this transaction?')">Delete</a>
+                                            <form method="POST" action="{{ route('deleteBankTransaction', ['id'=>$txn->id]) }}" class="d-inline" data-confirm-delete data-confirm-message="Delete this transaction?">
+                                                @csrf
+                                                @method('DELETE')
+                                                <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                                            </form>
                                         </td>
                                     </tr>
                                 @empty
