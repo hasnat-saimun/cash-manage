@@ -324,6 +324,88 @@ class MobileBankingController extends Controller
         ]);
     }
 
+    public function updateTransactionDetail(Request $request)
+    {
+        $validated = $request->validate([
+            'id' => 'required|integer|exists:transaction_details,id',
+            'name' => 'required|string|max:255',
+            'type' => 'nullable|in:debit,credit',
+        ]);
+        
+        $bizId = $request->session()->get('business_id');
+        
+        // Check if another detail with same name exists
+        $exists = TransactionDetail::where('business_id', $bizId)
+            ->where('name', $validated['name'])
+            ->where('id', '!=', $validated['id'])
+            ->exists();
+        
+        if ($exists) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Another transaction detail with this name already exists.'
+            ], 422);
+        }
+        
+        $detail = TransactionDetail::where('id', $validated['id'])
+            ->where('business_id', $bizId)
+            ->first();
+        
+        if (!$detail) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Transaction detail not found.'
+            ], 404);
+        }
+        
+        $detail->update([
+            'name' => $validated['name'],
+            'type' => $validated['type'] ?? null,
+        ]);
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Transaction detail updated successfully.',
+            'id' => $detail->id,
+            'name' => $detail->name,
+        ]);
+    }
+
+    public function deleteTransactionDetail($id)
+    {
+        $bizId = request()->session()->get('business_id');
+        
+        $detail = TransactionDetail::where('id', $id)
+            ->where('business_id', $bizId)
+            ->first();
+        
+        if (!$detail) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Transaction detail not found.'
+            ], 404);
+        }
+        
+        // Check if detail is being used in cash records
+        $isUsed = DB::table('daily_cash_records')
+            ->where('transaction_detail_id', $id)
+            ->exists();
+        
+        if ($isUsed) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Cannot delete this detail as it is being used in cash records.'
+            ], 422);
+        }
+        
+        $detail->delete();
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Transaction detail deleted successfully.'
+        ]);
+    }
+
     public function bulkDeleteAccounts(Request $request)
     {
         $data = $request->validate([

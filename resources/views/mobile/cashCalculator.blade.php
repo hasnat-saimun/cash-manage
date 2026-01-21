@@ -112,15 +112,20 @@
     </div>
   </div>
 
-  <div class="card mt-4">
-    <div class="card-header">
+  <div class="card mt-4" id="dailyRecordsSection">
+    <div class="card-header d-flex justify-content-between align-items-center">
       <h5 class="card-title mb-0">Daily Debit/Credit Records</h5>
+      <div class="d-flex gap-2 d-print-none">
+        <button type="button" class="btn btn-outline-secondary btn-sm" onclick="printDailyRecords()">
+          <i class="bx bx-printer me-1"></i> Print
+        </button>
+      </div>
     </div>
     <div class="card-body">
       <p class="text-muted mb-3">Add individual debit (money out) and credit (money in) transactions for today.</p>
       
       <!-- Add New Record Form -->
-      <form method="POST" action="{{ route('mobile.cashRecords.add') }}" class="row g-3 mb-4 p-3 bg-light rounded">
+      <form method="POST" action="{{ route('mobile.cashRecords.add') }}" class="row g-3 mb-4 p-3 bg-light rounded d-print-none">
         @csrf
         <div class="col-md-2">
           <label class="form-label">Date</label>
@@ -152,6 +157,9 @@
             </select>
             <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#newDetailModal" title="Add new description">
               +
+            </button>
+            <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#manageDetailsModal" title="Manage descriptions">
+              ⚙
             </button>
           </div>
         </div>
@@ -197,7 +205,7 @@
               <th class="text-end">Amount</th>
               <th>Description</th>
               <th>Reference</th>
-              <th class="text-end">Actions</th>
+              <th class="text-end d-print-none">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -216,7 +224,7 @@
                 </td>
                 <td>{{ $record->detail_name ?? $record->description ?? '—' }}</td>
                 <td>{{ $record->reference_no ?? '—' }}</td>
-                <td class="text-end">
+                <td class="text-end d-print-none">
                   <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editRecordModal{{ $record->id }}">Edit</button>
                   <form method="POST" action="{{ route('mobile.cashRecords.delete', $record->id) }}" class="d-inline" onsubmit="return confirm('Delete this record?')">
                     @csrf
@@ -319,6 +327,95 @@
             <button type="button" class="btn btn-primary" onclick="createNewDetail()">Create</button>
           </div>
         </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal for Managing Transaction Details -->
+  <div class="modal fade" id="manageDetailsModal" tabindex="-1" aria-labelledby="manageDetailsLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="manageDetailsLabel">Manage Transaction Descriptions</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <div class="table-responsive">
+            <table class="table table-hover align-middle">
+              <thead class="table-light">
+                <tr>
+                  <th>Description Name</th>
+                  <th class="text-end">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="detailsTableBody">
+                @foreach($transactionDetails as $detail)
+                  <tr id="detail-row-{{ $detail->id }}">
+                    <td>{{ $detail->name }}</td>
+                    <td class="text-end">
+                      <button type="button" class="btn btn-sm btn-outline-primary" onclick="editDetail({{ $detail->id }}, '{{ addslashes($detail->name) }}')">
+                        Edit
+                      </button>
+                      <button type="button" class="btn btn-sm btn-outline-danger" onclick="deleteDetail({{ $detail->id }}, '{{ addslashes($detail->name) }}')">
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                @endforeach
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal for Editing Transaction Detail -->
+  <div class="modal fade" id="editDetailModal" tabindex="-1" aria-labelledby="editDetailLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="editDetailLabel">Edit Transaction Description</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form id="editDetailForm">
+          @csrf
+          <input type="hidden" id="editDetailId" name="id">
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label">Description Name</label>
+              <input type="text" id="editDetailName" name="name" class="form-control" placeholder="e.g., Cash Deposit, Check Payment" required>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="button" class="btn btn-primary" onclick="updateDetail()">Update</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal for Delete Confirmation -->
+  <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header bg-danger text-white">
+          <h5 class="modal-title" id="deleteConfirmLabel">Confirm Delete</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <p>Are you sure you want to delete this transaction description?</p>
+          <p class="fw-bold" id="deleteDetailName"></p>
+          <p class="text-muted small">This action cannot be undone.</p>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="button" class="btn btn-danger" id="confirmDeleteBtn" onclick="confirmDelete()">Delete</button>
+        </div>
       </div>
     </div>
   </div>
@@ -718,6 +815,55 @@
 </style>
 
 <script>
+function printDailyRecords() {
+  const section = document.getElementById('dailyRecordsSection');
+  if (!section) {
+    alert('Daily Debit/Credit section not found.');
+    return;
+  }
+
+  // Clone the section so we can strip controls without touching the live DOM
+  const clone = section.cloneNode(true);
+  clone.querySelectorAll('.d-print-none, .btn').forEach(el => el.remove());
+
+  // Inline minimal styling to avoid blank pages if external CSS fails to load
+  const html = `
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta charset="UTF-8">
+      <title>Daily Debit/Credit Records</title>
+      <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+      <style>
+        body { margin: 16px; font-family: Arial, sans-serif; }
+        @page { size: auto; margin: 10mm; }
+        table { page-break-inside: auto; }
+        tr { page-break-inside: avoid; page-break-after: auto; }
+        .card { page-break-inside: avoid; }
+      </style>
+    </head>
+    <body>
+      ${clone.outerHTML}
+    </body>
+    </html>
+  `;
+
+  const printWindow = window.open('', '_blank', 'width=900,height=700');
+  if (!printWindow) {
+    alert('Please allow pop-ups to print.');
+    return;
+  }
+
+  printWindow.document.open();
+  printWindow.document.write(html);
+  printWindow.document.close();
+  printWindow.onload = () => {
+    printWindow.focus();
+    printWindow.print();
+    printWindow.close();
+  };
+}
+
 function printReport() {
   // Update the report date and time before printing
   const now = new Date();
@@ -968,6 +1114,132 @@ function createNewDetail() {
   .catch(error => {
     console.error('Error:', error);
     showAlert('danger', 'An error occurred while creating the transaction description.');
+  });
+}
+
+function editDetail(id, name) {
+  document.getElementById('editDetailId').value = id;
+  document.getElementById('editDetailName').value = name;
+  
+  const editModal = new bootstrap.Modal(document.getElementById('editDetailModal'));
+  editModal.show();
+}
+
+function updateDetail() {
+  const form = document.getElementById('editDetailForm');
+  const formData = new FormData(form);
+  
+  fetch("{{ route('mobile.updateTransactionDetail') }}", {
+    method: 'POST',
+    body: formData,
+    headers: {
+      'X-Requested-With': 'XMLHttpRequest',
+    }
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      // Update the dropdown
+      const select = document.getElementById('descriptionSelect');
+      const option = select.querySelector(`option[value="${data.id}"]`);
+      if (option) {
+        option.textContent = data.name;
+      }
+      
+      // Update the manage table row
+      const row = document.getElementById(`detail-row-${data.id}`);
+      if (row) {
+        row.querySelector('td:first-child').textContent = data.name;
+      }
+      
+      // Close edit modal
+      const editModal = bootstrap.Modal.getInstance(document.getElementById('editDetailModal'));
+      editModal.hide();
+      
+      // Show success message
+      showAlert('success', 'Transaction description updated successfully!');
+      
+      // Reload page to refresh all dropdowns
+      setTimeout(() => {
+        location.reload();
+      }, 1000);
+    } else {
+      showAlert('danger', data.message || 'Failed to update transaction description.');
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    showAlert('danger', 'An error occurred while updating the transaction description.');
+  });
+}
+
+let deleteDetailId = null;
+let deleteDetailName = null;
+
+function deleteDetail(id, name) {
+  deleteDetailId = id;
+  deleteDetailName = name;
+  
+  document.getElementById('deleteDetailName').textContent = name;
+  const deleteModal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
+  deleteModal.show();
+}
+
+function confirmDelete() {
+  if (!deleteDetailId) return;
+  
+  const csrfToken = document.querySelector('input[name="_token"]').value;
+  
+  fetch("{{ url('mobile-banking/transaction-details') }}/" + deleteDetailId, {
+    method: 'DELETE',
+    headers: {
+      'X-Requested-With': 'XMLHttpRequest',
+      'X-CSRF-TOKEN': csrfToken,
+      'Content-Type': 'application/json',
+      'Accept': 'application/json'
+    }
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      // Remove from dropdown
+      const select = document.getElementById('descriptionSelect');
+      const option = select.querySelector(`option[value="${deleteDetailId}"]`);
+      if (option) {
+        option.remove();
+      }
+      
+      // Remove from manage table
+      const row = document.getElementById(`detail-row-${deleteDetailId}`);
+      if (row) {
+        row.remove();
+      }
+      
+      // Close delete modal
+      const deleteModal = bootstrap.Modal.getInstance(document.getElementById('deleteConfirmModal'));
+      deleteModal.hide();
+      
+      // Show success message
+      showAlert('success', 'Transaction description deleted successfully!');
+      
+      deleteDetailId = null;
+      deleteDetailName = null;
+    } else {
+      // Close delete modal
+      const deleteModal = bootstrap.Modal.getInstance(document.getElementById('deleteConfirmModal'));
+      deleteModal.hide();
+      
+      showAlert('danger', data.message || 'Failed to delete transaction description.');
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    
+    // Close delete modal
+    const deleteModal = bootstrap.Modal.getInstance(document.getElementById('deleteConfirmModal'));
+    if (deleteModal) deleteModal.hide();
+    
+    showAlert('danger', 'An error occurred while deleting the transaction description.');
   });
 }
 

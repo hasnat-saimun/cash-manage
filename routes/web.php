@@ -200,6 +200,8 @@ Route::middleware(['auth', \App\Http\Middleware\SetBusiness::class])->group(func
     Route::post('mobile-banking/cash-records/update', [MobileBankingController::class, 'updateCashRecord'])->name('mobile.cashRecords.update');
     Route::delete('mobile-banking/cash-records/{id}', [MobileBankingController::class, 'deleteCashRecord'])->name('mobile.cashRecords.delete');
     Route::post('mobile-banking/transaction-details/create', [MobileBankingController::class, 'createTransactionDetail'])->name('mobile.createTransactionDetail');
+    Route::post('mobile-banking/transaction-details/update', [MobileBankingController::class, 'updateTransactionDetail'])->name('mobile.updateTransactionDetail');
+    Route::delete('mobile-banking/transaction-details/{id}', [MobileBankingController::class, 'deleteTransactionDetail'])->name('mobile.deleteTransactionDetail');
     
       // Mobile Providers management
       Route::get('/mobile-banking/providers', [\App\Http\Controllers\MobileProviderController::class, 'index'])->name('mobile.providers.index');
