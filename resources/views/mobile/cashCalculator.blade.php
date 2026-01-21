@@ -143,7 +143,17 @@
         </div>
         <div class="col-md-3">
           <label class="form-label">Description</label>
-          <input type="text" name="description" class="form-control" placeholder="e.g., Cash deposit, Withdrawal" value="{{ old('description') }}">
+          <div class="input-group">
+            <select name="transaction_detail_id" class="form-select" id="descriptionSelect">
+              <option value="">-- Select or Create New --</option>
+              @foreach($transactionDetails as $detail)
+                <option value="{{ $detail->id }}" @if(old('transaction_detail_id') == $detail->id) selected @endif>{{ $detail->name }}</option>
+              @endforeach
+            </select>
+            <button type="button" class="btn btn-outline-secondary" data-bs-toggle="modal" data-bs-target="#newDetailModal" title="Add new description">
+              +
+            </button>
+          </div>
         </div>
         <div class="col-md-2">
           <label class="form-label">Reference No</label>
@@ -204,7 +214,7 @@
                     {{ ($record->type === 'debit' ? '-' : '+') }}{{ number_format($record->amount, 2) }}
                   </span>
                 </td>
-                <td>{{ $record->description ?? '—' }}</td>
+                <td>{{ $record->detail_name ?? $record->description ?? '—' }}</td>
                 <td>{{ $record->reference_no ?? '—' }}</td>
                 <td class="text-end">
                   <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editRecordModal{{ $record->id }}">Edit</button>
@@ -244,7 +254,12 @@
                         </div>
                         <div class="mb-3">
                           <label class="form-label">Description</label>
-                          <input type="text" name="description" class="form-control" value="{{ $record->description ?? '' }}">
+                          <select name="transaction_detail_id" class="form-select">
+                            <option value="">-- Select Description --</option>
+                            @foreach($transactionDetails as $detail)
+                              <option value="{{ $detail->id }}" @if($record->transaction_detail_id == $detail->id) selected @endif>{{ $detail->name }}</option>
+                            @endforeach
+                          </select>
                         </div>
                         <div class="mb-3">
                           <label class="form-label">Reference No</label>
@@ -279,6 +294,31 @@
             </tfoot>
           @endif
         </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal for Creating New Transaction Detail -->
+  <div class="modal fade" id="newDetailModal" tabindex="-1" aria-labelledby="newDetailLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="newDetailLabel">Create New Transaction Description</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form id="newDetailForm">
+          @csrf
+          <div class="modal-body">
+            <div class="mb-3">
+              <label class="form-label">Description Name</label>
+              <input type="text" name="name" class="form-control" placeholder="e.g., Cash Deposit, Check Payment" required>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+            <button type="button" class="btn btn-primary" onclick="createNewDetail()">Create</button>
+          </div>
+        </form>
       </div>
     </div>
   </div>
@@ -448,7 +488,7 @@
                             {{ ucfirst($record->type) }}
                           </span>
                         </td>
-                        <td class="text-muted small">{{ $record->description ?? '—' }}</td>
+                        <td class="text-muted small">{{ $record->detail_name ?? $record->description ?? '—' }}</td>
                         <td class="text-muted small">{{ $record->reference_no ?? '—' }}</td>
                         <td class="text-end small fw-bold">
                           <span class="@if($record->type === 'debit') text-danger @else text-success @endif">
@@ -475,7 +515,222 @@
   </div>
 </div>
 
+<style>
+@media print {
+  /* Page setup */
+  @page {
+    size: A4;
+    margin: 1cm;
+  }
+  
+  /* Reset and hide everything */
+  * {
+    overflow: visible !important;
+  }
+  
+  html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+  }
+  
+  body * {
+    visibility: hidden;
+    max-height: 0;
+    overflow: hidden;
+  }
+  
+  /* Show and position only report content */
+  #reportContent {
+    visibility: visible !important;
+    max-height: none !important;
+    overflow: visible !important;
+    position: fixed !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    padding: 10px !important;
+    margin: 0 !important;
+    z-index: 9999 !important;
+  }
+  
+  #reportContent * {
+    visibility: visible !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+  
+  /* Hide buttons inside report */
+  #reportContent .btn,
+  #reportContent button {
+    display: none !important;
+  }
+  
+  /* Hide DataTables pagination and info for simple-datatables */
+  .dataTable-info,
+  .dataTable-pagination,
+  .dataTable-top,
+  .dataTable-bottom,
+  .dataTable-dropdown,
+  .dataTable-search,
+  .dataTables_info,
+  .dataTables_paginate,
+  .dataTables_length,
+  .dataTables_filter,
+  .dataTables_wrapper .row:first-child,
+  .dataTables_wrapper .row:last-child,
+  #reportContent .dataTable-info,
+  #reportContent .dataTable-pagination,
+  #reportContent .dataTable-top,
+  #reportContent .dataTable-bottom {
+    display: none !important;
+    visibility: hidden !important;
+  }
+  
+  /* Compact spacing */
+  #reportContent h4 {
+    font-size: 16px;
+    margin-bottom: 4px;
+  }
+  
+  #reportContent h5 {
+    font-size: 13px;
+    margin-bottom: 4px;
+  }
+  
+  #reportContent h6 {
+    font-size: 12px;
+    margin-bottom: 4px;
+  }
+  
+  #reportContent p {
+    font-size: 11px;
+    margin-bottom: 3px;
+  }
+  
+  #reportContent .small {
+    font-size: 10px;
+  }
+  
+  #reportContent .text-center {
+    margin-bottom: 8px;
+    padding-bottom: 4px;
+  }
+  
+  #reportContent .border-bottom {
+    padding-bottom: 6px;
+    margin-bottom: 8px;
+  }
+  
+  #reportContent .border-top {
+    padding-top: 6px;
+    margin-top: 8px;
+  }
+  
+  #reportContent .row {
+    margin-bottom: 8px;
+  }
+  
+  #reportContent .mb-1 { margin-bottom: 4px !important; }
+  #reportContent .mb-2 { margin-bottom: 6px !important; }
+  #reportContent .mb-3 { margin-bottom: 8px !important; }
+  #reportContent .mb-4 { margin-bottom: 10px !important; }
+  
+  #reportContent .p-3 {
+    padding: 6px !important;
+  }
+  
+  #reportContent .p-4 {
+    padding: 8px !important;
+  }
+  
+  #reportContent .pb-3 {
+    padding-bottom: 6px !important;
+  }
+  
+  #reportContent .pt-3 {
+    padding-top: 6px !important;
+  }
+  
+  /* Tables */
+  #reportContent table {
+    font-size: 10px;
+    margin-bottom: 8px;
+  }
+  
+  #reportContent th,
+  #reportContent td {
+    padding: 3px 5px !important;
+  }
+  
+  /* Preserve colors */
+  * {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+  
+  .bg-gradient {
+    background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%) !important;
+  }
+  
+  .bg-light {
+    background-color: #f8f9fa !important;
+  }
+  
+  .bg-success {
+    background-color: #198754 !important;
+    color: white !important;
+  }
+  
+  .bg-danger {
+    background-color: #dc3545 !important;
+    color: white !important;
+  }
+  
+  .alert-success {
+    background-color: #d1e7dd !important;
+    color: #0f5132 !important;
+    border-color: #badbcc !important;
+  }
+  
+  .alert-danger {
+    background-color: #f8d7da !important;
+    color: #842029 !important;
+    border-color: #f5c2c7 !important;
+  }
+  
+  .badge {
+    padding: 2px 5px;
+    font-size: 9px;
+  }
+  
+  /* Card styling */
+  .card {
+    border: 1px solid #dee2e6;
+    margin-bottom: 8px;
+  }
+  
+  .card-body {
+    padding: 8px;
+  }
+}
+</style>
+
 <script>
+function printReport() {
+  // Update the report date and time before printing
+  const now = new Date();
+  const reportDate = document.getElementById('reportDate');
+  const reportDateTime = document.getElementById('reportDateTime');
+  
+  if (reportDate) reportDate.textContent = formatDate(now);
+  if (reportDateTime) reportDateTime.textContent = formatDateTime(now);
+  
+  // Use native window.print()
+  window.print();
+}
+
 function downloadReport() {
   const reportContent = document.getElementById('reportContent');
   const html = `
@@ -486,9 +741,51 @@ function downloadReport() {
       <title>Daily Capital Calculation Report</title>
       <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
       <style>
-        body { margin: 40px; font-family: Arial, sans-serif; }
-        .bg-gradient { background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%) !important; }
+        body { 
+          margin: 40px; 
+          font-family: Arial, sans-serif;
+          background-color: white;
+        }
+        .bg-gradient { 
+          background: linear-gradient(135deg, #e8f5e9 0%, #f1f8e9 100%) !important;
+          print-color-adjust: exact;
+          -webkit-print-color-adjust: exact;
+        }
         .border-2 { border-width: 2px !important; }
+        .card-header {
+          background-color: #0d6efd !important;
+          color: white !important;
+          padding: 15px;
+        }
+        .text-success { color: #198754 !important; }
+        .text-danger { color: #dc3545 !important; }
+        .text-primary { color: #0d6efd !important; }
+        .text-info { color: #0dcaf0 !important; }
+        .badge { 
+          padding: 0.25rem 0.5rem;
+          border-radius: 0.25rem;
+        }
+        .bg-success { background-color: #198754 !important; color: white; }
+        .bg-danger { background-color: #dc3545 !important; color: white; }
+        .bg-light { background-color: #f8f9fa !important; }
+        .alert-success { 
+          background-color: #d1e7dd !important; 
+          color: #0f5132 !important;
+          border: 1px solid #badbcc;
+          padding: 10px;
+          border-radius: 5px;
+        }
+        .alert-danger { 
+          background-color: #f8d7da !important; 
+          color: #842029 !important;
+          border: 1px solid #f5c2c7;
+          padding: 10px;
+          border-radius: 5px;
+        }
+        .btn { display: none; }
+        @media print {
+          body { margin: 20px; }
+        }
       </style>
     </head>
     <body>
@@ -632,5 +929,67 @@ function formatDateTime(date) {
     initCalculator();
   }
 })();
+
+function createNewDetail() {
+  const form = document.getElementById('newDetailForm');
+  const formData = new FormData(form);
+  
+  fetch("{{ route('mobile.createTransactionDetail') }}", {
+    method: 'POST',
+    body: formData,
+    headers: {
+      'X-Requested-With': 'XMLHttpRequest',
+    }
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      // Add new option to select dropdown
+      const select = document.getElementById('descriptionSelect');
+      const option = document.createElement('option');
+      option.value = data.id;
+      option.textContent = data.name;
+      option.selected = true;
+      select.appendChild(option);
+      
+      // Close modal
+      const modal = bootstrap.Modal.getInstance(document.getElementById('newDetailModal'));
+      modal.hide();
+      
+      // Reset form
+      form.reset();
+      
+      // Show success message
+      showAlert('success', 'Transaction description created successfully!');
+    } else {
+      showAlert('danger', data.message || 'Failed to create transaction description.');
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    showAlert('danger', 'An error occurred while creating the transaction description.');
+  });
+}
+
+function showAlert(type, message) {
+  const alertDiv = document.createElement('div');
+  alertDiv.className = `alert alert-${type} alert-dismissible fade show`;
+  alertDiv.setAttribute('role', 'alert');
+  alertDiv.innerHTML = `
+    ${message}
+    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+  `;
+  
+  const container = document.querySelector('.card-body');
+  if (container) {
+    container.insertBefore(alertDiv, container.firstChild);
+    
+    // Auto-dismiss after 4 seconds
+    setTimeout(() => {
+      const bsAlert = new bootstrap.Alert(alertDiv);
+      bsAlert.close();
+    }, 4000);
+  }
+}
 </script>
 @endsection

@@ -3,6 +3,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Models\TransactionDetail;
 
 class MobileBankingController extends Controller
 {
@@ -187,18 +188,23 @@ class MobileBankingController extends Controller
         // Calculate cash difference (debit/credit)
         $cashDifference = $todayTotalBalance - $yesterdayBalance;
         
-        // Get today's debit/credit records
+        // Get today's debit/credit records with transaction details
         $cashRecords = DB::table('daily_cash_records')
-            ->where('business_id', $bizId)
-            ->where('date', $today)
-            ->orderBy('created_at', 'asc')
+            ->leftJoin('transaction_details', 'daily_cash_records.transaction_detail_id', '=', 'transaction_details.id')
+            ->where('daily_cash_records.business_id', $bizId)
+            ->where('daily_cash_records.date', $today)
+            ->select('daily_cash_records.*', 'transaction_details.name as detail_name')
+            ->orderBy('daily_cash_records.created_at', 'asc')
             ->get();
         
         // Calculate totals
         $totalDebit = $cashRecords->where('type', 'debit')->sum('amount') ?? 0;
         $totalCredit = $cashRecords->where('type', 'credit')->sum('amount') ?? 0;
         
-        return view('mobile.cashCalculator', compact('accounts', 'todayEntries', 'todayTotalBalance', 'yesterdayBalance', 'cashDifference', 'today', 'cashRecords', 'totalDebit', 'totalCredit'));
+        // Get transaction details for dropdown
+        $transactionDetails = TransactionDetail::activeForBusiness($bizId);
+        
+        return view('mobile.cashCalculator', compact('accounts', 'todayEntries', 'todayTotalBalance', 'yesterdayBalance', 'cashDifference', 'today', 'cashRecords', 'totalDebit', 'totalCredit', 'transactionDetails'));
     }
 
     public function addCashRecord(Request $request)
@@ -207,18 +213,31 @@ class MobileBankingController extends Controller
             'date' => 'required|date',
             'type' => 'required|in:debit,credit',
             'amount' => 'required|numeric|min:0.01',
-            'description' => 'nullable|string|max:255',
+            'transaction_detail_id' => 'nullable|integer|exists:transaction_details,id',
+            'new_detail' => 'nullable|string|max:255',
             'reference_no' => 'nullable|string|max:100',
         ]);
         
         $bizId = $request->session()->get('business_id');
+        $detailId = $validated['transaction_detail_id'];
+        
+        // If new detail provided, create it
+        if (!empty($validated['new_detail']) && empty($detailId)) {
+            $transactionDetail = TransactionDetail::create([
+                'business_id' => $bizId,
+                'name' => $validated['new_detail'],
+                'type' => null, // null means it can be used for both debit and credit
+                'is_active' => true,
+            ]);
+            $detailId = $transactionDetail->id;
+        }
         
         DB::table('daily_cash_records')->insert([
             'business_id' => $bizId,
             'date' => $validated['date'],
             'type' => $validated['type'],
             'amount' => $validated['amount'],
-            'description' => $validated['description'],
+            'transaction_detail_id' => $detailId,
             'reference_no' => $validated['reference_no'],
             'created_at' => now(),
             'updated_at' => now(),
@@ -233,14 +252,29 @@ class MobileBankingController extends Controller
             'id' => 'required|integer|exists:daily_cash_records,id',
             'type' => 'required|in:debit,credit',
             'amount' => 'required|numeric|min:0.01',
-            'description' => 'nullable|string|max:255',
+            'transaction_detail_id' => 'nullable|integer|exists:transaction_details,id',
+            'new_detail' => 'nullable|string|max:255',
             'reference_no' => 'nullable|string|max:100',
         ]);
+        
+        $bizId = request()->session()->get('business_id');
+        $detailId = $validated['transaction_detail_id'];
+        
+        // If new detail provided, create it
+        if (!empty($validated['new_detail']) && empty($detailId)) {
+            $transactionDetail = TransactionDetail::create([
+                'business_id' => $bizId,
+                'name' => $validated['new_detail'],
+                'type' => null,
+                'is_active' => true,
+            ]);
+            $detailId = $transactionDetail->id;
+        }
         
         DB::table('daily_cash_records')->where('id', $validated['id'])->update([
             'type' => $validated['type'],
             'amount' => $validated['amount'],
-            'description' => $validated['description'],
+            'transaction_detail_id' => $detailId,
             'reference_no' => $validated['reference_no'],
             'updated_at' => now(),
         ]);
@@ -252,6 +286,42 @@ class MobileBankingController extends Controller
     {
         DB::table('daily_cash_records')->where('id', $id)->delete();
         return back()->with('success', 'Record deleted successfully.');
+    }
+
+    public function createTransactionDetail(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'type' => 'nullable|in:debit,credit',
+        ]);
+        
+        $bizId = $request->session()->get('business_id');
+        
+        // Check if detail already exists
+        $exists = TransactionDetail::where('business_id', $bizId)
+            ->where('name', $validated['name'])
+            ->exists();
+        
+        if ($exists) {
+            return response()->json([
+                'success' => false,
+                'message' => 'This transaction detail already exists.'
+            ], 422);
+        }
+        
+        $detail = TransactionDetail::create([
+            'business_id' => $bizId,
+            'name' => $validated['name'],
+            'type' => $validated['type'] ?? null,
+            'is_active' => true,
+        ]);
+        
+        return response()->json([
+            'success' => true,
+            'message' => 'Transaction detail created successfully.',
+            'id' => $detail->id,
+            'name' => $detail->name,
+        ]);
     }
 
     public function bulkDeleteAccounts(Request $request)
