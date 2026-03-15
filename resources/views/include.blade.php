@@ -932,8 +932,12 @@
                     var form = e.target;
                     if (!(form instanceof HTMLFormElement)) return;
 
-                    var methodInput = form.querySelector('input[name="_method"]');
-                    var isDeleteMethod = methodInput && methodInput.value && methodInput.value.toUpperCase() === 'DELETE';
+                    var action = form.getAttribute('action') || '';
+                    var isBulkDelete = /\/bulk-delete(?:$|\?)/.test(action);
+                    var methodInput = Array.from(form.elements || []).find(function(el) {
+                        return el.name === '_method';
+                    });
+                    var isDeleteMethod = !isBulkDelete && methodInput && methodInput.value && methodInput.value.toUpperCase() === 'DELETE';
                     var hasExplicitFlag = form.dataset.confirmDelete !== undefined;
                     if (!isDeleteMethod && !hasExplicitFlag) return;
 
@@ -945,6 +949,13 @@
                         var formToSubmit = pendingForm;
                         pendingForm = null;
                         pendingAction = null;
+                        var submitAction = formToSubmit.getAttribute('action') || '';
+                        if (/\/bulk-delete(?:$|\?)/.test(submitAction)) {
+                            Array.from(formToSubmit.elements || []).forEach(function(el) {
+                                if (el.name === '_method') el.disabled = true;
+                            });
+                            formToSubmit.setAttribute('method', 'POST');
+                        }
                         delete formToSubmit.dataset.confirming;
                         formToSubmit.submit();
                     };

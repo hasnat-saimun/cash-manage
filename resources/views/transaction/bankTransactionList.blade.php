@@ -65,12 +65,13 @@ document.addEventListener('DOMContentLoaded', function () {
             <div class="card-body">
                 <form method="POST" action="{{ route('bankTransactions.bulkDelete') }}" id="bank-bulk-form" data-confirm-delete data-confirm-message="Delete the selected bank transactions?">
                     @csrf
-                    <div class="d-flex align-items-center gap-2 mb-2">
-                        <a href="{{ route('bankTransactionCreation') }}" class="btn btn-primary">Add Transaction</a>
-                        <button type="submit" class="btn btn-danger" id="bank-bulk-delete-btn" disabled>Delete Selected</button>
-                    </div>
-                    <div class="table-responsive">
-                        <table class="table table-bordered align-middle">
+                </form>
+                <div class="d-flex align-items-center gap-2 mb-2">
+                    <a href="{{ route('bankTransactionCreation') }}" class="btn btn-primary">Add Transaction</a>
+                    <button type="submit" form="bank-bulk-form" class="btn btn-danger" id="bank-bulk-delete-btn" disabled>Delete Selected</button>
+                </div>
+                <div class="table-responsive">
+                    <table class="table table-bordered align-middle">
                             <thead>
                                 <tr>
                                     <th><input type="checkbox" id="bank-select-all"></th>
@@ -106,9 +107,8 @@ document.addEventListener('DOMContentLoaded', function () {
                                     <tr><td colspan="8" class="text-center text-muted">No transactions found.</td></tr>
                                 @endforelse
                             </tbody>
-                        </table>
-                    </div>
-                </form>
+                    </table>
+                </div>
             </div>
         </div>
     </div>

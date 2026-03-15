@@ -216,7 +216,8 @@ Bank
             <div class="card-body pt-0">
                 <form id="bankaccount-bulk-form" method="POST" action="{{ route('bankAccounts.bulkDelete') }}" data-confirm-delete data-confirm-message="Delete the selected bank accounts?">
                     @csrf
-                    <div class="table-responsive">
+                </form>
+                <div class="table-responsive">
                         <table class="table mb-0">
                             <thead class="table-light">
                                 <tr>
@@ -282,7 +283,7 @@ Bank
                             <i class="fas fa-trash me-1"></i> Delete Selected
                         </button>
                     </div>
-                </form>
+                </div>
                 <div class="d-lg-flex justify-content-end mt-2">
                     {{ $bankAccounts->links() }}
                 </div>

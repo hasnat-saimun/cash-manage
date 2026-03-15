@@ -67,7 +67,8 @@ Bank Manage
             <div class="card-body pt-0">
                 <form id="bankmanage-bulk-form" method="POST" action="{{ route('bankManages.bulkDelete') }}" data-confirm-delete data-confirm-message="Delete the selected bank entries?">
                     @csrf
-                    <div class="table-responsive">
+                </form>
+                <div class="table-responsive">
                         <table class="table mb-0" id="datatable_1">
                             <thead class="table-light">
                                 <tr>
@@ -125,7 +126,7 @@ Bank Manage
                             <i class="fas fa-trash me-1"></i> Delete Selected
                         </button>
                     </div>
-                </form>
+                </div>
             </div>
         </div>
     </div>

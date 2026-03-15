@@ -2,6 +2,12 @@
 @section('backTitle')
 Client Transaction List
 @endsection
+@section('bodyTitleFrist')
+   Transaction List
+@endsection
+@section('bodyTitleEnd')
+   <a href="{{route('transactionCreation')}}"> Transaction Creation</a>
+@endsection
 
 @push('scripts')
 <script>
@@ -13,7 +19,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function refreshButton() {
         const anyChecked = checkboxes.some(cb => cb.checked);
-        bulkBtn.disabled = !anyChecked;
+        if (bulkBtn) bulkBtn.disabled = !anyChecked;
     }
 
     if (selectAll) {
@@ -29,63 +35,27 @@ document.addEventListener('DOMContentLoaded', function () {
                 selectAll.checked = false;
             }
             refreshButton();
-        @extends('include')
-        @section('backTitle')
-        Client Transaction List
-        @endsection
-        @section('bodyTitleFrist')
-           Transaction List
-        @endsection
-        @section('bodyTitleEnd')
-           <a href="{{route('transactionCreation')}}"> Transaction Creation</a>
-        @endsection
+        });
+    });
 
-        @push('scripts')
-        <script>
-        document.addEventListener('DOMContentLoaded', function () {
-            const selectAll = document.getElementById('select-all');
-            const checkboxes = Array.from(document.querySelectorAll('.txn-checkbox'));
-            const bulkBtn = document.getElementById('bulk-delete-btn');
-            const form = document.getElementById('bulk-delete-form');
-
-            function refreshButton() {
-                const anyChecked = checkboxes.some(cb => cb.checked);
-                if (bulkBtn) bulkBtn.disabled = !anyChecked;
+    if (form) {
+        form.addEventListener('submit', function (e) {
+            if (bulkBtn && bulkBtn.disabled) {
+                e.preventDefault();
+                return;
             }
 
-            if (selectAll) {
-                selectAll.addEventListener('change', () => {
-                    checkboxes.forEach(cb => { cb.checked = selectAll.checked; });
-                    refreshButton();
-                });
-            }
-
-            checkboxes.forEach(cb => {
-                cb.addEventListener('change', () => {
-                    if (!cb.checked && selectAll && selectAll.checked) {
-                        selectAll.checked = false;
-                    }
-                    refreshButton();
-                });
-            });
-
-            if (form) {
-                form.addEventListener('submit', function (e) {
-                    if (bulkBtn && bulkBtn.disabled) {
-                        e.preventDefault();
-                        return;
-                    }
-                    const anyChecked = checkboxes.some(cb => cb.checked);
-                    if (!anyChecked) {
-                        e.preventDefault();
-                    }
-                });
+            const anyChecked = checkboxes.some(cb => cb.checked);
+            if (!anyChecked) {
+                e.preventDefault();
             }
         });
-        </script>
-        @endpush
+    }
+});
+</script>
+@endpush
 
-        @section('bodyContent')
+@section('bodyContent')
         <div class="row">
             <div class="col-12">
                 @if(session()->has('success'))
@@ -287,11 +257,12 @@ document.addEventListener('DOMContentLoaded', function () {
                         <div class="table-responsive">
                             <form id="bulk-delete-form" method="POST" action="{{ route('transactions.bulkDelete') }}" data-confirm-delete data-confirm-message="Delete the selected transactions? Balances will be adjusted.">
                                 @csrf
-                                <div class="d-flex align-items-center gap-2 mb-2">
-                                    <button type="submit" class="btn btn-danger btn-sm" id="bulk-delete-btn" disabled>Delete Selected</button>
-                                    <small class="text-muted">Select rows to delete; balances auto-adjust.</small>
-                                </div>
-                                <table class="table mb-0">
+                            </form>
+                            <div class="d-flex align-items-center gap-2 mb-2">
+                                <button type="submit" form="bulk-delete-form" class="btn btn-danger btn-sm" id="bulk-delete-btn" disabled>Delete Selected</button>
+                                <small class="text-muted">Select rows to delete; balances auto-adjust.</small>
+                            </div>
+                            <table class="table mb-0">
                                     <thead class="table-light">
                                         <tr>
                                             <th class="border-top-0"><input type="checkbox" id="select-all"></th>
@@ -350,11 +321,9 @@ document.addEventListener('DOMContentLoaded', function () {
                                             <td>{{ $transaction->description }}</td>
                                             <td>
                                                 <a href="{{ route('transactionEdit',['id'=>$transaction->id]) }}"><i class="las la-pen text-secondary fs-18"></i></a>
-                                                <form method="POST" action="{{ route('deleteTransaction',['id'=>$transaction->id]) }}" class="d-inline" data-confirm-delete data-confirm-message="Delete this transaction?">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="btn btn-link p-0"><i class="las la-trash-alt text-secondary fs-18"></i></button>
-                                                </form>
+                                                <a href="{{ route('deleteTransaction',['id'=>$transaction->id]) }}" class="btn btn-link p-0" data-confirm-delete data-confirm-message="Delete this transaction?">
+                                                    <i class="las la-trash-alt text-secondary fs-18"></i>
+                                                </a>
                                             </td>
                                         </tr>
                                         @endforeach
@@ -367,7 +336,6 @@ document.addEventListener('DOMContentLoaded', function () {
                                         <!--end tr-->
                                     </tbody>
                                 </table>
-                            </form>
                             <!--end table-->
                         </div>
                         <!--end /div-->

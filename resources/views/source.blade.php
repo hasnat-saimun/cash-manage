@@ -61,7 +61,8 @@ New Source
             <div class="card-body pt-0">
                 <form id="source-bulk-form" method="POST" action="{{ route('sources.bulkDelete') }}" data-confirm-delete data-confirm-message="Delete the selected sources? This cannot be undone.">
                     @csrf
-                    <div class="table-responsive">
+                </form>
+                <div class="table-responsive">
                         <table class="table mb-0" id="datatable_1">
                             <thead class="table-light">
                                 <tr>
@@ -113,7 +114,7 @@ New Source
                             <i class="fas fa-trash me-1"></i> Delete Selected
                         </button>
                     </div>
-                </form>
+                </div>
             </div>
         </div>
     </div>
