@@ -232,7 +232,7 @@ document.addEventListener('DOMContentLoaded', function () {
                         <div class="print-only mb-3">
                             <h5 class="mb-2">Client Transactions Summary</h5>
                             <div class="table-responsive">
-                                <table class="table table-bordered align-middle">
+                                <table class="table table-bordered align-middle" data-no-datatable>
                                     <tbody>
                                         <tr>
                                             <th style="width:220px">Outstanding Balance</th>
@@ -262,7 +262,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                 <button type="submit" form="bulk-delete-form" class="btn btn-danger btn-sm" id="bulk-delete-btn" disabled>Delete Selected</button>
                                 <small class="text-muted">Select rows to delete; balances auto-adjust.</small>
                             </div>
-                            <table class="table mb-0">
+                            <table class="table mb-0" data-no-datatable>
                                     <thead class="table-light">
                                         <tr>
                                             <th class="border-top-0"><input type="checkbox" id="select-all"></th>
@@ -283,7 +283,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                         @foreach ($transactions as $transaction)
                                         <tr>
                                             <td><input type="checkbox" name="ids[]" value="{{ $transaction->id }}" class="txn-checkbox" form="bulk-delete-form"></td>
-                                            <td>{{ $loop->iteration }}</td>
+                                            <td>{{ $transactions->firstItem() + $loop->index }}</td>
                                             <td>{{ $transaction->client_name }}</td>               
                                             @php
                                                 $sourceName = '';
@@ -330,7 +330,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                         @else
                                         <!--end tr-->
                                         <tr>
-                                            <td colspan="8" class="text-center text-muted">No transactions found.</td>
+                                            <td colspan="9" class="text-center text-muted">No transactions found.</td>
                                         </tr>
                                         @endif
                                         <!--end tr-->
@@ -344,20 +344,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                 <a href="{{route('transactionCreation')}}" type="button" class="btn btn-primary px-4">Add Transaction</a>
                             </div>
                             <div>
-                                <ul class="pagination">
-                                    <li class="page-item disabled">
-                                        <a class="page-link" href="#" tabindex="-1">Previous</a>
-                                    </li>
-                                    <li class="page-item active"><a class="page-link" href="#">1</a></li>
-                                    <li class="page-item">
-                                        <a class="page-link" href="#">2</a>
-                                    </li>
-                                    <li class="page-item"><a class="page-link" href="#">3</a></li>
-                                    <li class="page-item">
-                                        <a class="page-link" href="#">Next</a>
-                                    </li>
-                                </ul>
-                                <!--end pagination-->
+                                {{ $transactions->links() }}
                             </div>
                         </div>
                     </div>

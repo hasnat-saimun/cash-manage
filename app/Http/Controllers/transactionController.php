@@ -18,6 +18,69 @@ class transactionController extends Controller
         return view('transaction.clientTransactionCreation');
     }
 
+    protected function getTransactionEffect(string $type, float $amount): float
+    {
+        return strtolower($type) === 'credit' ? $amount : -$amount;
+    }
+
+    protected function getClientBalance(int $clientId): float
+    {
+        return (float) DB::table('client_balances')
+            ->where('client_id', $clientId)
+            ->where('client_balances.business_id', request()->session()->get('business_id'))
+            ->value('balance');
+    }
+
+    protected function syncClientTransactionBalances(int $clientId): float
+    {
+        $businessId = request()->session()->get('business_id');
+        $existingBalance = DB::table('client_balances')
+            ->where('client_id', $clientId)
+            ->where('business_id', $businessId)
+            ->value('balance');
+
+        $transactions = transaction::where('transaction_client_name', $clientId)
+            ->orderBy('date')
+            ->orderBy('id')
+            ->get(['id', 'type', 'amount']);
+
+        if ($transactions->isEmpty()) {
+            if ($existingBalance === null) {
+                DB::table('client_balances')->updateOrInsert(
+                    ['client_id' => $clientId, 'business_id' => $businessId],
+                    ['balance' => 0, 'created_at' => Carbon::now(), 'updated_at' => Carbon::now()]
+                );
+                return 0.0;
+            }
+
+            return (float) $existingBalance;
+        }
+
+        $netEffect = $transactions->sum(function ($txn) {
+            return $this->getTransactionEffect((string) $txn->type, (float) $txn->amount);
+        });
+
+        $openingBalance = $existingBalance === null
+            ? 0.0
+            : (float) $existingBalance - (float) $netEffect;
+
+        $runningBalance = $openingBalance;
+        foreach ($transactions as $txn) {
+            $runningBalance += $this->getTransactionEffect((string) $txn->type, (float) $txn->amount);
+
+            DB::table('transactions')
+                ->where('id', $txn->id)
+                ->update(['txnBalance' => $runningBalance]);
+        }
+
+        DB::table('client_balances')->updateOrInsert(
+            ['client_id' => $clientId, 'business_id' => $businessId],
+            ['balance' => $runningBalance, 'created_at' => Carbon::now(), 'updated_at' => Carbon::now()]
+        );
+
+        return $runningBalance;
+    }
+
     // helper: apply delta to client's current balance in client_balances and return new balance
     protected function applyClientBalanceDelta(int $clientId, float $delta): float
     {
@@ -95,10 +158,11 @@ class transactionController extends Controller
                     return redirect()->back()->with('error','Transaction not found.');
                 }
 
+                $oldClientId = (int) $txn->transaction_client_name;
                 $oldType = $txn->type;
                 $oldAmount = (float) $txn->amount;
-                $oldEffect = (strtolower($oldType) === 'credit') ? $oldAmount : -$oldAmount;
-                $newEffect = (strtolower($type) === 'credit') ? $amount : -$amount;
+                $oldEffect = $this->getTransactionEffect($oldType, $oldAmount);
+                $newEffect = $this->getTransactionEffect($type, $amount);
                 $delta = $newEffect - $oldEffect;
 
                 // update transaction fields first
@@ -110,20 +174,21 @@ class transactionController extends Controller
                 $txn->description = $data['description'] ?? null;
                 $txn->save();
 
-                // apply delta and get new balance
-                if ($delta != 0) {
-                    $newBalance = $this->applyClientBalanceDelta($clientId, $delta);
+                // When a transaction is moved to another client, reverse the old client's
+                // effect first, then apply the new effect to the new client.
+                if ($oldClientId !== $clientId) {
+                    $this->applyClientBalanceDelta($oldClientId, -$oldEffect);
+                    $this->applyClientBalanceDelta($clientId, $newEffect);
+                    $this->syncClientTransactionBalances($oldClientId);
+                    $newBalance = $this->syncClientTransactionBalances($clientId);
+                } elseif ($delta != 0) {
+                    $this->applyClientBalanceDelta($clientId, $delta);
+                    $newBalance = $this->syncClientTransactionBalances($clientId);
                 } else {
-                    // no change to balance
-                    $newBalance = (float) DB::table('client_balances')
-                        ->where('client_id', $clientId)
-                        ->where('client_balances.business_id', request()->session()->get('business_id'))
-                        ->value('balance');
+                    $newBalance = $this->syncClientTransactionBalances($clientId);
                 }
 
-                // save txnBalance on transaction
-                $txn->txnBalance = $newBalance;
-                $txn->save();
+                $txn->refresh();
             } else {
                 // create new transaction
                 $txn = new transaction();
@@ -137,21 +202,22 @@ class transactionController extends Controller
                 $txn->save();
 
                 // effect: +amount for Credit, -amount for Debit
-                $effect = (strtolower($type) === 'credit') ? $amount : -$amount;
+                $effect = $this->getTransactionEffect($type, $amount);
 
                 // apply effect and get new balance
-                $newBalance = $this->applyClientBalanceDelta($clientId, $effect);
+                $this->applyClientBalanceDelta($clientId, $effect);
+                $newBalance = $this->syncClientTransactionBalances($clientId);
 
-                // persist txnBalance
-                $txn->txnBalance = $newBalance;
-                $txn->save();
+                $txn->refresh();
             }
 
             DB::commit();
             return redirect()->back()->with('success','Transaction saved.');
         } catch (\Throwable $e) {
             DB::rollBack();
-            // optionally log $e->getMessage()
+            if (app()->environment('testing')) {
+                throw $e;
+            }
             return redirect()->back()->with('error','Failed to save transaction.');
         }
     }
@@ -243,7 +309,8 @@ class transactionController extends Controller
             ->select('client_creations.client_name','transactions.*')
             ->orderBy('transactions.date', 'desc')
             ->orderBy('transactions.id', 'desc')
-            ->get();
+            ->paginate(15)
+            ->withQueryString();
 
         // Top calculations based on client transaction history
         $today = now()->toDateString();
@@ -315,6 +382,7 @@ class transactionController extends Controller
             $this->applyClientBalanceDelta($clientId, $reverse);
 
             $txn->delete();
+            $this->syncClientTransactionBalances($clientId);
 
             DB::commit();
             return redirect()->route('transactionList')->with('success','Transaction deleted.');
@@ -368,6 +436,7 @@ class transactionController extends Controller
             // Apply balance deltas per client
             foreach ($deltasByClient as $clientId => $delta) {
                 $this->applyClientBalanceDelta($clientId, $delta);
+                $this->syncClientTransactionBalances((int) $clientId);
             }
 
             DB::commit();

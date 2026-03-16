@@ -1,10 +1,15 @@
 <?php
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration {
     public function up(): void
     {
+        if (!Schema::hasTable('mobile_accounts') || DB::getDriverName() === 'sqlite') {
+            return;
+        }
+
         // Ensure provider column exists (nullable string)
         DB::statement("ALTER TABLE mobile_accounts ADD COLUMN IF NOT EXISTS provider VARCHAR(100) NULL");
         // Drop old unique index on (business_id, number) if present
@@ -24,6 +29,10 @@ return new class extends Migration {
 
     public function down(): void
     {
+        if (!Schema::hasTable('mobile_accounts') || DB::getDriverName() === 'sqlite') {
+            return;
+        }
+
         // Drop the composite unique index
         $indexes = DB::select("SHOW INDEX FROM mobile_accounts WHERE Key_name = 'mob_acc_biz_num_prov_unique'");
         if (!empty($indexes)) {
