@@ -81,7 +81,7 @@ class bankManageController extends Controller
                             ->where('bank_accounts.business_id', $bizId)
                             ->orderBy('bank_accounts.entry_date','asc')
                             ->orderBy('bank_accounts.id','asc')
-                            ->paginate(12);
+                            ->get();
         return view('bank.bankAccountCreation', ['bankAccounts' => $bankAccounts]);   
     }
 

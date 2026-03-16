@@ -262,7 +262,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                 <button type="submit" form="bulk-delete-form" class="btn btn-danger btn-sm" id="bulk-delete-btn" disabled>Delete Selected</button>
                                 <small class="text-muted">Select rows to delete; balances auto-adjust.</small>
                             </div>
-                            <table class="table mb-0" data-no-datatable>
+                            <table class="table mb-0">
                                     <thead class="table-light">
                                         <tr>
                                             <th class="border-top-0"><input type="checkbox" id="select-all"></th>
@@ -283,7 +283,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                         @foreach ($transactions as $transaction)
                                         <tr>
                                             <td><input type="checkbox" name="ids[]" value="{{ $transaction->id }}" class="txn-checkbox" form="bulk-delete-form"></td>
-                                            <td>{{ $transactions->firstItem() + $loop->index }}</td>
+                                            <td>{{ $loop->iteration }}</td>
                                             <td>{{ $transaction->client_name }}</td>               
                                             @php
                                                 $sourceName = '';
@@ -344,7 +344,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                 <a href="{{route('transactionCreation')}}" type="button" class="btn btn-primary px-4">Add Transaction</a>
                             </div>
                             <div>
-                                {{ $transactions->links('pagination::bootstrap-5') }}
+                                
                             </div>
                         </div>
                     </div>

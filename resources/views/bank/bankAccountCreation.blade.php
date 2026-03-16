@@ -284,9 +284,7 @@ Bank
                         </button>
                     </div>
                 </div>
-                <div class="d-lg-flex justify-content-end mt-2">
-                    {{ $bankAccounts->links() }}
-                </div>
+                <div class="d-lg-flex justify-content-end mt-2"></div>
             </div><!--end card-body--> 
         </div><!--end card--> 
     </div> <!--end col-->

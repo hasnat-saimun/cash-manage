@@ -309,8 +309,7 @@ class transactionController extends Controller
             ->select('client_creations.client_name','transactions.*')
             ->orderBy('transactions.date', 'desc')
             ->orderBy('transactions.id', 'desc')
-            ->paginate(15)
-            ->withQueryString();
+            ->get();
 
         // Top calculations based on client transaction history
         $today = now()->toDateString();

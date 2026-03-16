@@ -29,7 +29,7 @@ class UserController extends Controller
                 $query->where('created_by', $current->id);
             }
         }
-        return view('admin.users.index', ['users'=>$query->paginate(20)]);
+        return view('admin.users.index', ['users'=>$query->get()]);
     }
     public function create() {
         // Non-super admins can only assign permissions they themselves have
