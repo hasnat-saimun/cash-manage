@@ -344,7 +344,7 @@ document.addEventListener('DOMContentLoaded', function () {
                                 <a href="{{route('transactionCreation')}}" type="button" class="btn btn-primary px-4">Add Transaction</a>
                             </div>
                             <div>
-                                {{ $transactions->links() }}
+                                {{ $transactions->links('pagination::bootstrap-5') }}
                             </div>
                         </div>
                     </div>
